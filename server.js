@@ -67,6 +67,9 @@ setInterval(() => {
   io.emit('state', { players, coin });
 }, 1000 / 60);
 
-server.listen(3000, () => {
-  console.log('Serveur Skins prêt !');
+// On utilise le port donné par l'hébergeur OU 3000 si on est en local
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`Serveur lancé sur le port ${PORT}`);
 });

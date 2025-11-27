@@ -12,7 +12,6 @@ document.addEventListener('keydown', (event) => {
     case 'ArrowRight': movement.right = true; break;
   }
 });
-
 document.addEventListener('keyup', (event) => {
   switch(event.code) {
     case 'ArrowUp': movement.up = false; break;
@@ -26,34 +25,31 @@ setInterval(() => {
   socket.emit('movement', movement);
 }, 1000 / 60);
 
-// RECEPTION DES DONNEES (Joueurs + Pièce)
 socket.on('state', (gameState) => {
   const players = gameState.players;
   const coin = gameState.coin;
 
-  // 1. Nettoyer l'écran
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // 2. DESSINER LA PIÈCE (Or)
-  ctx.fillStyle = "#FFD700"; // Jaune or
-  ctx.beginPath();
-  // On la fait un peu ronde
-  ctx.arc(coin.x + 10, coin.y + 10, 10, 0, 2 * Math.PI); 
-  ctx.fill();
-  ctx.strokeStyle = "orange";
-  ctx.stroke();
+  // Pour faciliter le dessin, on dit que x,y est le coin haut-gauche du texte
+  ctx.textBaseline = "top"; 
 
-  // 3. DESSINER LES JOUEURS
+  // 1. DESSINER LA PIÈCE (Diamant)
+  ctx.font = "40px Arial";
+  ctx.fillText("💎", coin.x, coin.y);
+
+  // 2. DESSINER LES JOUEURS
   for (let id in players) {
     const p = players[id];
     
-    // Le Carré
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x, p.y, 20, 20);
-
-    // Le Score (Texte au dessus du joueur)
+    // On dessine l'emoji du joueur
+    ctx.font = "40px Arial";
+    ctx.fillText(p.skin, p.x, p.y);
+    
+    // On dessine le score juste au-dessus
     ctx.fillStyle = "black";
     ctx.font = "14px Arial";
-    ctx.fillText(p.score, p.x+5, p.y-5);
+    // Petit calcul pour centrer le score au dessus de l'emoji
+    ctx.fillText(p.score, p.x, p.y );
   }
 });

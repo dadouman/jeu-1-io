@@ -26,11 +26,34 @@ setInterval(() => {
   socket.emit('movement', movement);
 }, 1000 / 60);
 
-socket.on('state', (players) => {
+// RECEPTION DES DONNEES (Joueurs + Pièce)
+socket.on('state', (gameState) => {
+  const players = gameState.players;
+  const coin = gameState.coin;
+
+  // 1. Nettoyer l'écran
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 2. DESSINER LA PIÈCE (Or)
+  ctx.fillStyle = "#FFD700"; // Jaune or
+  ctx.beginPath();
+  // On la fait un peu ronde
+  ctx.arc(coin.x + 10, coin.y + 10, 10, 0, 2 * Math.PI); 
+  ctx.fill();
+  ctx.strokeStyle = "orange";
+  ctx.stroke();
+
+  // 3. DESSINER LES JOUEURS
   for (let id in players) {
     const p = players[id];
+    
+    // Le Carré
     ctx.fillStyle = p.color;
     ctx.fillRect(p.x, p.y, 20, 20);
+
+    // Le Score (Texte au dessus du joueur)
+    ctx.fillStyle = "black";
+    ctx.font = "14px Arial";
+    ctx.fillText(p.score, p.x+5, p.y-5);
   }
 });

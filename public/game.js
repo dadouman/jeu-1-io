@@ -29,26 +29,63 @@ socket.on('state', (gameState) => {
   const players = gameState.players;
   const coin = gameState.coin;
 
+  // 1. Nettoyer l'écran
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Pour faciliter le dessin, on dit que x,y est le coin haut-gauche du texte
+  
+  // Configuration du texte pour le jeu
   ctx.textBaseline = "top"; 
 
-  // 1. DESSINER LA PIÈCE (Diamant)
+  // 2. DESSINER LA PIÈCE (Diamant)
   ctx.font = "40px Arial";
   ctx.fillText("💎", coin.x, coin.y);
 
-  // 2. DESSINER LES JOUEURS
+  // 3. DESSINER LES JOUEURS
   for (let id in players) {
     const p = players[id];
-    
-    // On dessine l'emoji du joueur
     ctx.font = "40px Arial";
     ctx.fillText(p.skin, p.x, p.y);
     
-    // On dessine le score juste au-dessus
-    ctx.fillStyle = "black";
-    ctx.font = "14px Arial";
-    ctx.fillText(p.score, p.x+5, p.y-5);
+    // Score au dessus du joueur
+    //ctx.fillStyle = "black";
+    //ctx.font = "14px Arial";
+    //ctx.fillText(p.score, p.x, p.y );
   }
+
+  // ============================================
+  // 4. GESTION DU CLASSEMENT (LEADERBOARD)
+  // ============================================
+
+  // A. On transforme l'objet 'players' en tableau pour pouvoir le trier
+  // Object.values(players) crée une liste : [{score: 10, skin...}, {score: 5, skin...}]
+  const playerArray = Object.values(players);
+
+  // B. On trie du plus grand score au plus petit
+  playerArray.sort((a, b) => b.score - a.score);
+
+  // C. On ne garde que le Top 5 (pour pas envahir l'écran)
+  const top5 = playerArray.slice(0, 5);
+
+  // D. On dessine la boîte du classement (Coin haut-droit)
+  const boxWidth = 150;
+  const startX = canvas.width - boxWidth - 10;
+  const startY = 10;
+
+  // Fond semi-transparent
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; 
+  ctx.fillRect(startX, startY, boxWidth, (top5.length * 25) + 35);
+  
+  // Titre "Classement"
+  ctx.fillStyle = "#FFD700"; // Couleur Or
+  ctx.font = "bold 16px Arial";
+  ctx.fillText("🏆 CLASSEMENT", startX + 5, startY + 10);
+
+  // Liste des joueurs
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "white";
+
+  top5.forEach((player, index) => {
+    // Ex: "1. 👽 : 12"
+    const text = `${index + 1}. ${player.skin} : ${player.score}`;
+    ctx.fillText(text, startX + 15, startY + 35 + (index * 25));
+  });
 });

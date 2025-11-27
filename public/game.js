@@ -49,7 +49,6 @@ socket.on('state', (gameState) => {
     // On dessine le score juste au-dessus
     ctx.fillStyle = "black";
     ctx.font = "14px Arial";
-    // Petit calcul pour centrer le score au dessus de l'emoji
-    ctx.fillText(p.score, p.x, p.y );
+    ctx.fillText(p.score, p.x+5, p.y-5);
   }
 });

@@ -5,71 +5,78 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
+// Import de nos modules perso
+const { generateMap, getRandomEmptyPosition } = require('./utils/map');
+const { checkWallCollision } = require('./utils/collisions');
+
 app.use(express.static('public'));
 
+// --- INITIALISATION DU JEU ---
 let players = {};
-// La pièce est maintenant un diamant
-let coin = { x: 300, y: 300 };
+const map = generateMap(); // On génère la map une seule fois au lancement
+let coin = getRandomEmptyPosition(map);
 
-// 1. LISTE DES SKINS (Tu peux en rajouter d'autres !)
-const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃", "💩", "🤠"];
+const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩"];
 
 io.on('connection', (socket) => {
-  console.log('Nouveau joueur : ' + socket.id);
+    console.log(`Joueur connecté : ${socket.id}`);
 
-  // 2. CHOIX DU SKIN ALÉATOIRE
-  const randomSkin = skins[Math.floor(Math.random() * skins.length)];
+    // 1. On envoie la carte au joueur qui vient d'arriver
+    socket.emit('mapData', map);
 
-  players[socket.id] = {
-    x: Math.random() * 700,
-    y: Math.random() * 500,
-    score: 0,
-    skin: randomSkin // On stocke l'emoji ici
-  };
+    // 2. On crée le joueur
+    const startPos = getRandomEmptyPosition(map);
+    players[socket.id] = {
+        x: startPos.x,
+        y: startPos.y,
+        score: 0,
+        skin: skins[Math.floor(Math.random() * skins.length)]
+    };
 
-  socket.on('disconnect', () => {
-    delete players[socket.id];
-  });
+    socket.on('disconnect', () => {
+        delete players[socket.id];
+    });
 
-  socket.on('movement', (data) => {
-    const player = players[socket.id] || {};
-    const speed = 5; // Vitesse constante
-    
-    if (data.left) player.x -= speed;
-    if (data.up) player.y -= speed;
-    if (data.right) player.x += speed;
-    if (data.down) player.y += speed;
+    socket.on('movement', (input) => {
+        const player = players[socket.id];
+        if (!player) return;
 
-    // Limites du terrain
-    if(player.x < 0) player.x = 0;
-    if(player.x > 760) player.x = 760;
-    if(player.y < 0) player.y = 0;
-    if(player.y > 560) player.y = 560;
-  });
+        const speed = 5;
+        let nextX = player.x;
+        let nextY = player.y;
+
+        if (input.left) nextX -= speed;
+        if (input.right) nextX += speed;
+        if (input.up) nextY -= speed;
+        if (input.down) nextY += speed;
+
+        // On ne valide le mouvement QUE si pas de collision
+        if (!checkWallCollision(nextX, nextY, map)) {
+            player.x = nextX;
+            player.y = nextY;
+        }
+    });
 });
 
+// BOUCLE DE JEU (60 FPS)
 setInterval(() => {
-  for (const id in players) {
-    const player = players[id];
-    
-    // Collision simple (on considère que l'emoji fait 40x40 pixels)
-    if (
-      player.x < coin.x + 40 &&
-      player.x + 40 > coin.x &&
-      player.y < coin.y + 40 &&
-      player.y + 40 > coin.y
-    ) {
-      player.score++;
-      coin.x = Math.random() * 700;
-      coin.y = Math.random() * 500;
+    // Vérification collision Joueur <-> Pièce
+    for (const id in players) {
+        const p = players[id];
+        const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
+        
+        if (dist < 30) { // Si touché
+            p.score++;
+            coin = getRandomEmptyPosition(map);
+            io.emit('sound', 'coin'); // Bonus: on pourrait jouer un son
+        }
     }
-  }
-  io.emit('state', { players, coin });
+
+    // On envoie tout le monde aux clients
+    io.emit('state', { players, coin });
 }, 1000 / 60);
 
-// On utilise le port donné par l'hébergeur OU 3000 si on est en local
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, () => {
-  console.log(`Serveur lancé sur le port ${PORT}`);
+    console.log(`Serveur démarré sur le port ${PORT}`);
 });

@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Jeu .io</title>
+    <meta charset="UTF-8">
+    <title>Labyrinthe .io</title>
     <style>
-        body { margin: 0; background: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        canvas { background: white; border: 4px solid #444; }
+        body { margin: 0; background: #111; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+        canvas { background: #000; }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <canvas id="gameCanvas"></canvas>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script src="game.js"></script>
+    <!-- On charge d'abord le peintre, puis le joueur -->
+    <script src="renderer.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@ function renderGame(ctx, canvas, map, players, coin, myId) {
 
     // 2. LE BROUILLARD (Effet masque)
     ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 180, 0, Math.PI * 2); // Rayon de 180px
+    ctx.arc(canvas.width / 2, canvas.height / 2, 90, 0, Math.PI * 2); // Rayon de 90pxd
     ctx.clip(); // Tout ce qui est dessiné après ne sera visible que DANS le cercle
 
     // 3. Fond visible (Sol)

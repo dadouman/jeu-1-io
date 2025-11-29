@@ -25,5 +25,10 @@ jobs:
     # 3. Il installe les dépendances (socket.io, jest...)
     - run: npm install
     
-    # 4. IL LANCE LES TESTS !
+    # 4. On lance les tests
     - run: npm test
+
+    # 5. SI (et seulement si) les tests passent, on prévient Render
+    - name: Deploy to Render
+      if: success() # Cette ligne est implicite mais c'est bien de l'écrire
+      run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}

@@ -1,0 +1,29 @@
+name: Node.js CI
+
+# Quand est-ce que le robot se réveille ?
+on:
+  push:
+    branches: [ "main"]
+  pull_request:
+    branches: [ "main" ]
+
+# Qu'est-ce qu'il doit faire ?
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Il récupère ton code
+    - uses: actions/checkout@v3
+    
+    # 2. Il installe Node.js v18
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.x
+        
+    # 3. Il installe les dépendances (socket.io, jest...)
+    - run: npm install
+    
+    # 4. IL LANCE LES TESTS !
+    - run: npm test

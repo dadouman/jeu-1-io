@@ -1,6 +1,6 @@
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, gameState, myId) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     const players = gameState.players;
     const coin = gameState.coin;
     const highScore = gameState.highScore; // On récupère le record

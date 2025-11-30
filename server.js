@@ -1,108 +1,76 @@
-const express = require('express');
-const app = express();
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server);
-const mongoose = require('mongoose'); // NOUVEAU : Import de mongoose
+// public/renderer.js
 
-const { generateMap, getRandomEmptyPosition } = require('./utils/map');
-const { checkWallCollision } = require('./utils/collisions');
+const TILE_SIZE = 40;
 
-app.use(express.static('public'));
+// On déclare la fonction une seule fois
+function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
+    
+    // --- BOUCLIER DE SÉCURITÉ ---
+    if (!players || !map || !coin) return;
+    if (map.length === 0) return;
+    if (!myId) return;
+    const myPlayer = players[myId];
+    if (!myPlayer) return;
+    // --- FIN DU BOUCLIER ---
 
-// --- 1. CONNEXION BASE DE DONNÉES ---
-// Remplace <password> par ton vrai mot de passe (sans les chevrons < >)
-const MONGODB_URI = process.env.MONGODB_URI;
+    // 1. Fond noir
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connecté à MongoDB !'))
-    .catch(err => console.error('Erreur MongoDB:', err));
+    ctx.save(); // Sauvegarde de la caméra
 
-// --- 2. DÉFINITION DU MODÈLE (À quoi ressemble un record ?) ---
-const HighScoreSchema = new mongoose.Schema({
-    score: Number,
-    skin: String,
-    date: { type: Date, default: Date.now }
-});
-const HighScore = mongoose.model('HighScore', HighScoreSchema);
+    // 2. Brouillard
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 180, 0, Math.PI * 2);
+    ctx.clip();
 
-// --- 3. VARIABLES DU JEU ---
-let players = {};
-const map = generateMap();
-let coin = getRandomEmptyPosition(map);
-const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩"];
+    // 3. Sol
+    ctx.fillStyle = "#222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-// Variable pour stocker le record actuel en mémoire (pour aller vite)
-let globalHighScore = { score: 0, skin: 'UNKNOWN' };
+    // 4. Caméra
+    const camX = canvas.width / 2 - myPlayer.x;
+    const camY = canvas.height / 2 - myPlayer.y;
+    ctx.translate(camX, camY);
 
-// Au démarrage, on va chercher le vrai record dans la base de données
-HighScore.findOne().sort({ score: -1 }).then(record => {
-    if (record) {
-        globalHighScore = { score: record.score, skin: record.skin };
-        console.log(`Record actuel chargé : ${record.score} par ${record.skin}`);
-    }
-});
-
-io.on('connection', (socket) => {
-    socket.emit('mapData', map);
-
-    const startPos = getRandomEmptyPosition(map);
-    players[socket.id] = {
-        x: startPos.x,
-        y: startPos.y,
-        score: 0,
-        skin: skins[Math.floor(Math.random() * skins.length)]
-    };
-
-    socket.on('disconnect', () => { delete players[socket.id]; });
-
-    socket.on('movement', (input) => {
-        const player = players[socket.id];
-        if (!player) return;
-
-        const speed = 5;
-        let nextX = player.x;
-        let nextY = player.y;
-
-        if (input.left) nextX -= speed;
-        if (input.right) nextX += speed;
-        if (input.up) nextY -= speed;
-        if (input.down) nextY += speed;
-
-        if (!checkWallCollision(nextX, nextY, map)) {
-            player.x = nextX;
-            player.y = nextY;
-        }
-    });
-});
-
-setInterval(() => {
-    for (const id in players) {
-        const p = players[id];
-        const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
-        
-        if (dist < 30) {
-            p.score++;
-            coin = getRandomEmptyPosition(map);
-            
-            // --- 4. VÉRIFICATION DU RECORD ---
-            if (p.score > globalHighScore.score) {
-                // Mise à jour locale (rapide)
-                globalHighScore = { score: p.score, skin: p.skin };
-                
-                // Sauvegarde en base de données (asynchrone)
-                const newRecord = new HighScore({ score: p.score, skin: p.skin });
-                newRecord.save().then(() => console.log("Nouveau record sauvegardé !"));
+    // 5. Map
+    for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[0].length; x++) {
+            if (map[y][x] === 1) {
+                ctx.fillStyle = "#555";
+                ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                ctx.strokeStyle = "#333";
+                ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             }
         }
     }
 
-    // On envoie le record actuel aux joueurs pour l'affichage
-    io.emit('state', { players, coin, highScore: globalHighScore });
-}, 1000 / 60);
+    // 6. Pièce
+    ctx.font = "30px Arial";
+    ctx.fillText("💎", coin.x, coin.y + 30);
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Serveur démarré sur le port ${PORT}`);
-});
+    // 7. Joueurs
+    for (let id in players) {
+        const p = players[id];
+        ctx.font = "30px Arial";
+        ctx.fillText(p.skin, p.x, p.y + 30);
+        
+       // ctx.fillStyle = "white";
+       // ctx.font = "12px Arial";
+       // ctx.fillText(p.score, p.x + 10, p.y);
+    }
+
+    ctx.restore(); // Restauration caméra
+
+    // 8. Interface (UI)
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.textAlign = "left";
+    ctx.fillText("Score : " + myPlayer.score, 20, 40);
+
+    // Record
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 20px Arial";
+    const recordText = highScore ? `${highScore.score} ${highScore.playerSkin}` : "0";
+    ctx.fillText(`🏆 Record : ${recordText}`, canvas.width - 250, 40);
+}

@@ -1,9 +1,12 @@
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId) {
+function renderGame(ctx, canvas, map, gameState, myId) {
+    const players = gameState.players;
+    const coin = gameState.coin;
+    const highScore = gameState.highScore; // On récupère le record
+    
     const myPlayer = players[myId];
     if (!myPlayer || map.length === 0) return;
-
     // --- LE MOUCHARD ---
     // Affiche les coordonnées dans la console du navigateur (F12)
     //console.log("Ma position :", Math.floor(myPlayer.x), Math.floor(myPlayer.y));
@@ -55,10 +58,23 @@ function renderGame(ctx, canvas, map, players, coin, myId) {
         //ctx.fillStyle = "white";
         //ctx.font = "12px Arial";
         //ctx.fillText(p.score, p.x + 10, p.y);
+// ... code existant ...
 
-        
-        // ====================================================
+       // 8. UI - VOTRE SCORE
+    ctx.fillStyle = "white";
+    ctx.font = "20px Arial";
+    ctx.fillText("Score : " + myPlayer.score, 20, 40);
+
+    // 9. UI - RECORD DU MONDE
+    if (highScore) {
+        ctx.fillStyle = "#FFD700"; // Or
+        ctx.font = "16px Arial";
+        ctx.textAlign = "right"; // On aligne à droite
+        // On affiche en haut à droite de l'écran
+        ctx.fillText(`🏆 RECORD : ${highScore.score} (${highScore.skin})`, canvas.width - 20, 40);
+        ctx.textAlign = "left"; // On remet normal
     }
+}
 
     ctx.restore(); // -- FIN TRANSFORMATION --
 

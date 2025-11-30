@@ -4,27 +4,49 @@ const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
+const mongoose = require('mongoose'); // NOUVEAU : Import de mongoose
 
-// Import de nos modules perso
 const { generateMap, getRandomEmptyPosition } = require('./utils/map');
 const { checkWallCollision } = require('./utils/collisions');
 
 app.use(express.static('public'));
 
-// --- INITIALISATION DU JEU ---
-let players = {};
-const map = generateMap(); // On génère la map une seule fois au lancement
-let coin = getRandomEmptyPosition(map);
+// --- 1. CONNEXION BASE DE DONNÉES ---
+// Remplace <password> par ton vrai mot de passe (sans les chevrons < >)
+const MONGODB_URI = process.env.MONGODB_URI;
 
+mongoose.connect(MONGODB_URI)
+    .then(() => console.log('Connecté à MongoDB !'))
+    .catch(err => console.error('Erreur MongoDB:', err));
+
+// --- 2. DÉFINITION DU MODÈLE (À quoi ressemble un record ?) ---
+const HighScoreSchema = new mongoose.Schema({
+    score: Number,
+    skin: String,
+    date: { type: Date, default: Date.now }
+});
+const HighScore = mongoose.model('HighScore', HighScoreSchema);
+
+// --- 3. VARIABLES DU JEU ---
+let players = {};
+const map = generateMap();
+let coin = getRandomEmptyPosition(map);
 const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩"];
 
-io.on('connection', (socket) => {
-    console.log(`Joueur connecté : ${socket.id}`);
+// Variable pour stocker le record actuel en mémoire (pour aller vite)
+let globalHighScore = { score: 0, skin: 'UNKNOWN' };
 
-    // 1. On envoie la carte au joueur qui vient d'arriver
+// Au démarrage, on va chercher le vrai record dans la base de données
+HighScore.findOne().sort({ score: -1 }).then(record => {
+    if (record) {
+        globalHighScore = { score: record.score, skin: record.skin };
+        console.log(`Record actuel chargé : ${record.score} par ${record.skin}`);
+    }
+});
+
+io.on('connection', (socket) => {
     socket.emit('mapData', map);
 
-    // 2. On crée le joueur
     const startPos = getRandomEmptyPosition(map);
     players[socket.id] = {
         x: startPos.x,
@@ -33,9 +55,7 @@ io.on('connection', (socket) => {
         skin: skins[Math.floor(Math.random() * skins.length)]
     };
 
-    socket.on('disconnect', () => {
-        delete players[socket.id];
-    });
+    socket.on('disconnect', () => { delete players[socket.id]; });
 
     socket.on('movement', (input) => {
         const player = players[socket.id];
@@ -50,7 +70,6 @@ io.on('connection', (socket) => {
         if (input.up) nextY -= speed;
         if (input.down) nextY += speed;
 
-        // On ne valide le mouvement QUE si pas de collision
         if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
@@ -58,22 +77,29 @@ io.on('connection', (socket) => {
     });
 });
 
-// BOUCLE DE JEU (60 FPS)
 setInterval(() => {
-    // Vérification collision Joueur <-> Pièce
     for (const id in players) {
         const p = players[id];
         const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
         
-        if (dist < 30) { // Si touché
+        if (dist < 30) {
             p.score++;
             coin = getRandomEmptyPosition(map);
-            io.emit('sound', 'coin'); // Bonus: on pourrait jouer un son
+            
+            // --- 4. VÉRIFICATION DU RECORD ---
+            if (p.score > globalHighScore.score) {
+                // Mise à jour locale (rapide)
+                globalHighScore = { score: p.score, skin: p.skin };
+                
+                // Sauvegarde en base de données (asynchrone)
+                const newRecord = new HighScore({ score: p.score, skin: p.skin });
+                newRecord.save().then(() => console.log("Nouveau record sauvegardé !"));
+            }
         }
     }
 
-    // On envoie tout le monde aux clients
-    io.emit('state', { players, coin });
+    // On envoie le record actuel aux joueurs pour l'affichage
+    io.emit('state', { players, coin, highScore: globalHighScore });
 }, 1000 / 60);
 
 const PORT = process.env.PORT || 3000;

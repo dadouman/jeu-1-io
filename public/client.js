@@ -39,6 +39,5 @@ setInterval(() => {
 
 // Boucle de réception et dessin
 socket.on('state', (gameState) => {
-    // On appelle la fonction de dessin qui est dans renderer.js
-    renderGame(ctx, canvas, map, gameState.players, gameState.coin, socket.id);
+    renderGame(ctx, canvas, map, gameState, socket.id);
 });

@@ -4,20 +4,25 @@ const TILE_SIZE = 40;
 
 function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     
-    // 1. Fond noir (On le dessine QUOI QU'IL ARRIVE)
-    // Comme ça, si ça plante après, au moins on sait que le canvas marche
+    // 1. Fond noir
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // --- SÉCURITÉ MINIMUM ---
-    // Si on n'a pas la map ou le joueur, on ne peut pas placer la caméra, donc on arrête là.
-    if (!map || map.length === 0) return;
-    if (!players || !myId || !players[myId]) {
-        // On affiche un texte de chargement
-        ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText("Connexion au serveur...", 50, 50);
-        return;
+    // --- DIAGNOSTIC À L'ÉCRAN (Plus besoin de F12) ---
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+    let yLog = 30;
+
+    // Affiche l'état des variables vitales
+    ctx.fillText(`État du jeu :`, 20, yLog); yLog += 25;
+    ctx.fillText(`- Mon ID : ${myId ? myId : "EN ATTENTE..."}`, 20, yLog); yLog += 25;
+    ctx.fillText(`- Map chargée : ${map && map.length > 0 ? "OUI (" + map.length + ")" : "NON"}`, 20, yLog); yLog += 25;
+    ctx.fillText(`- Joueurs connus : ${players ? Object.keys(players).length : "AUCUN"}`, 20, yLog); yLog += 25;
+    
+    if (!players || !map || map.length === 0 || !myId || !players[myId]) {
+        ctx.fillStyle = "yellow";
+        ctx.fillText("⚠️ EN ATTENTE DE DONNÉES DU SERVEUR...", 20, yLog + 20);
+        return; // On arrête là tant qu'on n'a pas tout
     }
     // -------------------------
 

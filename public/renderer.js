@@ -2,20 +2,30 @@
 
 const TILE_SIZE = 40;
 
-// La fonction qui dessine tout
 function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     
-    // --- BOUCLIER ANTI-BUG ---
-    if (!players || !map || !coin) return;
-    if (map.length === 0) return;
-    if (!myId) return;
-    const myPlayer = players[myId];
-    if (!myPlayer) return;
-    // -------------------------
-
-    // 1. Fond noir
+    // 1. Fond noir (On le dessine QUOI QU'IL ARRIVE)
+    // Comme ça, si ça plante après, au moins on sait que le canvas marche
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // --- SÉCURITÉ MINIMUM ---
+    // Si on n'a pas la map ou le joueur, on ne peut pas placer la caméra, donc on arrête là.
+    if (!map || map.length === 0) return;
+    if (!players || !myId || !players[myId]) {
+        // On affiche un texte de chargement
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fillText("Connexion au serveur...", 50, 50);
+        return;
+    }
+    // -------------------------
+
+    const myPlayer = players[myId];
+
+    // GESTION DU RECORD MANQUANT (Pour éviter l'écran noir si MongoDB est lent)
+    // Si highScore est vide, on invente un faux record à 0
+    let safeRecord = highScore || { score: 0, skin: "❓" };
 
     ctx.save(); // Sauvegarde Caméra
 
@@ -28,7 +38,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 4. Caméra (Centrée sur le joueur)
+    // 4. Caméra
     const camX = canvas.width / 2 - myPlayer.x;
     const camY = canvas.height / 2 - myPlayer.y;
     ctx.translate(camX, camY);
@@ -46,8 +56,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     }
 
     // 6. Pièce
-    ctx.font = "30px Arial";
-    ctx.fillText("💎", coin.x, coin.y + 30);
+    if (coin) { // Sécurité si la pièce n'est pas encore là
+        ctx.font = "30px Arial";
+        ctx.fillText("💎", coin.x, coin.y + 30);
+    }
 
     // 7. Joueurs
     for (let id in players) {
@@ -68,9 +80,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     ctx.textAlign = "left";
     ctx.fillText("Score : " + myPlayer.score, 20, 40);
 
-    // 9. Record
+    // 9. Record (Utilise la version sécurisée 'safeRecord')
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 20px Arial";
-    const recordText = highScore ? `${highScore.score} ${highScore.skin}` : "0";
-    ctx.fillText(`🏆 Record : ${recordText}`, canvas.width - 250, 40);
+    ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 250, 40);
 }

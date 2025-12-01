@@ -47,7 +47,7 @@ const map = generateMap();
 // On place la pièce
 let coin = getRandomEmptyPosition(map);
 // Liste des skins
-const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃"];
+const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩"];
 
 // Variable mémoire pour le record (pour aller vite)
 let currentRecord = { score: 0, skin: "❓" };

@@ -79,6 +79,10 @@ loadHighScore();
 
 // --- 4. GESTION DES JOUEURS (SOCKET.IO) ---
 io.on('connection', (socket) => {
+    console.log('Joueur connecté : ' + socket.id);
+
+    socket.emit('init', socket.id); 
+
     // A. Envoyer la carte et le record actuel
     socket.emit('mapData', map);
     socket.emit('highScoreUpdate', currentRecord);

@@ -3,7 +3,13 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-const io = new Server(server);
+
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Autorise tout le monde (Important pour Render)
+        methods: ["GET", "POST"]
+    }
+});
 const mongoose = require('mongoose');
 
 // IMPORTANT : On n'utilise PLUS 'fs' (fichiers) car on est sur le Cloud

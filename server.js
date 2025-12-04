@@ -78,32 +78,57 @@ io.on('connection', (socket) => {
     players[socket.id] = {
         x: startPos.x,
         y: startPos.y,
+        destX: startPos.x,
+        destY: startPos.y,
         score: 0,
         skin: skins[Math.floor(Math.random() * skins.length)]
     };
 
     socket.on('disconnect', () => { delete players[socket.id]; });
 
-    socket.on('movement', (input) => {
+socket.on('movement', (input) => {
         const player = players[socket.id];
         if (!player) return;
 
-        const speed = 5;
-        let nextX = player.x;
-        let nextY = player.y;
+        // VITESSE DU JEU
+        // IMPORTANT : 40 (taille case) doit être divisible par speed (5). 
+        // 40 / 5 = 8 frames pour faire une case. C'est fluide.
+        const speed = 5; 
+        const TILE_SIZE = 40;
 
-        if (input.left) nextX -= speed;
-        if (input.right) nextX += speed;
-        if (input.up) nextY -= speed;
-        if (input.down) nextY += speed;
+        // CAS 1 : Le joueur est en train de se déplacer vers une case
+        // On continue de le faire avancer tant qu'il n'est pas pile sur la destination
+        if (player.x !== player.destX || player.y !== player.destY) {
+            
+            if (player.x < player.destX) player.x += speed;
+            else if (player.x > player.destX) player.x -= speed;
+            
+            if (player.y < player.destY) player.y += speed;
+            else if (player.y > player.destY) player.y -= speed;
 
-        if (!checkWallCollision(nextX, nextY, map)) {
-            player.x = nextX;
-            player.y = nextY;
+        } 
+        // CAS 2 : Le joueur est arrivé sur une case (Aligné)
+        // On a le droit de choisir une nouvelle direction
+        else {
+            // On regarde où le joueur VEUT aller
+            let nextX = player.x;
+            let nextY = player.y;
+
+            // On priorise les axes pour éviter les diagonales bizarres
+            if (input.up) nextY -= TILE_SIZE;
+            else if (input.down) nextY += TILE_SIZE;
+            else if (input.left) nextX -= TILE_SIZE;
+            else if (input.right) nextX += TILE_SIZE;
+
+            // Si la destination a changé ET qu'il n'y a pas de mur
+            if ((nextX !== player.x || nextY !== player.y) && !checkWallCollision(nextX, nextY, map)) {
+                // On valide la nouvelle destination !
+                // Au prochain tour de boucle, le CAS 1 va prendre le relais pour le déplacer
+                player.destX = nextX;
+                player.destY = nextY;
+            }
         }
     });
-});
-
 // --- BOUCLE DE JEU ---
 setInterval(() => {
     let recordChanged = false;

@@ -21,7 +21,21 @@ let inputs = { up: false, down: false, left: false, right: false };
 let currentHighScore = null;
 let myPlayerId = null; // <--- LA VARIABLE QUI VA NOUS SAUVER
 
+let level = 1;
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
+// Quand le serveur dit qu'on change de niveau
+socket.on('levelUpdate', (newLevel) => {
+    console.log("🆙 Passage au niveau :", newLevel);
+    level = newLevel;
+});
+
+// MODIFIE AUSSI 'mapData' POUR NE PAS JUSTE CONSOLER
+socket.on('mapData', (data) => {
+    map = data; // Mise à jour immédiate de la carte locale
+    console.log("🗺️ Nouvelle carte reçue !");
+});
+
 socket.on('init', (id) => {
     console.log("🆔 ID reçu du serveur via 'init' :", id);
     myPlayerId = id; // On le stocke manuellement
@@ -70,6 +84,6 @@ socket.on('state', (gameState) => {
     const finalId = myPlayerId || socket.id;
 
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level);
     }
 });

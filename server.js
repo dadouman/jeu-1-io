@@ -1,93 +1,79 @@
+try {
+    require('dotenv').config();
+} catch (e) {
+    console.log("On est sur Render (ou dotenv manquant), on utilise les variables d'environnement directes.");
+}
 const express = require('express');
 const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-
-const io = new Server(server, {
-    cors: {
-        origin: "*", // Autorise tout le monde (Important pour Render)
-        methods: ["GET", "POST"]
-    }
-});
 const mongoose = require('mongoose');
 
-// IMPORTANT : On n'utilise PLUS 'fs' (fichiers) car on est sur le Cloud
-// const fs = require('fs'); // <--- Supprimé volontairement
+// Configuration Socket.io pour Render
+const io = new Server(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+});
 
-// Import de nos modules perso (Vérifie que le dossier 'utils' est bien là)
-const { generateMap, getRandomEmptyPosition } = require('./utils/map');
+// IMPORTANT : On importe la NOUVELLE fonction 'generateMaze'
+const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
 const { checkWallCollision } = require('./utils/collisions');
 
 app.use(express.static('public'));
 
-// --- 1. CONNEXION MONGODB ---
+// --- CONNEXION MONGODB ---
 const mongoURI = process.env.MONGO_URI;
-
-// Sécurité pour éviter le crash si la variable manque
 if (!mongoURI) {
-    console.warn("⚠️ ATTENTION : Pas de MONGO_URI configuré ! Le HighScore ne sera pas sauvegardé.");
+    console.warn("⚠️ Pas de MONGO_URI. Le HighScore ne sera pas sauvegardé.");
 } else {
     mongoose.connect(mongoURI)
         .then(() => console.log('✅ Connecté à MongoDB !'))
-        .catch(err => console.error('❌ Erreur connexion Mongo :', err));
+        .catch(err => console.error('❌ Erreur Mongo :', err));
 }
 
-// --- 2. MODÈLE DE DONNÉES ---
-const HighScoreSchema = new mongoose.Schema({
-    score: Number,
-    skin: String
-});
+// Modèle HighScore
+const HighScoreSchema = new mongoose.Schema({ score: Number, skin: String });
 const HighScoreModel = mongoose.model('HighScore', HighScoreSchema);
 
-// --- 3. INITIALISATION DU JEU ---
+// --- INITIALISATION DU JEU ---
 let players = {};
-// On génère la map une seule fois au démarrage
-const map = generateMap();
-// On place la pièce
-let coin = getRandomEmptyPosition(map);
-// Liste des skins
-const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩", "🤣"];
 
-// Variable mémoire pour le record (pour aller vite)
+// VARIABLES DU ROGUE-LIKE
+let currentLevel = 1;
+// On commence petit (15x15)
+// ATTENTION : On utilise 'let' car la map va changer, et on appelle generateMaze(15, 15)
+let map = generateMaze(15, 15); 
+let coin = getRandomEmptyPosition(map);
+
+const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩", "🤣"];
 let currentRecord = { score: 0, skin: "❓" };
 
-// FONCTION : Charger le record depuis la BDD au démarrage
+// Chargement du record
 async function loadHighScore() {
-    if (!mongoURI) return; // Si pas de BDD, on ne fait rien
-
+    if (!mongoURI) return;
     try {
-        // On cherche le premier document
         let doc = await HighScoreModel.findOne();
         if (doc) {
             currentRecord = { score: doc.score, skin: doc.skin };
-            console.log(`🏆 Record chargé : ${doc.score} par ${doc.skin}`);
-            // NOUVEAU : On met à jour les joueurs si jamais ils sont déjà connectés
-            io.emit('highScoreUpdate', currentRecord);
+            console.log(`🏆 Record chargé : ${doc.score}`);
         } else {
-            // Si la base est vide, on crée le premier record à 0
             const newRecord = new HighScoreModel({ score: 0, skin: "❓" });
             await newRecord.save();
-            console.log("🆕 Base vide, record initialisé à 0");
         }
-    } catch (err) {
-        console.error("Erreur chargement record:", err);
-    }
+    } catch (err) { console.error(err); }
 }
-// On lance le chargement immédiatement
 loadHighScore();
 
-// --- 4. GESTION DES JOUEURS (SOCKET.IO) ---
+// --- GESTION JOUEURS ---
 io.on('connection', (socket) => {
     console.log('Joueur connecté : ' + socket.id);
-
-    socket.emit('init', socket.id); 
-
-    // A. Envoyer la carte et le record actuel
+    
+    // Init immédiat
+    socket.emit('init', socket.id);
     socket.emit('mapData', map);
+    socket.emit('levelUpdate', currentLevel); // On envoie le niveau actuel
     socket.emit('highScoreUpdate', currentRecord);
 
-    // B. Créer le joueur avec un skin aléatoire
     const startPos = getRandomEmptyPosition(map);
     players[socket.id] = {
         x: startPos.x,
@@ -96,12 +82,8 @@ io.on('connection', (socket) => {
         skin: skins[Math.floor(Math.random() * skins.length)]
     };
 
-    // C. Déconnexion
-    socket.on('disconnect', () => {
-        delete players[socket.id];
-    });
+    socket.on('disconnect', () => { delete players[socket.id]; });
 
-    // D. Mouvement
     socket.on('movement', (input) => {
         const player = players[socket.id];
         if (!player) return;
@@ -115,7 +97,6 @@ io.on('connection', (socket) => {
         if (input.up) nextY -= speed;
         if (input.down) nextY += speed;
 
-        // Vérification Collision Mur
         if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
@@ -123,47 +104,70 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- 5. BOUCLIER DU JEU (60 FPS) ---
+// --- BOUCLE DE JEU ---
 setInterval(() => {
     let recordChanged = false;
+    let levelChanged = false;
 
     for (const id in players) {
         const p = players[id];
-        
-        // Vérification Collision Pièce (Distance < 30px)
         const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
         
+        // --- COLLISION AVEC LA PIÈCE ---
         if (dist < 30) {
             p.score++;
+            
+            // 1. ON AUGMENTE LE NIVEAU
+            currentLevel++;
+            levelChanged = true;
+
+            // 2. ON AGRANDIT LE LABYRINTHE
+            // Taille de base 15 + (2 cases par niveau)
+            const newSize = 15 + (currentLevel * 2);
+            map = generateMaze(newSize, newSize); // Génération du nouveau labyrinthe
+            
+            // 3. ON DÉPLACE LA PIÈCE
             coin = getRandomEmptyPosition(map);
 
-            // GESTION RECORD
+            // 4. ON TÉLÉPORTE TOUS LES JOUEURS (Sécurité anti-mur)
+            for (let pid in players) {
+                const safePos = getRandomEmptyPosition(map);
+                players[pid].x = safePos.x;
+                players[pid].y = safePos.y;
+            }
+
+            // Gestion Record
             if (p.score > currentRecord.score) {
                 currentRecord.score = p.score;
                 currentRecord.skin = p.skin;
                 recordChanged = true;
             }
+            
+            // Si on a trouvé la pièce, on arrête la boucle des joueurs ici 
+            // pour éviter que 2 joueurs la prennent en même temps
+            break; 
         }
     }
 
-    // Si le record a été battu pendant ce tour
-    if (recordChanged) {
-        // 1. On prévient tout le monde
-        io.emit('highScoreUpdate', currentRecord);
+    // SI LE NIVEAU A CHANGÉ
+    if (levelChanged) {
+        io.emit('mapData', map); // On envoie la nouvelle carte
+        io.emit('levelUpdate', currentLevel); // On prévient du niveau
+        console.log(`🆙 Niveau ${currentLevel} généré !`);
+    }
 
-        // 2. On sauvegarde en BDD (si connectée)
+    // SI LE RECORD A CHANGÉ
+    if (recordChanged) {
+        io.emit('highScoreUpdate', currentRecord);
         if (mongoURI) {
-            // updateOne met à jour le premier document trouvé (il n'y en a qu'un)
             HighScoreModel.updateOne({}, { score: currentRecord.score, skin: currentRecord.skin }).exec();
         }
     }
 
-    // Envoi de l'état du monde
     io.emit('state', { players, coin });
 
 }, 1000 / 60);
 
-// --- 6. DÉMARRAGE DU SERVEUR ---
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);

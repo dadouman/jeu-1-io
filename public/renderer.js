@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -88,6 +88,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore) {
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     ctx.fillText("Score : " + myPlayer.score, 20, 40);
+
+    // Affichage du Niveau
+    ctx.fillStyle = "#aaa"; // Gris clair
+    ctx.font = "16px Arial";
+    ctx.fillText("Niveau " + (level || 1), 20, 65); // Juste en dessous du score
 
     // 9. Record
     ctx.fillStyle = "#FFD700"; // Or

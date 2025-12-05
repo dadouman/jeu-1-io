@@ -25,7 +25,7 @@ let level = 1;
 
 // VARIABLES CHECKPOINT
 let checkpoint = null;
-let actions = { setCheckpoint: false, teleportCheckpoint: false };
+let actions = { setCheckpoint: false, teleportCheckpoint: false, dash: false };
 
 // VARIABLES TRACES
 let trails = {}; // Traces de tous les joueurs { playerId: { color, positions } }
@@ -93,6 +93,12 @@ document.addEventListener('keydown', (e) => {
         actions.teleportCheckpoint = true;
         e.preventDefault();
     }
+    
+    // Dash avec Shift
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        actions.dash = true;
+        e.preventDefault();
+    }
 });
 document.addEventListener('keyup', (e) => {
     if(e.code === 'ArrowUp') inputs.up = false;
@@ -103,6 +109,7 @@ document.addEventListener('keyup', (e) => {
     // Réinitialiser les actions (une seule fois par appui)
     if(e.code === 'Space') actions.setCheckpoint = false;
     if(e.code === 'KeyR') actions.teleportCheckpoint = false;
+    if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') actions.dash = false;
 });
 
 // Envoi des mouvements

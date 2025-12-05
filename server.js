@@ -82,6 +82,46 @@ async function loadHighScore() {
 }
 loadHighScore();
 
+// --- FONCTION DE DASH ---
+function performDash(player, playerId) {
+    // Déterminer la direction du dash
+    let dashDx = 0;
+    let dashDy = 0;
+    
+    // Déterminer la direction basée sur les inputs actuels (on peut utiliser la dernière direction connue)
+    // Pour simplifier, on utilise les mouvements : si aucun mouvement, on dash devant soi (dernière direction)
+    let direction = player.lastDirection || 'right'; // Par défaut vers la droite
+    
+    if (direction === 'up') dashDy = -1;
+    if (direction === 'down') dashDy = 1;
+    if (direction === 'left') dashDx = -1;
+    if (direction === 'right') dashDx = 1;
+
+    const dashDistance = 15; // Nombre de pixels par pas de dash
+    let currentX = player.x;
+    let currentY = player.y;
+    let stepsCount = 0;
+    const maxSteps = 20; // Distance max du dash
+
+    // Avancer jusqu'à collision ou distance max
+    while (stepsCount < maxSteps) {
+        const nextX = currentX + dashDx * dashDistance;
+        const nextY = currentY + dashDy * dashDistance;
+
+        if (checkWallCollision(nextX, nextY, map)) {
+            break; // Collision, on arrête
+        }
+
+        currentX = nextX;
+        currentY = nextY;
+        stepsCount++;
+    }
+
+    player.x = currentX;
+    player.y = currentY;
+    console.log(`⚡ Dash de ${playerId} à (${player.x}, ${player.y})`);
+}
+
 // --- GESTION JOUEURS ---
 io.on('connection', (socket) => {
     console.log('Joueur connecté : ' + socket.id);
@@ -100,7 +140,8 @@ io.on('connection', (socket) => {
         skin: skins[Math.floor(Math.random() * skins.length)],
         checkpoint: null, // Le checkpoint du joueur
         trail: [], // L'historique des positions
-        color: getPlayerColor(Object.keys(players).length) // Couleur unique par joueur
+        color: getPlayerColor(Object.keys(players).length), // Couleur unique par joueur
+        lastDirection: 'right' // Direction par défaut pour le dash
     };
 
     socket.on('disconnect', () => { delete players[socket.id]; });
@@ -121,6 +162,12 @@ io.on('connection', (socket) => {
         if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
+            
+            // Tracker la dernière direction pour le dash
+            if (input.left) player.lastDirection = 'left';
+            if (input.right) player.lastDirection = 'right';
+            if (input.up) player.lastDirection = 'up';
+            if (input.down) player.lastDirection = 'down';
             
             // Ajouter la position à la trace du joueur
             // On garde seulement les 200 dernières positions pour éviter une charge trop grande
@@ -151,6 +198,11 @@ io.on('connection', (socket) => {
             player.x = player.checkpoint.x;
             player.y = player.checkpoint.y;
             console.log(`✨ Téléportation de ${socket.id} au checkpoint`);
+        }
+
+        // Appui sur Shift : Dash
+        if (actions.dash) {
+            performDash(player, socket.id);
         }
     });
 });

@@ -137,7 +137,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // Affichage des contrôles Checkpoint
     ctx.fillStyle = "#FFD700"; // Or
     ctx.font = "14px Arial";
-    ctx.fillText("Espace: Créer/Déplacer checkpoint | R: Téléporter", 20, canvas.height - 20);
+    ctx.fillText("Espace: Créer/Déplacer checkpoint | R: Téléporter | Shift: Dash", 20, canvas.height - 20);
 
     // 9. Record
     ctx.fillStyle = "#FFD700"; // Or

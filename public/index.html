@@ -2,18 +2,128 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Labyrinthe .io</title>
     <style>
-        body { margin: 0; background: #111; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-        canvas { background: #000; }
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            background: #111; 
+            overflow: hidden; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            font-family: sans-serif;
+            touch-action: none;
+        }
+        canvas { 
+            background: #000; 
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Contrôles tactiles */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            z-index: 100;
+        }
+
+        .mobile-controls.active { display: flex; }
+
+        .joystick-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .virtual-joystick {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.1);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .joystick-thumb {
+            width: 40px;
+            height: 40px;
+            background: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mobile-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #FFD700;
+            background: rgba(255, 215, 0, 0.1);
+            color: #FFD700;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .mobile-btn:active {
+            background: rgba(255, 215, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-controls { display: flex; }
+            canvas { max-height: calc(100vh - 120px); }
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
 
+    <!-- Contrôles tactiles -->
+    <div class="mobile-controls" id="mobileControls">
+        <div class="joystick-container">
+            <div class="virtual-joystick" id="joystick">
+                <div class="joystick-thumb" id="joystickThumb"></div>
+            </div>
+            <div class="button-group">
+                <button class="mobile-btn" id="checkpointBtn">🚩<br>Checkpoint</button>
+                <button class="mobile-btn" id="teleportBtn">R<br>Teleport</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <!-- On charge d'abord le peintre, puis le joueur -->
     <script src="renderer.js"></script>
     <script src="client.js"></script>
+    <script src="mobile-controls.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -51,6 +51,29 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 // Bordure du mur
                 ctx.strokeStyle = "#333";
                 ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            }
+        }
+    }
+
+    // 5.5 Traces des joueurs (les corder qui suivent leur parcours)
+    if (trails) {
+        for (let playerId in trails) {
+            const trail = trails[playerId];
+            if (trail.positions && trail.positions.length > 1) {
+                ctx.strokeStyle = trail.color;
+                ctx.globalAlpha = 0.5; // Semi-transparent
+                ctx.lineWidth = 3;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                
+                // Dessiner une ligne qui relie tous les points de la trace
+                ctx.beginPath();
+                ctx.moveTo(trail.positions[0].x + TILE_SIZE/2, trail.positions[0].y + TILE_SIZE/2);
+                for (let i = 1; i < trail.positions.length; i++) {
+                    ctx.lineTo(trail.positions[i].x + TILE_SIZE/2, trail.positions[i].y + TILE_SIZE/2);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1.0; // Réinitialiser l'opacité
             }
         }
     }

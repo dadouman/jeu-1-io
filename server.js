@@ -48,6 +48,24 @@ let coin = getRandomEmptyPosition(map);
 const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩", "🤣"];
 let currentRecord = { score: 0, skin: "❓" };
 
+// Palette de couleurs pour les joueurs (distinctes et visibles)
+const playerColors = [
+    "#FF6B6B", // Rouge
+    "#4ECDC4", // Cyan
+    "#FFE66D", // Jaune
+    "#95E1D3", // Menthe
+    "#F38181", // Rose
+    "#AA96DA", // Violet
+    "#FCBAD3", // Rose pâle
+    "#A8D8EA", // Bleu ciel
+    "#FFB4A2", // Corail
+    "#E0AFA0"  // Beige
+];
+
+function getPlayerColor(playerIndex) {
+    return playerColors[playerIndex % playerColors.length];
+}
+
 // Chargement du record
 async function loadHighScore() {
     if (!mongoURI) return;
@@ -80,7 +98,9 @@ io.on('connection', (socket) => {
         y: startPos.y,
         score: 0,
         skin: skins[Math.floor(Math.random() * skins.length)],
-        checkpoint: null // Le checkpoint du joueur
+        checkpoint: null, // Le checkpoint du joueur
+        trail: [], // L'historique des positions
+        color: getPlayerColor(Object.keys(players).length) // Couleur unique par joueur
     };
 
     socket.on('disconnect', () => { delete players[socket.id]; });
@@ -101,6 +121,13 @@ io.on('connection', (socket) => {
         if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
+            
+            // Ajouter la position à la trace du joueur
+            // On garde seulement les 200 dernières positions pour éviter une charge trop grande
+            player.trail.push({ x: player.x, y: player.y });
+            if (player.trail.length > 200) {
+                player.trail.shift(); // Supprimer la plus ancienne position
+            }
         }
     });
 
@@ -158,8 +185,9 @@ setInterval(() => {
                 const safePos = getRandomEmptyPosition(map);
                 players[pid].x = safePos.x;
                 players[pid].y = safePos.y;
-                // Réinitialiser le checkpoint (sinon il peut être dans un mur)
+                // Réinitialiser le checkpoint et la trace
                 players[pid].checkpoint = null;
+                players[pid].trail = [];
             }
 
             // Gestion Record

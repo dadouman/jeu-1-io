@@ -27,12 +27,16 @@ let level = 1;
 let checkpoint = null;
 let actions = { setCheckpoint: false, teleportCheckpoint: false };
 
+// VARIABLES TRACES
+let trails = {}; // Traces de tous les joueurs { playerId: { color, positions } }
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
     console.log("🆙 Passage au niveau :", newLevel);
     level = newLevel;
     checkpoint = null; // Réinitialiser le checkpoint au changement de niveau
+    trails = {}; // Réinitialiser les traces au changement de niveau
 });
 
 // MODIFIE AUSSI 'mapData' POUR NE PAS JUSTE CONSOLER
@@ -116,12 +120,25 @@ socket.on('state', (gameState) => {
     // On utilise notre ID manuel (s'il existe), sinon l'ID natif
     const finalId = myPlayerId || socket.id;
 
+    // Récupérer les traces de tous les joueurs
+    if (gameState.players) {
+        for (let playerId in gameState.players) {
+            const player = gameState.players[playerId];
+            if (player.trail && player.color) {
+                trails[playerId] = {
+                    color: player.color,
+                    positions: player.trail
+                };
+            }
+        }
+    }
+
     // Récupérer le checkpoint du joueur actuel depuis le serveur
     if (gameState.players && gameState.players[finalId] && gameState.players[finalId].checkpoint) {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails);
     }
 });

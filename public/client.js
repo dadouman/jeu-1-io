@@ -98,6 +98,11 @@ socket.on('shopPurchaseFailed', (data) => {
     console.log(`❌ Achat échoué : ${data.reason}. Vous avez ${data.current}/${data.required} gems`);
 });
 
+// Événement d'erreur général
+socket.on('error', (data) => {
+    console.log(`⚠️ Erreur : ${data.message}`);
+});
+
 // Gestion Clavier
 document.addEventListener('keydown', (e) => {
     if(e.code === 'ArrowUp') inputs.up = true;
@@ -185,6 +190,6 @@ socket.on('state', (gameState) => {
     }
 
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures);
     }
 });

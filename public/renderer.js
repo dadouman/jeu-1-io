@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -139,10 +139,21 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.font = "18px Arial";
     ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
 
-    // Affichage des contrôles Checkpoint
+    // Affichage des contrôles - varient selon les features achetées
     ctx.fillStyle = "#FFD700"; // Or
     ctx.font = "14px Arial";
-    ctx.fillText("Espace: Créer/Déplacer checkpoint | R: Téléporter | Shift: Dash", 20, canvas.height - 20);
+    let controlsText = "Flèches: Bouger ";
+    if (purchasedFeatures && purchasedFeatures.checkpoint) {
+        controlsText += "| Espace: Checkpoint | R: Téléporter ";
+    } else {
+        controlsText += "| Espace: Checkpoint ❌ ";
+    }
+    if (purchasedFeatures && purchasedFeatures.dash) {
+        controlsText += "| Shift: Dash";
+    } else {
+        controlsText += "| Shift: Dash ❌";
+    }
+    ctx.fillText(controlsText, 20, canvas.height - 20);
 
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen) {

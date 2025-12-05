@@ -159,24 +159,36 @@ io.on('connection', (socket) => {
 
         // Appui sur Espace : créer ou déplacer le checkpoint
         if (actions.setCheckpoint) {
-            player.checkpoint = {
-                x: player.x,
-                y: player.y
-            };
-            console.log(`🚩 Checkpoint créé pour ${socket.id} à (${player.checkpoint.x}, ${player.checkpoint.y})`);
-            socket.emit('checkpointUpdate', player.checkpoint);
+            if (!player.purchasedFeatures.checkpoint) {
+                socket.emit('error', { message: '🚩 Checkpoint non acheté ! Rendez-vous au magasin (niveau 5, 10, 15...)' });
+            } else {
+                player.checkpoint = {
+                    x: player.x,
+                    y: player.y
+                };
+                console.log(`🚩 Checkpoint créé pour ${socket.id} à (${player.checkpoint.x}, ${player.checkpoint.y})`);
+                socket.emit('checkpointUpdate', player.checkpoint);
+            }
         }
 
         // Appui sur R : téléporter au checkpoint
         if (actions.teleportCheckpoint && player.checkpoint) {
-            player.x = player.checkpoint.x;
-            player.y = player.checkpoint.y;
-            console.log(`✨ Téléportation de ${socket.id} au checkpoint`);
+            if (!player.purchasedFeatures.checkpoint) {
+                socket.emit('error', { message: '🚩 Checkpoint non acheté !' });
+            } else {
+                player.x = player.checkpoint.x;
+                player.y = player.checkpoint.y;
+                console.log(`✨ Téléportation de ${socket.id} au checkpoint`);
+            }
         }
 
         // Appui sur Shift : Dash
         if (actions.dash) {
-            performDash(player, socket.id);
+            if (!player.purchasedFeatures.dash) {
+                socket.emit('error', { message: '⚡ Dash non acheté ! Rendez-vous au magasin' });
+            } else {
+                performDash(player, socket.id);
+            }
         }
     });
 

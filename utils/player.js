@@ -49,7 +49,7 @@ function initializePlayer(startPos, playerIndex) {
         trail: [],
         color: getPlayerColor(playerIndex),
         lastDirection: 'right',
-        // Système de shop
+        // Système de shop - TOUS les pouvoirs sont DÉSACTIVÉS au départ
         gems: 0,
         purchasedFeatures: {
             dash: false,

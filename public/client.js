@@ -35,6 +35,8 @@ let isShopOpen = false;
 let shopItems = {};
 let playerGems = 0;
 let purchasedFeatures = {};
+let shopTimerStart = null;
+const SHOP_DURATION = 15000; // 15 secondes en millisecondes
 
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
@@ -85,7 +87,8 @@ socket.on('checkpointUpdate', (data) => {
 socket.on('shopOpen', (data) => {
     isShopOpen = true;
     shopItems = data.items;
-    console.log(`🏪 MAGASIN OUVERT au niveau ${data.level}!`);
+    shopTimerStart = Date.now(); // Démarrer le timer
+    console.log(`🏪 MAGASIN OUVERT au niveau ${data.level}! (15 secondes)`);
 });
 
 socket.on('shopPurchaseSuccess', (data) => {
@@ -189,7 +192,18 @@ socket.on('state', (gameState) => {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
+    // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES ---
+    if (isShopOpen && shopTimerStart) {
+        const elapsed = Date.now() - shopTimerStart;
+        if (elapsed >= SHOP_DURATION) {
+            console.log('⏱️ Fin du magasin - Passage au niveau suivant');
+            isShopOpen = false;
+            shopTimerStart = null;
+        }
+    }
+
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures);
+        const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining);
     }
 });

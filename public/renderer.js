@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -179,6 +179,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "center";
         ctx.fillText("🏪 MAGASIN - Niveau " + level, canvas.width / 2, shopY + 40);
         
+        // Affichage du timer
+        ctx.fillStyle = shopTimeRemaining <= 5 ? "#FF0000" : "#FFD700";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText("⏱️ " + shopTimeRemaining + "s", canvas.width / 2, shopY + 65);
+        
         // Items du shop
         const itemList = [
             { id: 'dash', name: 'Dash ⚡', price: 5 },
@@ -190,7 +195,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.font = "16px Arial";
         ctx.textAlign = "left";
         itemList.forEach((item, index) => {
-            const yPos = shopY + 80 + (index * 50);
+            const yPos = shopY + 100 + (index * 45);
             const color = playerGems >= item.price ? "#00FF00" : "#888";
             ctx.fillStyle = color;
             ctx.fillText(`${index + 1}. ${item.name} - ${item.price} gems`, shopX + 30, yPos);

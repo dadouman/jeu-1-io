@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -64,6 +64,21 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level) {
         ctx.fillText("💎", coin.x + TILE_SIZE/2, coin.y + TILE_SIZE/2);
     }
 
+    // 6.5 Checkpoint (s'il existe)
+    if (checkpoint) {
+        // Aura d'animation autour du checkpoint
+        ctx.fillStyle = "rgba(255, 100, 200, 0.3)";
+        ctx.beginPath();
+        ctx.arc(checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Dessin du checkpoint
+        ctx.font = "30px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🚩", checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2);
+    }
+
     // 7. Joueurs
     for (let id in players) {
         const p = players[id];
@@ -93,6 +108,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level) {
     ctx.fillStyle = "#aaa"; // Gris clair
     ctx.font = "16px Arial";
     ctx.fillText("Niveau " + (level || 1), 20, 65); // Juste en dessous du score
+
+    // Affichage des contrôles Checkpoint
+    ctx.fillStyle = "#FFD700"; // Or
+    ctx.font = "14px Arial";
+    ctx.fillText("Espace: Créer/Déplacer checkpoint | R: Téléporter", 20, canvas.height - 20);
 
     // 9. Record
     ctx.fillStyle = "#FFD700"; // Or

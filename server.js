@@ -79,7 +79,8 @@ io.on('connection', (socket) => {
         x: startPos.x,
         y: startPos.y,
         score: 0,
-        skin: skins[Math.floor(Math.random() * skins.length)]
+        skin: skins[Math.floor(Math.random() * skins.length)],
+        checkpoint: null // Le checkpoint du joueur
     };
 
     socket.on('disconnect', () => { delete players[socket.id]; });
@@ -100,6 +101,29 @@ io.on('connection', (socket) => {
         if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
+        }
+    });
+
+    // Gestion des checkpoints
+    socket.on('checkpoint', (actions) => {
+        const player = players[socket.id];
+        if (!player) return;
+
+        // Appui sur Espace : créer ou déplacer le checkpoint
+        if (actions.setCheckpoint) {
+            player.checkpoint = {
+                x: player.x,
+                y: player.y
+            };
+            console.log(`🚩 Checkpoint créé pour ${socket.id} à (${player.checkpoint.x}, ${player.checkpoint.y})`);
+            socket.emit('checkpointUpdate', player.checkpoint);
+        }
+
+        // Appui sur R : téléporter au checkpoint
+        if (actions.teleportCheckpoint && player.checkpoint) {
+            player.x = player.checkpoint.x;
+            player.y = player.checkpoint.y;
+            console.log(`✨ Téléportation de ${socket.id} au checkpoint`);
         }
     });
 });
@@ -134,6 +158,8 @@ setInterval(() => {
                 const safePos = getRandomEmptyPosition(map);
                 players[pid].x = safePos.x;
                 players[pid].y = safePos.y;
+                // Réinitialiser le checkpoint (sinon il peut être dans un mur)
+                players[pid].checkpoint = null;
             }
 
             // Gestion Record

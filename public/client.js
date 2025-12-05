@@ -23,6 +23,10 @@ let myPlayerId = null; // <--- LA VARIABLE QUI VA NOUS SAUVER
 
 let level = 1;
 
+// VARIABLES CHECKPOINT
+let checkpoint = null;
+let actions = { setCheckpoint: false, teleportCheckpoint: false };
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
@@ -58,23 +62,51 @@ socket.on('highScoreUpdate', (data) => {
     currentHighScore = data;
 });
 
+// Réception du checkpoint
+socket.on('checkpointUpdate', (data) => {
+    checkpoint = data;
+    if (data) {
+        console.log("🚩 Checkpoint créé/déplacé à :", data);
+    }
+});
+
 // Gestion Clavier
 document.addEventListener('keydown', (e) => {
     if(e.code === 'ArrowUp') inputs.up = true;
     if(e.code === 'ArrowDown') inputs.down = true;
     if(e.code === 'ArrowLeft') inputs.left = true;
     if(e.code === 'ArrowRight') inputs.right = true;
+    
+    // Checkpoint avec Espace
+    if(e.code === 'Space') {
+        actions.setCheckpoint = true;
+        e.preventDefault(); // Empêche le scroll de la page
+    }
+    
+    // Téléportation avec R
+    if(e.code === 'KeyR') {
+        actions.teleportCheckpoint = true;
+        e.preventDefault();
+    }
 });
 document.addEventListener('keyup', (e) => {
     if(e.code === 'ArrowUp') inputs.up = false;
     if(e.code === 'ArrowDown') inputs.down = false;
     if(e.code === 'ArrowLeft') inputs.left = false;
     if(e.code === 'ArrowRight') inputs.right = false;
+    
+    // Réinitialiser les actions (une seule fois par appui)
+    if(e.code === 'Space') actions.setCheckpoint = false;
+    if(e.code === 'KeyR') actions.teleportCheckpoint = false;
 });
 
 // Envoi des mouvements
 setInterval(() => {
     socket.emit('movement', inputs);
+    // Envoi des actions (checkpoint)
+    if (actions.setCheckpoint || actions.teleportCheckpoint) {
+        socket.emit('checkpoint', actions);
+    }
 }, 1000 / 60);
 
 // BOUCLE DE DESSIN
@@ -83,7 +115,12 @@ socket.on('state', (gameState) => {
     // On utilise notre ID manuel (s'il existe), sinon l'ID natif
     const finalId = myPlayerId || socket.id;
 
+    // Récupérer le checkpoint du joueur actuel depuis le serveur
+    if (gameState.players && gameState.players[finalId] && gameState.players[finalId].checkpoint) {
+        checkpoint = gameState.players[finalId].checkpoint;
+    }
+
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint);
     }
 });

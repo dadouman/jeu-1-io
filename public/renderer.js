@@ -80,7 +80,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // 7. Joueurs
-    ctx.globalAlpha = 1.0; // Opacité complète pour les joueurs
+    ctx.globalAlpha = 1.0; // Opacité complète pour les joueurs (réinitialisation)
     for (let id in players) {
         const p = players[id];
         
@@ -97,6 +97,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     ctx.restore(); // Fin Caméra
+    ctx.globalAlpha = 1.0; // Réinitialiser l'opacité après restore
 
     // 8. Interface (UI) - Dessinée par dessus le brouillard
     ctx.fillStyle = "white";

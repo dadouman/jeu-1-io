@@ -59,23 +59,20 @@ function initMobileControls() {
         // Mettre à jour la position du thumb
         joystickThumb.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
 
-        // Déterminer la direction
+        // Déterminer la direction (avec diagonales)
         inputs.up = false;
         inputs.down = false;
         inputs.left = false;
         inputs.right = false;
 
-        // Seuil pour activer un mouvement
-        const threshold = joystickRadius * 0.3;
+        // Seuil plus bas pour les diagonales
+        const threshold = joystickRadius * 0.25;
 
-        if (Math.abs(dy) > threshold) {
-            if (dy < 0) inputs.up = true;
-            if (dy > 0) inputs.down = true;
-        }
-        if (Math.abs(dx) > threshold) {
-            if (dx < 0) inputs.left = true;
-            if (dx > 0) inputs.right = true;
-        }
+        // Activation indépendante des directions (permet les diagonales)
+        if (dy < -threshold) inputs.up = true;
+        if (dy > threshold) inputs.down = true;
+        if (dx < -threshold) inputs.left = true;
+        if (dx > threshold) inputs.right = true;
     }
 
     // --- BOUTONS ---

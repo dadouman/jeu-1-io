@@ -32,6 +32,7 @@ let actions = { setCheckpoint: false, teleportCheckpoint: false };
 socket.on('levelUpdate', (newLevel) => {
     console.log("🆙 Passage au niveau :", newLevel);
     level = newLevel;
+    checkpoint = null; // Réinitialiser le checkpoint au changement de niveau
 });
 
 // MODIFIE AUSSI 'mapData' POUR NE PAS JUSTE CONSOLER

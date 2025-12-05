@@ -80,6 +80,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // 7. Joueurs
+    ctx.globalAlpha = 1.0; // Opacité complète pour les joueurs
     for (let id in players) {
         const p = players[id];
         

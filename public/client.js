@@ -115,8 +115,8 @@ document.addEventListener('keyup', (e) => {
 // Envoi des mouvements
 setInterval(() => {
     socket.emit('movement', inputs);
-    // Envoi des actions (checkpoint)
-    if (actions.setCheckpoint || actions.teleportCheckpoint) {
+    // Envoi des actions (checkpoint et dash)
+    if (actions.setCheckpoint || actions.teleportCheckpoint || actions.dash) {
         socket.emit('checkpoint', actions);
     }
 }, 1000 / 60);

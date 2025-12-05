@@ -55,7 +55,7 @@ function initializePlayer(startPos, playerIndex) {
             dash: false,
             checkpoint: false,
             rope: false,
-            speedBoost: false
+            speedBoost: 0
         }
     };
     

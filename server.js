@@ -124,7 +124,7 @@ io.on('connection', (socket) => {
         const player = players[socket.id];
         if (!player) return;
 
-        const speed = 5;
+        const speed = 5 + (player.purchasedFeatures.speedBoost || 0); // Vitesse de base + boost
         let nextX = player.x;
         let nextY = player.y;
 
@@ -146,7 +146,7 @@ io.on('connection', (socket) => {
             // Ajouter la position à la trace du joueur
             // On garde seulement les 200 dernières positions pour éviter une charge trop grande
             player.trail.push({ x: player.x, y: player.y });
-            if (player.trail.length > 200) {
+            if (player.trail.length > 2000) {
                 player.trail.shift(); // Supprimer la plus ancienne position
             }
         }

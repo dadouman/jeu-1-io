@@ -90,7 +90,11 @@ function purchaseItem(player, itemId) {
     
     // Effectuer l'achat
     player.gems -= item.price;
-    player.purchasedFeatures[itemId] = true;
+    if(itemId === 'speedBoost') {
+        player.purchasedFeatures.speedBoost += 1;
+    } else {
+        player.purchasedFeatures[itemId] = true;
+    }    
     
     return {
         success: true,

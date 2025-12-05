@@ -48,29 +48,49 @@
             max-width: 100%;
         }
 
-        .virtual-joystick {
-            width: 100px;
-            height: 100px;
-            border: 3px solid #FFD700;
-            border-radius: 50%;
-            background: rgba(255, 215, 0, 0.15);
-            position: relative;
+        /* Contrôles directionnels (croix D-Pad) */
+        .dpad-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .dpad-row {
+            display: flex;
+            gap: 5px;
+        }
+
+        .dpad-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #4ECDC4;
+            background: rgba(78, 205, 196, 0.1);
+            color: #4ECDC4;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
             touch-action: none;
-            flex-shrink: 0;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            font-size: 18px;
+            transition: all 0.1s ease;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.2);
         }
 
-        .joystick-thumb {
-            width: 50px;
-            height: 50px;
-            background: radial-gradient(circle at 30% 30%, #FFED4E, #FFD700);
-            border-radius: 50%;
-            position: absolute;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        .dpad-btn:active {
+            background: rgba(78, 205, 196, 0.3);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+            transform: scale(0.9);
+        }
+
+        .dpad-btn.invisible {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .button-group {
@@ -118,9 +138,26 @@
     <!-- Contrôles tactiles -->
     <div class="mobile-controls" id="mobileControls">
         <div class="joystick-container">
-            <div class="virtual-joystick" id="joystick">
-                <div class="joystick-thumb" id="joystickThumb"></div>
+            <!-- D-Pad Directionnel -->
+            <div class="dpad-container">
+                <div class="dpad-row">
+                    <button class="dpad-btn invisible"></button>
+                    <button class="dpad-btn" id="btnUp">↑</button>
+                    <button class="dpad-btn invisible"></button>
+                </div>
+                <div class="dpad-row">
+                    <button class="dpad-btn" id="btnLeft">←</button>
+                    <button class="dpad-btn invisible"></button>
+                    <button class="dpad-btn" id="btnRight">→</button>
+                </div>
+                <div class="dpad-row">
+                    <button class="dpad-btn invisible"></button>
+                    <button class="dpad-btn" id="btnDown">↓</button>
+                    <button class="dpad-btn invisible"></button>
+                </div>
             </div>
+
+            <!-- Boutons d'action -->
             <div class="button-group">
                 <button class="mobile-btn" id="checkpointBtn">🚩<br>Checkpoint</button>
                 <button class="mobile-btn" id="teleportBtn">R<br>Teleport</button>

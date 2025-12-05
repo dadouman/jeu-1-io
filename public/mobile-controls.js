@@ -8,74 +8,47 @@ function initMobileControls() {
     if (!isMobileDevice()) return;
 
     const mobileControls = document.getElementById('mobileControls');
-    const joystick = document.getElementById('joystick');
-    const joystickThumb = document.getElementById('joystickThumb');
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnLeft = document.getElementById('btnLeft');
+    const btnRight = document.getElementById('btnRight');
     const checkpointBtn = document.getElementById('checkpointBtn');
     const teleportBtn = document.getElementById('teleportBtn');
 
-    let isJoystickActive = false;
-    let joystickCenter = { x: 0, y: 0 };
-    const joystickRadius = 40; // Rayon du joystick
+    // --- BOUTONS DIRECTIONNELS ---
+    function setupDirectionButton(btn, direction) {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            inputs[direction] = true;
+            btn.style.background = 'rgba(78, 205, 196, 0.4)';
+        });
 
-    // --- JOYSTICK ---
-    joystick.addEventListener('touchstart', (e) => {
-        isJoystickActive = true;
-        const rect = joystick.getBoundingClientRect();
-        joystickCenter = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-        };
-        handleJoystickInput(e);
-    });
+        btn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            inputs[direction] = false;
+            btn.style.background = 'rgba(78, 205, 196, 0.1)';
+        });
 
-    document.addEventListener('touchmove', (e) => {
-        if (isJoystickActive) {
-            handleJoystickInput(e);
-        }
-    });
+        // Support souris pour debug
+        btn.addEventListener('mousedown', () => {
+            inputs[direction] = true;
+        });
 
-    document.addEventListener('touchend', () => {
-        isJoystickActive = false;
-        // Réinitialiser les inputs
-        inputs.up = false;
-        inputs.down = false;
-        inputs.left = false;
-        inputs.right = false;
-        joystickThumb.style.transform = 'translate(0, 0)';
-    });
+        btn.addEventListener('mouseup', () => {
+            inputs[direction] = false;
+        });
 
-    function handleJoystickInput(e) {
-        const touch = e.touches[0];
-        const dx = touch.clientX - joystickCenter.x;
-        const dy = touch.clientY - joystickCenter.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const angle = Math.atan2(dy, dx);
-
-        // Limiter le mouvement au rayon
-        const limitedDistance = Math.min(distance, joystickRadius);
-        const x = Math.cos(angle) * limitedDistance;
-        const y = Math.sin(angle) * limitedDistance;
-
-        // Mettre à jour la position du thumb
-        joystickThumb.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-
-        // Déterminer la direction (avec diagonales)
-        inputs.up = false;
-        inputs.down = false;
-        inputs.left = false;
-        inputs.right = false;
-
-        // Seuil plus bas pour les diagonales
-        const threshold = joystickRadius * 0.25;
-
-        // Activation indépendante des directions (permet les diagonales)
-        if (dy < -threshold) inputs.up = true;
-        if (dy > threshold) inputs.down = true;
-        if (dx < -threshold) inputs.left = true;
-        if (dx > threshold) inputs.right = true;
+        btn.addEventListener('mouseleave', () => {
+            inputs[direction] = false;
+        });
     }
 
-    // --- BOUTONS ---
+    setupDirectionButton(btnUp, 'up');
+    setupDirectionButton(btnDown, 'down');
+    setupDirectionButton(btnLeft, 'left');
+    setupDirectionButton(btnRight, 'right');
+
+    // --- BOUTONS D'ACTION ---
     checkpointBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
         actions.setCheckpoint = true;
@@ -94,10 +67,27 @@ function initMobileControls() {
         actions.teleportCheckpoint = false;
     });
 
+    // Support souris pour les boutons d'action
+    checkpointBtn.addEventListener('mousedown', () => {
+        actions.setCheckpoint = true;
+    });
+
+    checkpointBtn.addEventListener('mouseup', () => {
+        actions.setCheckpoint = false;
+    });
+
+    teleportBtn.addEventListener('mousedown', () => {
+        actions.teleportCheckpoint = true;
+    });
+
+    teleportBtn.addEventListener('mouseup', () => {
+        actions.teleportCheckpoint = false;
+    });
+
     // Afficher les contrôles si c'est un mobile
     mobileControls.classList.add('active');
 
-    console.log("📱 Contrôles mobiles activés !");
+    console.log("📱 Contrôles mobiles (D-Pad) activés !");
 }
 
 // Initialiser quand le DOM est prêt

@@ -18,6 +18,9 @@ const io = new Server(server, {
 // IMPORTANT : On importe la NOUVELLE fonction 'generateMaze'
 const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
 const { checkWallCollision } = require('./utils/collisions');
+const { initializePlayer, resetPlayerForNewLevel, addScore, skins } = require('./utils/player');
+const { calculateGemsForLevel, addGems } = require('./utils/gems');
+const { isShopLevel, getShopItems, purchaseItem } = require('./utils/shop');
 
 app.use(express.static('public'));
 
@@ -40,31 +43,10 @@ let players = {};
 
 // VARIABLES DU ROGUE-LIKE
 let currentLevel = 1;
-// On commence petit (15x15)
-// ATTENTION : On utilise 'let' car la map va changer, et on appelle generateMaze(15, 15)
 let map = generateMaze(15, 15); 
 let coin = getRandomEmptyPosition(map);
 
-const skins = ["👻", "👽", "🤖", "🦄", "🐷", "🐸", "🐵", "🐶", "🦁", "🎃","💩", "🤣"];
 let currentRecord = { score: 0, skin: "❓" };
-
-// Palette de couleurs pour les joueurs (distinctes et visibles)
-const playerColors = [
-    "#FF6B6B", // Rouge
-    "#4ECDC4", // Cyan
-    "#FFE66D", // Jaune
-    "#95E1D3", // Menthe
-    "#F38181", // Rose
-    "#AA96DA", // Violet
-    "#FCBAD3", // Rose pâle
-    "#A8D8EA", // Bleu ciel
-    "#FFB4A2", // Corail
-    "#E0AFA0"  // Beige
-];
-
-function getPlayerColor(playerIndex) {
-    return playerColors[playerIndex % playerColors.length];
-}
 
 // Chargement du record
 async function loadHighScore() {
@@ -129,20 +111,12 @@ io.on('connection', (socket) => {
     // Init immédiat
     socket.emit('init', socket.id);
     socket.emit('mapData', map);
-    socket.emit('levelUpdate', currentLevel); // On envoie le niveau actuel
+    socket.emit('levelUpdate', currentLevel);
     socket.emit('highScoreUpdate', currentRecord);
 
     const startPos = getRandomEmptyPosition(map);
-    players[socket.id] = {
-        x: startPos.x,
-        y: startPos.y,
-        score: 0,
-        skin: skins[Math.floor(Math.random() * skins.length)],
-        checkpoint: null, // Le checkpoint du joueur
-        trail: [], // L'historique des positions
-        color: getPlayerColor(Object.keys(players).length), // Couleur unique par joueur
-        lastDirection: 'right' // Direction par défaut pour le dash
-    };
+    const playerIndex = Object.keys(players).length;
+    players[socket.id] = initializePlayer(startPos, playerIndex);
 
     socket.on('disconnect', () => { delete players[socket.id]; });
 
@@ -205,6 +179,27 @@ io.on('connection', (socket) => {
             performDash(player, socket.id);
         }
     });
+
+    // --- SYSTÈME DE SHOP ---
+    socket.on('shopPurchase', (data) => {
+        const player = players[socket.id];
+        const { itemId } = data;
+
+        if (!player) return;
+
+        const result = purchaseItem(player, itemId);
+        
+        if (result.success) {
+            console.log(`💎 ${socket.id} a acheté ${result.item.name} pour ${result.item.price} gems`);
+            socket.emit('shopPurchaseSuccess', { itemId, item: result.item, gemsLeft: result.gemsLeft });
+        } else {
+            socket.emit('shopPurchaseFailed', { 
+                reason: result.message,
+                required: result.gemsRequired,
+                current: result.gemsAvailable
+            });
+        }
+    });
 });
 
 // --- BOUCLE DE JEU ---
@@ -218,7 +213,11 @@ setInterval(() => {
         
         // --- COLLISION AVEC LA PIÈCE ---
         if (dist < 30) {
-            p.score++;
+            addScore(p, 1);
+            
+            // SYSTÈME DE GEMS : À chaque niveau, on gagne des gems
+            const gemsEarned = calculateGemsForLevel(currentLevel);
+            addGems(p, gemsEarned);
             
             // 1. ON AUGMENTE LE NIVEAU
             currentLevel++;
@@ -235,11 +234,7 @@ setInterval(() => {
             // 4. ON TÉLÉPORTE TOUS LES JOUEURS (Sécurité anti-mur)
             for (let pid in players) {
                 const safePos = getRandomEmptyPosition(map);
-                players[pid].x = safePos.x;
-                players[pid].y = safePos.y;
-                // Réinitialiser le checkpoint et la trace
-                players[pid].checkpoint = null;
-                players[pid].trail = [];
+                resetPlayerForNewLevel(players[pid], safePos);
             }
 
             // Gestion Record
@@ -259,6 +254,13 @@ setInterval(() => {
     if (levelChanged) {
         io.emit('mapData', map); // On envoie la nouvelle carte
         io.emit('levelUpdate', currentLevel); // On prévient du niveau
+        
+        // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
+        if (isShopLevel(currentLevel)) {
+            io.emit('shopOpen', { items: getShopItems(), level: currentLevel });
+            console.log(`🏪 MAGASIN OUVERT au niveau ${currentLevel} !`);
+        }
+        
         console.log(`🆙 Niveau ${currentLevel} généré !`);
     }
 

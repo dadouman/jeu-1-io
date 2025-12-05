@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -133,11 +133,64 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.fillStyle = "#aaa"; // Gris clair
     ctx.font = "16px Arial";
     ctx.fillText("Niveau " + (level || 1), 20, 65); // Juste en dessous du score
+    
+    // Affichage des Gems
+    ctx.fillStyle = "#FFD700"; // Or
+    ctx.font = "18px Arial";
+    ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
 
     // Affichage des contrôles Checkpoint
     ctx.fillStyle = "#FFD700"; // Or
     ctx.font = "14px Arial";
     ctx.fillText("Espace: Créer/Déplacer checkpoint | R: Téléporter | Shift: Dash", 20, canvas.height - 20);
+
+    // --- AFFICHAGE DU SHOP ---
+    if (isShopOpen) {
+        // Overlay semi-transparent
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Cadre du shop
+        const shopWidth = 500;
+        const shopHeight = 350;
+        const shopX = (canvas.width - shopWidth) / 2;
+        const shopY = (canvas.height - shopHeight) / 2;
+        
+        ctx.fillStyle = "#222";
+        ctx.fillRect(shopX, shopY, shopWidth, shopHeight);
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(shopX, shopY, shopWidth, shopHeight);
+        
+        // Titre du shop
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 28px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("🏪 MAGASIN - Niveau " + level, canvas.width / 2, shopY + 40);
+        
+        // Items du shop
+        const itemList = [
+            { id: 'dash', name: 'Dash ⚡', price: 5 },
+            { id: 'checkpoint', name: 'Checkpoint 🚩', price: 3 },
+            { id: 'rope', name: 'Corde 🪢', price: 1 },
+            { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
+        ];
+        
+        ctx.font = "16px Arial";
+        ctx.textAlign = "left";
+        itemList.forEach((item, index) => {
+            const yPos = shopY + 80 + (index * 50);
+            const color = playerGems >= item.price ? "#00FF00" : "#888";
+            ctx.fillStyle = color;
+            ctx.fillText(`${index + 1}. ${item.name} - ${item.price} gems`, shopX + 30, yPos);
+        });
+        
+        // Instructions
+        ctx.fillStyle = "#888";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Appuyez sur 1, 2, 3 ou 4 pour acheter", canvas.width / 2, shopY + shopHeight - 30);
+    }
 
     // 9. Record
     ctx.fillStyle = "#FFD700"; // Or

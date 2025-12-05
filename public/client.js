@@ -30,6 +30,12 @@ let actions = { setCheckpoint: false, teleportCheckpoint: false, dash: false };
 // VARIABLES TRACES
 let trails = {}; // Traces de tous les joueurs { playerId: { color, positions } }
 
+// VARIABLES SHOP
+let isShopOpen = false;
+let shopItems = {};
+let playerGems = 0;
+let purchasedFeatures = {};
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
@@ -75,6 +81,23 @@ socket.on('checkpointUpdate', (data) => {
     }
 });
 
+// --- ÉVÉNEMENTS SHOP ---
+socket.on('shopOpen', (data) => {
+    isShopOpen = true;
+    shopItems = data.items;
+    console.log(`🏪 MAGASIN OUVERT au niveau ${data.level}!`);
+});
+
+socket.on('shopPurchaseSuccess', (data) => {
+    purchasedFeatures[data.itemId] = true;
+    playerGems = data.gemsLeft;
+    console.log(`✅ Achat réussi : ${data.item.name}. Gems restants : ${playerGems}`);
+});
+
+socket.on('shopPurchaseFailed', (data) => {
+    console.log(`❌ Achat échoué : ${data.reason}. Vous avez ${data.current}/${data.required} gems`);
+});
+
 // Gestion Clavier
 document.addEventListener('keydown', (e) => {
     if(e.code === 'ArrowUp') inputs.up = true;
@@ -98,6 +121,16 @@ document.addEventListener('keydown', (e) => {
     if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         actions.dash = true;
         e.preventDefault();
+    }
+    
+    // --- SHOP : Achats avec touches numériques ---
+    if (isShopOpen && e.key.match(/^[1-4]$/)) {
+        const itemOrder = ['dash', 'checkpoint', 'rope', 'speedBoost'];
+        const itemId = itemOrder[parseInt(e.key) - 1];
+        if (itemId && shopItems[itemId]) {
+            socket.emit('shopPurchase', { itemId });
+            e.preventDefault();
+        }
     }
 });
 document.addEventListener('keyup', (e) => {
@@ -137,6 +170,12 @@ socket.on('state', (gameState) => {
                     positions: player.trail
                 };
             }
+            
+            // Récupérer gems et purchasedFeatures du joueur actuel
+            if (playerId === finalId) {
+                playerGems = player.gems || 0;
+                purchasedFeatures = player.purchasedFeatures || {};
+            }
         }
     }
 
@@ -146,6 +185,6 @@ socket.on('state', (gameState) => {
     }
 
     if (typeof renderGame === "function") {
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems);
     }
 });

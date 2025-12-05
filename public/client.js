@@ -172,17 +172,22 @@ socket.on('state', (gameState) => {
     if (gameState.players) {
         for (let playerId in gameState.players) {
             const player = gameState.players[playerId];
-            if (player.trail && player.color) {
-                trails[playerId] = {
-                    color: player.color,
-                    positions: player.trail
-                };
-            }
             
             // Récupérer gems et purchasedFeatures du joueur actuel
             if (playerId === finalId) {
                 playerGems = player.gems || 0;
                 purchasedFeatures = player.purchasedFeatures || {};
+            }
+            
+            // Afficher la trace SEULEMENT si la feature "rope" est achetée
+            if (player.trail && player.color && player.purchasedFeatures && player.purchasedFeatures.rope) {
+                trails[playerId] = {
+                    color: player.color,
+                    positions: player.trail
+                };
+            } else {
+                // Sinon, supprimer la trace de ce joueur
+                delete trails[playerId];
             }
         }
     }

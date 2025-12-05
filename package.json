@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest --forceExit"
+    "test": "jest --forceExit",
+    "reset-score": "node resetScore.js"
   },
   "keywords": [],
   "author": "",

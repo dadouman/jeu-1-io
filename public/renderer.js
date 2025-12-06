@@ -212,10 +212,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "left";
     }
     
-    // Affichage des Gems
-    ctx.fillStyle = "#FFD700"; // Or
-    ctx.font = "18px Arial";
-    ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
+    // Affichage des Gems - UNIQUEMENT en mode solo
+    if (soloRunTotalTime > 0) {
+        ctx.fillStyle = "#FFD700"; // Or
+        ctx.font = "18px Arial";
+        ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
+    }
 
     // Affichage des contrôles - varient selon les features achetées
     ctx.fillStyle = "#FFD700"; // Or

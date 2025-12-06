@@ -101,7 +101,6 @@ function performDash(player, playerId) {
 
     player.x = currentX;
     player.y = currentY;
-    console.log(`⚡ Dash de ${playerId} à (${player.x}, ${player.y})`);
 }
 
 // --- GESTION JOUEURS ---
@@ -124,31 +123,59 @@ io.on('connection', (socket) => {
         const player = players[socket.id];
         if (!player) return;
 
-        const speed = 5 + (player.purchasedFeatures.speedBoost || 0); // Vitesse de base + boost
+        const speed = 5 + (player.purchasedFeatures.speedBoost ? 2 : 0); // Vitesse de base + boost optionnel
         let nextX = player.x;
         let nextY = player.y;
 
-        if (input.left) nextX -= speed;
-        if (input.right) nextX += speed;
-        if (input.up) nextY -= speed;
-        if (input.down) nextY += speed;
+        // Calculer les mouvements en X et Y séparément
+        let moveX = 0;
+        let moveY = 0;
+
+        if (input.left) moveX -= speed;
+        if (input.right) moveX += speed;
+        if (input.up) moveY -= speed;
+        if (input.down) moveY += speed;
+
+        // Essayer le mouvement diagonal complet d'abord
+        nextX = player.x + moveX;
+        nextY = player.y + moveY;
 
         if (!checkWallCollision(nextX, nextY, map)) {
+            // Mouvement diagonal possible
             player.x = nextX;
             player.y = nextY;
-            
-            // Tracker la dernière direction pour le dash
-            if (input.left) player.lastDirection = 'left';
-            if (input.right) player.lastDirection = 'right';
-            if (input.up) player.lastDirection = 'up';
-            if (input.down) player.lastDirection = 'down';
-            
-            // Ajouter la position à la trace du joueur
-            // On garde seulement les 200 dernières positions pour éviter une charge trop grande
-            player.trail.push({ x: player.x, y: player.y });
-            if (player.trail.length > 2000) {
-                player.trail.shift(); // Supprimer la plus ancienne position
+        } else if (moveX !== 0 && moveY !== 0) {
+            // Si le diagonal échoue, essayer X seul
+            if (!checkWallCollision(player.x + moveX, player.y, map)) {
+                player.x += moveX;
             }
+            // Puis essayer Y seul
+            else if (!checkWallCollision(player.x, player.y + moveY, map)) {
+                player.y += moveY;
+            }
+            // Si les deux échouent, pas de mouvement
+        } else if (moveX !== 0) {
+            // Mouvement horizontal uniquement
+            if (!checkWallCollision(player.x + moveX, player.y, map)) {
+                player.x += moveX;
+            }
+        } else if (moveY !== 0) {
+            // Mouvement vertical uniquement
+            if (!checkWallCollision(player.x, player.y + moveY, map)) {
+                player.y += moveY;
+            }
+        }
+
+        // Tracker la dernière direction pour le dash
+        if (input.left) player.lastDirection = 'left';
+        if (input.right) player.lastDirection = 'right';
+        if (input.up) player.lastDirection = 'up';
+        if (input.down) player.lastDirection = 'down';
+
+        // Ajouter la position à la trace du joueur
+        player.trail.push({ x: player.x, y: player.y });
+        if (player.trail.length > 2000) {
+            player.trail.shift(); // Supprimer la plus ancienne position
         }
     });
 
@@ -166,7 +193,6 @@ io.on('connection', (socket) => {
                     x: player.x,
                     y: player.y
                 };
-                console.log(`🚩 Checkpoint créé pour ${socket.id} à (${player.checkpoint.x}, ${player.checkpoint.y})`);
                 socket.emit('checkpointUpdate', player.checkpoint);
             }
         }
@@ -178,7 +204,6 @@ io.on('connection', (socket) => {
             } else {
                 player.x = player.checkpoint.x;
                 player.y = player.checkpoint.y;
-                console.log(`✨ Téléportation de ${socket.id} au checkpoint`);
             }
         }
 
@@ -202,7 +227,8 @@ io.on('connection', (socket) => {
         const result = purchaseItem(player, itemId);
         
         if (result.success) {
-            console.log(`💎 ${socket.id} a acheté ${result.item.name} pour ${result.item.price} gems`);
+            const player = players[socket.id];
+            console.log(`💎 [SHOP] ${player.skin} a acheté "${result.item.name}" pour ${result.item.price}💎 | ${result.gemsLeft}💎 restants`);
             socket.emit('shopPurchaseSuccess', { itemId, item: result.item, gemsLeft: result.gemsLeft });
         } else {
             socket.emit('shopPurchaseFailed', { 
@@ -230,6 +256,10 @@ setInterval(() => {
             // SYSTÈME DE GEMS : À chaque niveau, on gagne des gems
             const gemsEarned = calculateGemsForLevel(currentLevel);
             addGems(p, gemsEarned);
+            
+            // Afficher les stats de progression
+            const isShopLevelNext = isShopLevel(currentLevel + 1);
+            console.log(`✨ [PROGRESSION] ${p.skin} Niveau ${currentLevel} complété en ${(Date.now() / 1000).toFixed(0)}s | +${gemsEarned}💎 (Total: ${p.gems}💎)${isShopLevelNext ? ' | 🏪 Magasin au prochain niveau!' : ''}`);
             
             // 1. ON AUGMENTE LE NIVEAU
             currentLevel++;
@@ -270,10 +300,11 @@ setInterval(() => {
         // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
         if (isShopLevel(currentLevel)) {
             io.emit('shopOpen', { items: getShopItems(), level: currentLevel });
-            console.log(`🏪 MAGASIN OUVERT au niveau ${currentLevel} !`);
+            console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT - Niveau ${currentLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
+        } else {
+            const mazeSize = 15 + (currentLevel * 2);
+            console.log(`🌍 [NIVEAU ${currentLevel}] Labyrinthe ${mazeSize}x${mazeSize} généré`);
         }
-        
-        console.log(`🆙 Niveau ${currentLevel} généré !`);
     }
 
     // SI LE RECORD A CHANGÉ

@@ -18,6 +18,8 @@ window.addEventListener('resize', () => {
 // VARIABLES DU JEU
 let map = [];
 let inputs = { up: false, down: false, left: false, right: false };
+let inputsMomentum = { up: 0, down: 0, left: 0, right: 0 }; // Inertie pour les touches
+const MOMENTUM_DECAY = 0.85; // 85% de l'inertie persiste par frame
 let currentHighScore = null;
 let myPlayerId = null; // <--- LA VARIABLE QUI VA NOUS SAUVER
 
@@ -51,8 +53,6 @@ let currentPlayers = {}; // Cache des joueurs pour la transition
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
-    console.log("🆙 Passage au niveau :", newLevel);
-    
     // Détecter si c'est vraiment un changement de niveau
     if (newLevel !== lastLevel && lastLevel !== 0) {
         // Niveau a changé ! Déclencher la transition
@@ -60,8 +60,12 @@ socket.on('levelUpdate', (newLevel) => {
         transitionStartTime = Date.now();
         levelUpTime = (Date.now() - levelStartTime) / 1000; // Temps en secondes (AVANT de réinitialiser)
         levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
-        console.log("👤 Skin du joueur pour la transition :", levelUpPlayerSkin);
-        console.log("⏱️ Temps de jeu pour ce niveau :", levelUpTime.toFixed(1), "secondes");
+        
+        // Log de jeu
+        const playerData = currentPlayers[myPlayerId];
+        if (playerData) {
+            console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+        }
     }
     
     level = newLevel;
@@ -74,23 +78,19 @@ socket.on('levelUpdate', (newLevel) => {
 // MODIFIE AUSSI 'mapData' POUR NE PAS JUSTE CONSOLER
 socket.on('mapData', (data) => {
     map = data; // Mise à jour immédiate de la carte locale
-    console.log("🗺️ Nouvelle carte reçue !");
 });
 
 socket.on('init', (id) => {
-    console.log("🆔 ID reçu du serveur via 'init' :", id);
     myPlayerId = id; // On le stocke manuellement
 });
 
 socket.on('connect', () => {
-    console.log("✅ Socket connecté ! ID natif :", socket.id);
     // Si on n'a pas encore reçu l'init, on prend celui-là au cas où
     if (!myPlayerId) myPlayerId = socket.id;
 });
 
 // Réception de la map
 socket.on('mapData', (data) => {
-    console.log("🗺️ Map reçue (" + data.length + " lignes)");
     map = data;
 });
 
@@ -102,9 +102,6 @@ socket.on('highScoreUpdate', (data) => {
 // Réception du checkpoint
 socket.on('checkpointUpdate', (data) => {
     checkpoint = data;
-    if (data) {
-        console.log("🚩 Checkpoint créé/déplacé à :", data);
-    }
 });
 
 // --- ÉVÉNEMENTS SHOP ---
@@ -112,30 +109,30 @@ socket.on('shopOpen', (data) => {
     isShopOpen = true;
     shopItems = data.items;
     shopTimerStart = Date.now(); // Démarrer le timer
-    console.log(`🏪 MAGASIN OUVERT au niveau ${data.level}! (15 secondes)`);
+    console.log(`%c🏪 SHOP OUVERT - Niveau ${data.level} | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
 });
 
 socket.on('shopPurchaseSuccess', (data) => {
     purchasedFeatures[data.itemId] = true;
     playerGems = data.gemsLeft;
-    console.log(`✅ Achat réussi : ${data.item.name}. Gems restants : ${playerGems}`);
+    console.log(`%c✅ ${data.item.name} acheté! | ${data.gemsLeft}💎 restants`, 'color: #00FF00; font-weight: bold');
 });
 
 socket.on('shopPurchaseFailed', (data) => {
-    console.log(`❌ Achat échoué : ${data.reason}. Vous avez ${data.current}/${data.required} gems`);
+    console.log(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
 });
 
 // Événement d'erreur général
 socket.on('error', (data) => {
-    console.log(`⚠️ Erreur : ${data.message}`);
+    console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
 });
 
 // Gestion Clavier
 document.addEventListener('keydown', (e) => {
-    if(e.code === 'ArrowUp') inputs.up = true;
-    if(e.code === 'ArrowDown') inputs.down = true;
-    if(e.code === 'ArrowLeft') inputs.left = true;
-    if(e.code === 'ArrowRight') inputs.right = true;
+    if(e.code === 'ArrowUp') { inputs.up = true; inputsMomentum.up = 1; }
+    if(e.code === 'ArrowDown') { inputs.down = true; inputsMomentum.down = 1; }
+    if(e.code === 'ArrowLeft') { inputs.left = true; inputsMomentum.left = 1; }
+    if(e.code === 'ArrowRight') { inputs.right = true; inputsMomentum.right = 1; }
     
     // Checkpoint avec Espace
     if(e.code === 'Space') {
@@ -179,7 +176,21 @@ document.addEventListener('keyup', (e) => {
 
 // Envoi des mouvements
 setInterval(() => {
-    socket.emit('movement', inputs);
+    // Appliquer l'inertie : si la touche est pressée, momentum = 1, sinon décay progressif
+    if (!inputs.up) inputsMomentum.up *= MOMENTUM_DECAY;
+    if (!inputs.down) inputsMomentum.down *= MOMENTUM_DECAY;
+    if (!inputs.left) inputsMomentum.left *= MOMENTUM_DECAY;
+    if (!inputs.right) inputsMomentum.right *= MOMENTUM_DECAY;
+
+    // Envoyer les inputs avec inertie appliquée (si momentum > 0.1, on considère que c'est actif)
+    const inputsWithMomentum = {
+        up: inputs.up || inputsMomentum.up > 0.1,
+        down: inputs.down || inputsMomentum.down > 0.1,
+        left: inputs.left || inputsMomentum.left > 0.1,
+        right: inputs.right || inputsMomentum.right > 0.1
+    };
+
+    socket.emit('movement', inputsWithMomentum);
     // Envoi des actions (checkpoint et dash)
     if (actions.setCheckpoint || actions.teleportCheckpoint || actions.dash) {
         socket.emit('checkpoint', actions);
@@ -230,7 +241,6 @@ socket.on('state', (gameState) => {
     if (isShopOpen && shopTimerStart) {
         const elapsed = Date.now() - shopTimerStart;
         if (elapsed >= SHOP_DURATION) {
-            console.log('⏱️ Fin du magasin - Passage au niveau suivant');
             isShopOpen = false;
             shopTimerStart = null;
         }
@@ -242,7 +252,6 @@ socket.on('state', (gameState) => {
         if (transitionElapsed >= TRANSITION_DURATION) {
             isInTransition = false;
             transitionStartTime = null;
-            console.log('✨ Fin de la transition');
         }
     }
 

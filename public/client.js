@@ -49,6 +49,8 @@ const TRANSITION_DURATION = 3000; // 3 secondes
 let levelUpPlayerSkin = null; // Skin du joueur qui a gagné
 let levelUpTime = 0; // Temps mis pour gagner
 let currentPlayers = {}; // Cache des joueurs pour la transition
+let isFirstLevel = false; // Pour déterminer si c'est la transition du niveau 1
+let playerCountStart = 0; // Nombre de joueurs au démarrage
 
 // VARIABLES VOTE
 let isVoteActive = false;
@@ -73,15 +75,19 @@ socket.on('levelUpdate', (newLevel) => {
             console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         }
     } else if (newLevel === 1 && lastLevel === 0) {
-        // Premier niveau : initialiser le chronomètre maintenant
-        levelStartTime = Date.now();
+        // Premier niveau : déclencher une transition spéciale
+        isInTransition = true;
+        isFirstLevel = true;
+        transitionStartTime = Date.now();
+        playerCountStart = Object.keys(currentPlayers).length;
+        levelStartTime = Date.now() + TRANSITION_DURATION; // Démarrer le chrono APRÈS la transition
     }
     
     level = newLevel;
     lastLevel = newLevel;
     
     // Si c'est une vraie transition (pas le premier niveau), attendre 3s
-    if (lastLevel > 1) {
+    if (lastLevel > 1 && !isFirstLevel) {
         levelStartTime = Date.now() + TRANSITION_DURATION; // Démarrer le chrono APRÈS la transition
     }
     
@@ -303,12 +309,16 @@ socket.on('state', (gameState) => {
         const transitionElapsed = Date.now() - transitionStartTime;
         if (transitionElapsed >= TRANSITION_DURATION) {
             isInTransition = false;
+            isFirstLevel = false; // Réinitialiser le flag du premier niveau
             transitionStartTime = null;
         }
     }
 
     if (typeof renderGame === "function") {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
+        
+        // Calculer le temps écoulé du niveau
+        const currentLevelTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
         
         // Calculer le zoom progressif (1.0 = pas de zoom, 0.95 = 5% plus petit)
         // Formule : 1.0 - (level - 1) * 0.02, mais limité entre 0.7 et 1.0
@@ -317,6 +327,6 @@ socket.on('state', (gameState) => {
         // Calculer la progression de transition
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart);
     }
 });

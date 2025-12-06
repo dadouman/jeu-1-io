@@ -17,7 +17,7 @@ function getRanking(players) {
     return playersList.sort((a, b) => b.score - a.score);
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -150,6 +150,13 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.textBaseline = "alphabetic";
     ctx.fillText("Score : " + myPlayer.score, 20, 40);
 
+    // Affichage du Temps du Niveau en haut au centre
+    ctx.fillStyle = "#FFD700"; // Or
+    ctx.font = "bold 18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("⏱️ " + currentLevelTime.toFixed(1) + "s", canvas.width / 2, 40);
+    ctx.textAlign = "left";
+
     // Affichage du Niveau
     ctx.fillStyle = "#aaa"; // Gris clair
     ctx.font = "16px Arial";
@@ -235,61 +242,79 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + transitionProgress * 0.3})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Message de transition
-        ctx.fillStyle = "#FFD700";
-        ctx.font = "bold 36px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        
-        const message = `${levelUpPlayerSkin} Gem récupérée en ${levelUpTime.toFixed(1)}s`;
-        ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 80);
-        
-        // --- PODIUM ---
-        const ranking = getRanking(players);
-        const podiumX = canvas.width / 2;
-        const podiumY = canvas.height / 2 + 20;
-        
-        // Positions des podiums (1er au centre, 2e à gauche, 3e à droite)
-        const podiumPositions = [
-            { x: podiumX, y: podiumY, medal: "🥇", height: 120 }, // 1er
-            { x: podiumX - 150, y: podiumY + 30, medal: "🥈", height: 80 }, // 2e
-            { x: podiumX + 150, y: podiumY + 30, medal: "🥉", height: 50 }  // 3e
-        ];
-        
-        ranking.slice(0, 3).forEach((player, index) => {
-            const pos = podiumPositions[index];
-            
-            // Piédestal
-            ctx.fillStyle = index === 0 ? "#FFD700" : (index === 1 ? "#C0C0C0" : "#CD7F32");
-            ctx.fillRect(pos.x - 40, pos.y, 80, pos.height);
-            
-            // Bordure
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(pos.x - 40, pos.y, 80, pos.height);
-            
-            // Numéro de position
-            ctx.fillStyle = "white";
-            ctx.font = "bold 24px Arial";
+        // --- TRANSITION SPÉCIALE POUR LE NIVEAU 1 ---
+        if (isFirstLevel) {
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "bold 48px Arial";
             ctx.textAlign = "center";
-            ctx.fillText(pos.medal, pos.x, pos.y - 30);
+            ctx.textBaseline = "middle";
+            ctx.fillText("🎮 BIENVENUE", canvas.width / 2, canvas.height / 2 - 60);
             
-            // Skin du joueur
-            ctx.font = "48px Arial";
-            ctx.fillText(player.skin, pos.x, pos.y + pos.height / 2 - 20);
+            ctx.font = "bold 36px Arial";
+            ctx.fillStyle = "#00FF00";
+            ctx.fillText(`${playerCountStart} 👥 Joueur${playerCountStart > 1 ? 's' : ''} Connecté${playerCountStart > 1 ? 's' : ''}`, canvas.width / 2, canvas.height / 2 + 20);
             
-            // Score
-            ctx.font = "bold 16px Arial";
-            ctx.fillText(`${player.score}`, pos.x, pos.y + pos.height + 25);
-        });
-        
-        // --- MA POSITION (si je ne suis pas dans les 3 premiers) ---
-        const myRank = ranking.findIndex(p => p.id === myId);
-        if (myRank > 2) {
-            ctx.fillStyle = "#CCCCCC";
-            ctx.font = "14px Arial";
+            ctx.font = "italic 24px Arial";
+            ctx.fillStyle = "#AAAAAA";
+            ctx.fillText("C'est parti pour le Niveau 1 !", canvas.width / 2, canvas.height / 2 + 80);
+        } else {
+            // --- TRANSITION NORMALE (FIN DE NIVEAU) ---
+            // Message de transition
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "bold 36px Arial";
             ctx.textAlign = "center";
-            ctx.fillText(`Vous êtes ${myRank + 1}e : ${ranking[myRank].skin} (${ranking[myRank].score} points)`, canvas.width / 2, podiumY + 150);
+            ctx.textBaseline = "middle";
+            
+            const message = `${levelUpPlayerSkin} Gem récupérée en ${levelUpTime.toFixed(1)}s`;
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 80);
+            
+            // --- PODIUM ---
+            const ranking = getRanking(players);
+            const podiumX = canvas.width / 2;
+            const podiumY = canvas.height / 2 + 20;
+            
+            // Positions des podiums (1er au centre, 2e à gauche, 3e à droite)
+            const podiumPositions = [
+                { x: podiumX, y: podiumY, medal: "🥇", height: 120 }, // 1er
+                { x: podiumX - 150, y: podiumY + 30, medal: "🥈", height: 80 }, // 2e
+                { x: podiumX + 150, y: podiumY + 30, medal: "🥉", height: 50 }  // 3e
+            ];
+            
+            ranking.slice(0, 3).forEach((player, index) => {
+                const pos = podiumPositions[index];
+                
+                // Piédestal
+                ctx.fillStyle = index === 0 ? "#FFD700" : (index === 1 ? "#C0C0C0" : "#CD7F32");
+                ctx.fillRect(pos.x - 40, pos.y, 80, pos.height);
+                
+                // Bordure
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(pos.x - 40, pos.y, 80, pos.height);
+                
+                // Numéro de position
+                ctx.fillStyle = "white";
+                ctx.font = "bold 24px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(pos.medal, pos.x, pos.y - 30);
+                
+                // Skin du joueur
+                ctx.font = "48px Arial";
+                ctx.fillText(player.skin, pos.x, pos.y + pos.height / 2 - 20);
+                
+                // Score
+                ctx.font = "bold 16px Arial";
+                ctx.fillText(`${player.score}`, pos.x, pos.y + pos.height + 25);
+            });
+            
+            // --- MA POSITION (si je ne suis pas dans les 3 premiers) ---
+            const myRank = ranking.findIndex(p => p.id === myId);
+            if (myRank > 2) {
+                ctx.fillStyle = "#CCCCCC";
+                ctx.font = "14px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(`Vous êtes ${myRank + 1}e : ${ranking[myRank].skin} (${ranking[myRank].score} points)`, canvas.width / 2, podiumY + 150);
+            }
         }
         
         // Barre de chargement (agrandissement du niveau)

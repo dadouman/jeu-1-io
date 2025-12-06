@@ -156,10 +156,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textBaseline = "middle";
         ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
         
-        // Dessin du Score (petit au dessus)
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
+        // Dessin du Score (petit au dessus) - uniquement en classique/infini
+        if (soloRunTotalTime === 0) {
+            ctx.fillStyle = "white";
+            ctx.font = "12px Arial";
+            ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
+        }
     }
 
     ctx.restore(); // Fin Caméra
@@ -173,8 +175,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
     
-    // N'afficher le score que si pas en mode solo
+    // Score uniquement en mode classique/infini (pas en solo)
     if (soloRunTotalTime === 0) {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "left";
         ctx.fillText("Score : " + myPlayer.score, 20, 40);
     }
 
@@ -589,6 +594,14 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // 9. Record
     ctx.fillStyle = "#FFD700"; // Or
     ctx.font = "bold 20px Arial";
-    ctx.textAlign = "right"; // On aligne à droite pour que ce soit propre
-    ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
+    ctx.textAlign = "right";
+    
+    // En solo: afficher le temps personnel record
+    if (soloRunTotalTime > 0) {
+        const personalBestText = soloPersonalBestTime ? `🎯 Personal Best: ${soloPersonalBestTime.toFixed(2)}s` : "No record yet";
+        ctx.fillText(personalBestText, canvas.width - 20, 40);
+    } else {
+        // En classique/infini: afficher le score record
+        ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
+    }
 }

@@ -118,7 +118,11 @@ function startGameLoop(io, lobbies, soloSessions, playerModes, {
                 const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
                 session.checkpoints.push(checkpointTime);
                 
-                console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s`);
+                // Ajouter les gems au joueur en solo
+                const gemsEarned = calculateGemsForLevel(session.currentLevel);
+                addGems(player, gemsEarned);
+                
+                console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
                 
                 // Augmenter le niveau
                 session.currentLevel++;
@@ -174,10 +178,10 @@ function startGameLoop(io, lobbies, soloSessions, playerModes, {
                 }
             }
             
-            // Envoyer l'état du jeu au joueur
+            // Envoyer l'état du jeu au joueur (avec les gems)
             const socket = io.sockets.sockets.get(playerId);
             if (socket) {
-                socket.emit('state', { players: { [playerId]: player }, coin: session.coin });
+                socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
             }
         }
     }, 1000 / 60); // 60 FPS

@@ -107,8 +107,30 @@ socket.on('restartVoteFinished', (data) => {
     voteResultTime = Date.now();
 });
 
-socket.on('gameRestarted', () => {
-    console.log(`%c🔄 Le jeu a été redémarré!`, 'color: #00FF00; font-weight: bold; font-size: 14px');
+socket.on('returnToModeSelection', () => {
+    console.log(`%c🎮 Retour à la sélection de mode!`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    
+    // Afficher l'écran de sélection de mode
+    const modeSelector = document.getElementById('modeSelector');
+    if (modeSelector) {
+        modeSelector.style.display = 'flex';
+    }
+    
+    // Masquer les contrôles mobiles
+    const mobileControls = document.getElementById('mobileControls');
+    if (mobileControls) {
+        mobileControls.classList.remove('active');
+    }
+    
+    // Réinitialiser les variables du jeu
+    selectedMode = null;
+    level = 1;
+    lastLevel = 0;
+    map = null;
+    currentPlayers = {};
+    voteResult = null;
+    
+    console.log(`%c✨ Prêt à choisir un nouveau mode!`, 'color: #00FF00; font-weight: bold');
 });
 
 socket.on('gameModSelected', (data) => {

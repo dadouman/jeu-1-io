@@ -157,10 +157,8 @@ function restartGame() {
         players[id] = initializePlayer(startPos, Object.keys(players).indexOf(id));
     }
     
-    // Notifier tous les clients
-    io.emit('gameRestarted');
-    io.emit('mapData', map);
-    io.emit('levelUpdate', currentLevel);
+    // Notifier tous les clients - Retourner à la sélection de mode
+    io.emit('returnToModeSelection');
 }
 
 // Chargement du record

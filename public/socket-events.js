@@ -148,6 +148,20 @@ socket.on('gameFinished', (data) => {
     console.log(`%c🏁 Jeu terminé! Vous avez atteint le niveau ${data.finalLevel} en mode ${data.mode}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
 });
 
+socket.on('soloGameFinished', (data) => {
+    console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime.toFixed(2)}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
+    console.log(`%c📊 Checkpoints: ${data.checkpoints.map(t => t.toFixed(1)).join(', ')}`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
+    
+    // Stocker les résultats
+    soloTotalTime = data.totalTime;
+    soloCheckpoints = data.checkpoints;
+    isSoloGameFinished = true;
+    soloFinishedTime = Date.now();
+    
+    // Afficher l'écran de résultats
+    isInTransition = true;
+    transitionStartTime = Date.now();
+});
 socket.on('error', (data) => {
     console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
 });

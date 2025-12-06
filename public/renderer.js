@@ -261,7 +261,64 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText("Appuyez sur 1, 2, 3 ou 4 pour acheter", canvas.width / 2, shopY + shopHeight - 30);
     }
 
+    // --- ÉCRAN DE RÉSULTATS SOLO ---
+    if (isSoloGameFinished) {
+        // Fond semi-transparent noir
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Titre
+        ctx.fillStyle = "#FF00FF";
+        ctx.font = "bold 48px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🏁 SOLO TERMINÉ!", canvas.width / 2, 60);
+        
+        // Temps total
+        ctx.fillStyle = "#00FF00";
+        ctx.font = "bold 40px Arial";
+        ctx.fillText(`⏱️ ${soloTotalTime.toFixed(2)}s`, canvas.width / 2, 150);
+        
+        // Checkpoints
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText("📊 Temps de chaque niveau:", canvas.width / 2, 220);
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "16px Arial";
+        const checkpointStart = 260;
+        const checkpointSpacing = 25;
+        
+        for (let i = 0; i < soloCheckpoints.length; i++) {
+            const level = i + 1;
+            const time = soloCheckpoints[i];
+            const text = `Niveau ${level}: ${time.toFixed(1)}s`;
+            
+            // Deux colonnes
+            if (i < 10) {
+                ctx.fillText(text, canvas.width / 2 - 200, checkpointStart + i * checkpointSpacing);
+            } else {
+                ctx.fillText(text, canvas.width / 2 + 50, checkpointStart + (i - 10) * checkpointSpacing);
+            }
+        }
+        
+        // Bouton retour
+        ctx.fillStyle = "rgba(100, 100, 255, 0.6)";
+        ctx.fillRect(canvas.width / 2 - 100, canvas.height - 80, 200, 50);
+        ctx.strokeStyle = "#00FF00";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(canvas.width / 2 - 100, canvas.height - 80, 200, 50);
+        
+        ctx.fillStyle = "#00FF00";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("RETOUR AU MENU", canvas.width / 2, canvas.height - 55);
+        
+        return; // Ne pas afficher le reste du jeu
+    }
+
     // --- ÉCRAN DE TRANSITION ---
+
     if (isInTransition && transitionProgress < 1.0) {
         // Fond semi-transparent noir
         ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + transitionProgress * 0.3})`;

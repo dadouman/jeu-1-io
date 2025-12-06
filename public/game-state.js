@@ -51,3 +51,9 @@ let myVote = null;
 const VOTE_TIMEOUT = 60000; // 60 secondes
 let voteResult = null; // 'success' | 'failed' | null
 let voteResultTime = null;
+
+// --- VARIABLES SOLO MODE ---
+let soloTotalTime = 0;
+let soloCheckpoints = [];
+let isSoloGameFinished = false;
+let soloFinishedTime = null;

@@ -261,6 +261,18 @@ function calculateMazeSize(level, mode = 'classic') {
         // Mode infini: continue à grandir
         const size = baseSize + (level - 1) * sizeIncrement;
         return { width: size, height: size };
+    } else if (mode === 'solo') {
+        // Mode solo: 20 niveaux (10 expansion, 10 contraction)
+        if (level <= 10) {
+            // Niveaux 1-10: Expansion (15x15 -> 35x35)
+            const size = baseSize + (level - 1) * sizeIncrement;
+            return { width: size, height: size };
+        } else {
+            // Niveaux 11-20: Contraction (35x35 -> 15x15)
+            const contractLevel = level - 10;
+            const size = baseSize + (10 - contractLevel) * sizeIncrement;
+            return { width: size, height: size };
+        }
     }
 }
 
@@ -336,10 +348,14 @@ io.on('connection', (socket) => {
             // Mode solo: créer une session solo privée
             console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO`);
             
+            const startPos = getRandomEmptyPosition(generateMaze(15, 15));
+            const player = initializePlayerForMode(startPos, 0, 'solo');
+            
             soloSessions[socket.id] = {
                 currentLevel: 1,
                 map: generateMaze(15, 15),
                 coin: getRandomEmptyPosition(generateMaze(15, 15)),
+                player: player,
                 startTime: Date.now(), // Temps du début de la session
                 levelStartTime: Date.now(), // Temps du début du niveau
                 checkpoints: [], // Array de temps pour chaque niveau complété
@@ -404,13 +420,24 @@ io.on('connection', (socket) => {
 
     socket.on('movement', (input) => {
         const mode = playerModes[socket.id];
-        if (!mode || !lobbies[mode]) return;
+        if (!mode) return;
         
-        const lobby = lobbies[mode];
-        const player = lobby.players[socket.id];
-        if (!player) return;
+        let player, map;
+        
+        if (mode === 'solo') {
+            const session = soloSessions[socket.id];
+            if (!session) return;
+            player = { x: 0, y: 0, ...session.player }; // Récupérer la position du joueur
+            map = session.map;
+        } else {
+            const lobby = lobbies[mode];
+            if (!lobby) return;
+            player = lobby.players[socket.id];
+            if (!player) return;
+            map = lobby.map;
+        }
 
-        const speed = 3 + (player.purchasedFeatures.speedBoost ? 1 : 0);
+        const speed = 3 + (player.purchasedFeatures?.speedBoost ? 1 : 0);
         let nextX = player.x;
         let nextY = player.y;
 
@@ -431,26 +458,26 @@ io.on('connection', (socket) => {
         nextX = player.x + moveX;
         nextY = player.y + moveY;
 
-        if (!checkWallCollision(nextX, nextY, lobby.map)) {
+        if (!checkWallCollision(nextX, nextY, map)) {
             player.x = nextX;
             player.y = nextY;
         } else if (moveX !== 0 && moveY !== 0) {
-            if (!checkWallCollision(player.x + moveX, player.y, lobby.map)) {
+            if (!checkWallCollision(player.x + moveX, player.y, map)) {
                 player.x += moveX;
             }
             // Puis essayer Y seul
-            else if (!checkWallCollision(player.x, player.y + moveY, lobby.map)) {
+            else if (!checkWallCollision(player.x, player.y + moveY, map)) {
                 player.y += moveY;
             }
             // Si les deux échouent, pas de mouvement
         } else if (moveX !== 0) {
             // Mouvement horizontal uniquement
-            if (!checkWallCollision(player.x + moveX, player.y, lobby.map)) {
+            if (!checkWallCollision(player.x + moveX, player.y, map)) {
                 player.x += moveX;
             }
         } else if (moveY !== 0) {
             // Mouvement vertical uniquement
-            if (!checkWallCollision(player.x, player.y + moveY, lobby.map)) {
+            if (!checkWallCollision(player.x, player.y + moveY, map)) {
                 player.y += moveY;
             }
         }
@@ -476,6 +503,11 @@ io.on('connection', (socket) => {
         } else {
             // Si la corde n'est pas achetée, vider la trace
             player.trail = [];
+        }
+        
+        // Mettre à jour la position du joueur dans la session solo
+        if (mode === 'solo') {
+            soloSessions[socket.id].player = player;
         }
     });
 
@@ -677,6 +709,68 @@ setInterval(() => {
         }
 
         emitToLobby(mode, 'state', { players: lobby.players, coin: lobby.coin });
+    }
+    
+    // --- TRAITEMENT DES SESSIONS SOLO ---
+    for (const playerId in soloSessions) {
+        const session = soloSessions[playerId];
+        const player = session.player;
+        const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
+        
+        // --- COLLISION AVEC LA PIÈCE ---
+        if (dist < 30) {
+            // En solo, on track le temps du checkpoint
+            const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
+            session.checkpoints.push(checkpointTime);
+            
+            console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s`);
+            
+            // Augmenter le niveau
+            session.currentLevel++;
+            
+            // Vérifier si le jeu est terminé (20 niveaux)
+            if (session.currentLevel > 20) {
+                session.totalTime = (Date.now() - session.startTime) / 1000;
+                console.log(`🏁 [SOLO] Joueur ${playerId} a terminé la session! Temps total: ${session.totalTime.toFixed(1)}s`);
+                
+                // Envoyer le résultat au client
+                const socket = io.sockets.sockets.get(playerId);
+                if (socket) {
+                    socket.emit('soloGameFinished', {
+                        totalTime: session.totalTime,
+                        checkpoints: session.checkpoints,
+                        finalLevel: 20
+                    });
+                }
+                
+                // Supprimer la session solo
+                delete soloSessions[playerId];
+            } else {
+                // Générer le prochain niveau
+                const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
+                session.map = generateMaze(mazeSize.width, mazeSize.height);
+                session.coin = getRandomEmptyPosition(session.map);
+                session.levelStartTime = Date.now(); // Reset chrono du niveau
+                
+                // Téléporter le joueur à une position safe
+                const safePos = getRandomEmptyPosition(session.map);
+                player.x = safePos.x;
+                player.y = safePos.y;
+                
+                // Envoyer les nouvelles données
+                const socket = io.sockets.sockets.get(playerId);
+                if (socket) {
+                    socket.emit('mapData', session.map);
+                    socket.emit('levelUpdate', session.currentLevel);
+                }
+            }
+        }
+        
+        // Envoyer l'état du jeu au joueur
+        const socket = io.sockets.sockets.get(playerId);
+        if (socket) {
+            socket.emit('state', { players: { [playerId]: player }, coin: session.coin });
+        }
     }
 }, 1000 / 60);
 

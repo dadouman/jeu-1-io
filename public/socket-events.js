@@ -158,10 +158,29 @@ socket.on('soloGameFinished', (data) => {
     isSoloGameFinished = true;
     soloFinishedTime = Date.now();
     
+    // Sauvegarder les résultats sur le serveur
+    const playerSkin = currentPlayers[myPlayerId]?.skin || "❓";
+    socket.emit('saveSoloResults', {
+        totalTime: data.totalTime,
+        checkpoints: data.checkpoints,
+        playerSkin: playerSkin
+    });
+    
+    // Demander le leaderboard
+    socket.emit('getSoloLeaderboard');
+    
     // Afficher l'écran de résultats
     isInTransition = true;
     transitionStartTime = Date.now();
 });
+
+socket.on('soloLeaderboard', (data) => {
+    console.log(`%c🏆 Leaderboard Solo reçu:`, 'color: #FFD700; font-weight: bold');
+    data.scores.slice(0, 10).forEach((run, index) => {
+        console.log(`%c ${index + 1}. ${run.playerSkin} - ${run.totalTime.toFixed(2)}s`, 'color: #FFD700; font-size: 12px');
+    });
+});
+
 socket.on('error', (data) => {
     console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
 });

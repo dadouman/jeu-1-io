@@ -38,6 +38,17 @@ if (!mongoURI) {
 const HighScoreSchema = new mongoose.Schema({ score: Number, skin: String });
 const HighScoreModel = mongoose.model('HighScore', HighScoreSchema);
 
+// Modèle SoloRun - Pour tracker les résultats du mode solo
+const SoloRunSchema = new mongoose.Schema({
+    playerId: String,
+    playerSkin: String,
+    totalTime: Number, // Temps total en secondes
+    checkpoints: [Number], // Array des temps de chaque niveau
+    finalLevel: { type: Number, default: 20 },
+    createdAt: { type: Date, default: Date.now }
+});
+const SoloRunModel = mongoose.model('SoloRun', SoloRunSchema);
+
 // --- INITIALISATION DU JEU ---
 // Structure de lobbies multi-modes
 let lobbies = {
@@ -395,6 +406,53 @@ io.on('connection', (socket) => {
             });
             
             console.log(`   ${lobby.players[socket.id].skin} rejoint ${mode} (${Object.keys(lobby.players).length} joueur(s))`);
+        }
+    });
+
+    // --- SAUVEGARDER LES RÉSULTATS SOLO ---
+    socket.on('saveSoloResults', async (data) => {
+        const playerId = socket.id;
+        const { totalTime, checkpoints, playerSkin } = data;
+        
+        console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s`);
+        
+        if (mongoURI) {
+            try {
+                const soloRun = new SoloRunModel({
+                    playerId,
+                    playerSkin,
+                    totalTime,
+                    checkpoints,
+                    finalLevel: 20
+                });
+                
+                await soloRun.save();
+                console.log(`✅ Résultat solo sauvegardé en base de données`);
+            } catch (err) {
+                console.error(`❌ Erreur lors de la sauvegarde du résultat solo:`, err);
+            }
+        }
+    });
+
+    // --- OBTENIR LE LEADERBOARD SOLO ---
+    socket.on('getSoloLeaderboard', async () => {
+        console.log(`📊 Demande du leaderboard solo`);
+        
+        if (mongoURI) {
+            try {
+                const topScores = await SoloRunModel
+                    .find({})
+                    .sort({ totalTime: 1 }) // Trier par temps croissant (meilleur temps)
+                    .limit(20) // Top 20
+                    .exec();
+                
+                socket.emit('soloLeaderboard', { scores: topScores });
+            } catch (err) {
+                console.error(`❌ Erreur lors de la récupération du leaderboard solo:`, err);
+                socket.emit('soloLeaderboard', { scores: [] });
+            }
+        } else {
+            socket.emit('soloLeaderboard', { scores: [] });
         }
     });
 

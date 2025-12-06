@@ -1,5 +1,34 @@
 // keyboard-input.js - Gestion des entrées clavier et envoi des mouvements
 
+// --- GESTION DES CLICS SOURIS ---
+document.addEventListener('click', (e) => {
+    // Bouton REJOUER
+    if (window.replayButtonRect) {
+        const rect = window.replayButtonRect;
+        if (e.clientX >= rect.x && e.clientX <= rect.x + rect.w &&
+            e.clientY >= rect.y && e.clientY <= rect.y + rect.h) {
+            // Réinitialiser l'état solo
+            isSoloGameFinished = false;
+            soloTotalTime = 0;
+            soloCheckpoints = [];
+            socket.emit('selectGameMode', { mode: 'solo' });
+            window.replayButtonRect = null;
+            return;
+        }
+    }
+    
+    // Bouton MENU
+    if (window.menuButtonRect) {
+        const rect = window.menuButtonRect;
+        if (e.clientX >= rect.x && e.clientX <= rect.x + rect.w &&
+            e.clientY >= rect.y && e.clientY <= rect.y + rect.h) {
+            // Retour au menu principal
+            location.reload();
+            return;
+        }
+    }
+});
+
 document.addEventListener('keydown', (e) => {
     if(e.code === 'ArrowUp') { inputs.up = true; inputsMomentum.up = 1; }
     if(e.code === 'ArrowDown') { inputs.down = true; inputsMomentum.down = 1; }

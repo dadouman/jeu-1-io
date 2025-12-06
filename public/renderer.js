@@ -264,7 +264,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // --- ÉCRAN DE RÉSULTATS SOLO ---
     if (isSoloGameFinished) {
         // Fond semi-transparent noir
-        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // Titre
@@ -272,47 +272,97 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.font = "bold 48px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("🏁 SOLO TERMINÉ!", canvas.width / 2, 60);
+        ctx.fillText("🏁 SOLO TERMINÉ!", canvas.width / 2, 40);
         
-        // Temps total
+        // Temps total - plus grand
         ctx.fillStyle = "#00FF00";
-        ctx.font = "bold 40px Arial";
-        ctx.fillText(`⏱️ ${soloTotalTime.toFixed(2)}s`, canvas.width / 2, 150);
+        ctx.font = "bold 50px Arial";
+        ctx.fillText(`⏱️ ${soloTotalTime.toFixed(2)}s`, canvas.width / 2, 110);
         
-        // Checkpoints
+        // Rang du leaderboard
+        if (window.soloPlayerRank) {
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "bold 24px Arial";
+            ctx.fillText(`🏆 Classement: #${window.soloPlayerRank}`, canvas.width / 2, 160);
+        }
+        
+        // SECTION GAUCHE - Checkpoints
         ctx.fillStyle = "#FFD700";
-        ctx.font = "bold 20px Arial";
-        ctx.fillText("📊 Temps de chaque niveau:", canvas.width / 2, 220);
+        ctx.font = "bold 18px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("📊 Niveaux:", 40, 220);
         
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "16px Arial";
-        const checkpointStart = 260;
-        const checkpointSpacing = 25;
+        ctx.font = "14px Arial";
+        const checkpointStart = 250;
+        const checkpointSpacing = 20;
         
         for (let i = 0; i < soloCheckpoints.length; i++) {
             const level = i + 1;
             const time = soloCheckpoints[i];
-            const text = `Niveau ${level}: ${time.toFixed(1)}s`;
+            const text = `L${level}: ${time.toFixed(1)}s`;
             
             // Deux colonnes
             if (i < 10) {
-                ctx.fillText(text, canvas.width / 2 - 200, checkpointStart + i * checkpointSpacing);
+                ctx.fillText(text, 40, checkpointStart + i * checkpointSpacing);
             } else {
-                ctx.fillText(text, canvas.width / 2 + 50, checkpointStart + (i - 10) * checkpointSpacing);
+                ctx.fillText(text, canvas.width / 2 - 30, checkpointStart + (i - 10) * checkpointSpacing);
             }
         }
         
-        // Bouton retour
-        ctx.fillStyle = "rgba(100, 100, 255, 0.6)";
-        ctx.fillRect(canvas.width / 2 - 100, canvas.height - 80, 200, 50);
+        // SECTION DROITE - Leaderboard
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 18px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("🎯 Top 5 Leaderboard:", canvas.width / 2 + 50, 220);
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "12px Arial";
+        const leaderboardStart = 250;
+        const leaderboardSpacing = 20;
+        
+        if (window.soloLeaderboard && window.soloLeaderboard.length > 0) {
+            for (let i = 0; i < Math.min(5, window.soloLeaderboard.length); i++) {
+                const entry = window.soloLeaderboard[i];
+                const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i + 1);
+                const text = `${medal} ${entry.totalTime.toFixed(2)}s`;
+                
+                // Highlight le joueur actuel
+                if (window.soloPlayerRank === i + 1) {
+                    ctx.fillStyle = "#00FF00";
+                    ctx.fillRect(canvas.width / 2 + 40, leaderboardStart + i * leaderboardSpacing - 12, 280, 16);
+                    ctx.fillStyle = "#000000";
+                } else {
+                    ctx.fillStyle = "#FFFFFF";
+                }
+                
+                ctx.fillText(text, canvas.width / 2 + 50, leaderboardStart + i * leaderboardSpacing);
+            }
+        }
+        
+        // Boutons
+        ctx.font = "bold 16px Arial";
+        ctx.textAlign = "center";
+        
+        // Bouton REPLAY
+        ctx.fillStyle = "rgba(0, 200, 0, 0.6)";
+        ctx.fillRect(canvas.width / 2 - 220, canvas.height - 70, 160, 50);
         ctx.strokeStyle = "#00FF00";
         ctx.lineWidth = 2;
-        ctx.strokeRect(canvas.width / 2 - 100, canvas.height - 80, 200, 50);
-        
+        ctx.strokeRect(canvas.width / 2 - 220, canvas.height - 70, 160, 50);
         ctx.fillStyle = "#00FF00";
-        ctx.font = "bold 20px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("RETOUR AU MENU", canvas.width / 2, canvas.height - 55);
+        ctx.fillText("🔄 REJOUER", canvas.width / 2 - 140, canvas.height - 45);
+        window.replayButtonRect = { x: canvas.width / 2 - 220, y: canvas.height - 70, w: 160, h: 50 };
+        
+        // Bouton MENU
+        ctx.fillStyle = "rgba(100, 100, 255, 0.6)";
+        ctx.fillRect(canvas.width / 2 + 60, canvas.height - 70, 160, 50);
+        ctx.strokeStyle = "#00FFFF";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(canvas.width / 2 + 60, canvas.height - 70, 160, 50);
+        ctx.fillStyle = "#00FFFF";
+        ctx.fillText("📍 MENU", canvas.width / 2 + 140, canvas.height - 45);
+        window.menuButtonRect = { x: canvas.width / 2 + 60, y: canvas.height - 70, w: 160, h: 50 };
         
         return; // Ne pas afficher le reste du jeu
     }

@@ -176,6 +176,21 @@ socket.on('soloGameFinished', (data) => {
 
 socket.on('soloLeaderboard', (data) => {
     console.log(`%c🏆 Leaderboard Solo reçu:`, 'color: #FFD700; font-weight: bold');
+    window.soloLeaderboard = data.scores;
+    
+    // Calculer le rang du joueur actuel
+    let playerRank = 1;
+    for (let i = 0; i < data.scores.length; i++) {
+        if (data.scores[i].totalTime < soloTotalTime) {
+            playerRank = i + 2;
+        } else {
+            break;
+        }
+    }
+    window.soloPlayerRank = playerRank;
+    
+    console.log(`%c🏆 Votre rang: #${playerRank}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    
     data.scores.slice(0, 10).forEach((run, index) => {
         console.log(`%c ${index + 1}. ${run.playerSkin} - ${run.totalTime.toFixed(2)}s`, 'color: #FFD700; font-size: 12px');
     });

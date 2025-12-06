@@ -79,6 +79,14 @@ function purchaseItem(player, itemId) {
         return { success: false, message: 'Item non trouvé' };
     }
     
+    // Vérifier si l'item a déjà été acheté (sauf speedBoost qui peut être acheté plusieurs fois)
+    if (itemId !== 'speedBoost' && player.purchasedFeatures[itemId] === true) {
+        return {
+            success: false,
+            message: `${item.name} a déjà été acheté cette partie!`
+        };
+    }
+    
     if (player.gems < item.price) {
         return {
             success: false,
@@ -91,7 +99,7 @@ function purchaseItem(player, itemId) {
     // Effectuer l'achat
     player.gems -= item.price;
     if(itemId === 'speedBoost') {
-        player.purchasedFeatures.speedBoost += 1;
+        player.purchasedFeatures.speedBoost = (player.purchasedFeatures.speedBoost || 0) + 1;
     } else {
         player.purchasedFeatures[itemId] = true;
     }    

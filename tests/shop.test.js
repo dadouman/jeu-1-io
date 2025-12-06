@@ -92,11 +92,12 @@ describe('Système de Gems', () => {
 
     // --- TEST 1 : Calcul des gems gagnées ---
     test('Calcul des gems pour chaque niveau', () => {
-        expect(calculateGemsForLevel(1)).toBe(1);
+        expect(calculateGemsForLevel(1)).toBe(1); // 1 gem par niveau
         expect(calculateGemsForLevel(2)).toBe(1);
         expect(calculateGemsForLevel(3)).toBe(1);
-        expect(calculateGemsForLevel(4)).toBe(3);
-        expect(calculateGemsForLevel(9)).toBe(3);
+        expect(calculateGemsForLevel(4)).toBe(1);
+        expect(calculateGemsForLevel(9)).toBe(1);
+        expect(calculateGemsForLevel(100)).toBe(1);
     });
 
     // --- TEST 2 : Ajout de gems ---
@@ -146,17 +147,15 @@ describe('Intégration Shop + Gems + Joueur', () => {
     test('Scénario complet : collecter gems et acheter item', () => {
         const player = initializePlayer({ x: 100, y: 100 }, 0);
 
-        const gemsEarned = calculateGemsForLevel(4);
-        addGems(player, gemsEarned);
+        // 5 niveaux = 5 gems
+        for (let i = 0; i < 5; i++) {
+            const gemsEarned = calculateGemsForLevel(i + 1);
+            addGems(player, gemsEarned);
+        }
+        expect(player.gems).toBe(5);
 
-        expect(player.gems).toBe(3);
-
+        // Acheter dash (coûte 5)
         let result = purchaseItem(player, 'dash');
-        expect(result.success).toBe(false);
-
-        addGems(player, 2);
-
-        result = purchaseItem(player, 'dash');
         expect(result.success).toBe(true);
         expect(player.gems).toBe(0);
         expect(player.purchasedFeatures.dash).toBe(true);
@@ -180,21 +179,34 @@ describe('Intégration Shop + Gems + Joueur', () => {
         expect(player.gems).toBe(4);
 
         result = purchaseItem(player, 'dash');
-        expect(result.success).toBe(false);
+        expect(result.success).toBe(false); // Dash coûte 5, on a 4
         expect(player.gems).toBe(4);
     });
 
-    // --- TEST 3 : Shop tous les 5 niveaux ---
-    test('Magasin s\'ouvre au niveau 5, 10, 15, etc.', () => {
-        expect(isShopLevel(5)).toBe(true);
-        expect(isShopLevel(10)).toBe(true);
-        expect(isShopLevel(15)).toBe(true);
-        expect(isShopLevel(20)).toBe(true);
-        
-        expect(isShopLevel(1)).toBe(false);
-        expect(isShopLevel(4)).toBe(false);
-        expect(isShopLevel(6)).toBe(false);
-        expect(isShopLevel(11)).toBe(false);
+    // --- TEST 3 : Impossible d'acheter 2x le même item (sauf speedBoost) ---
+    test('Impossible d\'acheter 2x le même item (sauf speedBoost)', () => {
+        const player = initializePlayer({ x: 100, y: 100 }, 0);
+        player.gems = 20;
+
+        // Premier achat de checkpoint
+        let result = purchaseItem(player, 'checkpoint');
+        expect(result.success).toBe(true);
+        expect(player.gems).toBe(17);
+
+        // Deuxième achat - doit échouer
+        result = purchaseItem(player, 'checkpoint');
+        expect(result.success).toBe(false);
+        expect(result.message).toContain('déjà été acheté');
+        expect(player.gems).toBe(17); // Pas changé
+
+        // Mais speedBoost doit réussir plusieurs fois
+        result = purchaseItem(player, 'speedBoost');
+        expect(result.success).toBe(true);
+        expect(player.purchasedFeatures.speedBoost).toBe(1);
+
+        result = purchaseItem(player, 'speedBoost');
+        expect(result.success).toBe(true);
+        expect(player.purchasedFeatures.speedBoost).toBe(2);
     });
 
 });

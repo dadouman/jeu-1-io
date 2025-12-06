@@ -8,15 +8,8 @@ const { isShopLevel } = require('./shop');
  * @returns {number} - Le nombre de gems à gagner
  */
 function calculateGemsForLevel(level) {
-    // 1 gem par niveau + bonus au magasin
-    let gems = 1;
-    
-    // Bonus si on entre dans un niveau de magasin
-    if (isShopLevel(level + 1)) {
-        gems += 2;
-    }
-    
-    return gems;
+    // 1 gem par niveau, c'est tout
+    return 1;
 }
 
 /**

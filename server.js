@@ -572,8 +572,8 @@ setInterval(() => {
                 addGems(p, gemsEarned);
                 
                 // Afficher les stats de progression
-                const isShopLevelNext = isShopLevel(lobby.currentLevel + 1);
-                console.log(`✨ [PROGRESSION ${mode}] ${p.skin} Niveau ${lobby.currentLevel} complété en ${(Date.now() / 1000).toFixed(0)}s | +${gemsEarned}💎 (Total: ${p.gems}💎)${isShopLevelNext ? ' | 🏪 Magasin au prochain niveau!' : ''}`);
+                const isShopAfterThisLevel = isShopLevel(lobby.currentLevel);
+                console.log(`✨ [PROGRESSION ${mode}] ${p.skin} Niveau ${lobby.currentLevel} complété en ${(Date.now() / 1000).toFixed(0)}s | +${gemsEarned}💎 (Total: ${p.gems}💎)${isShopAfterThisLevel ? ' | 🏪 Magasin après ce niveau!' : ''}`);
                 
                 // 1. ON AUGMENTE LE NIVEAU
                 console.log(`🔢 [PRE-INCREMENT] Mode: ${mode}, currentLevel AVANT: ${lobby.currentLevel}`);
@@ -620,13 +620,14 @@ setInterval(() => {
             emitToLobby(mode, 'mapData', lobby.map); // On envoie la nouvelle carte
             emitToLobby(mode, 'levelUpdate', lobby.currentLevel); // On prévient du niveau
             
-            // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
-            const isShopLvl = isShopLevel(lobby.currentLevel);
-            console.log(`🏪 [CHECK SHOP] Mode: ${mode}, Level: ${lobby.currentLevel}, isShopLevel: ${isShopLvl}`);
+            // VÉRIFIER SI LE NIVEAU QU'ON VIENT DE COMPLÉTER est un niveau de MAGASIN
+            const completedLevel = lobby.currentLevel - 1;
+            const isShopLvl = isShopLevel(completedLevel);
+            console.log(`🏪 [CHECK SHOP] Mode: ${mode}, Niveau complété: ${completedLevel}, isShopLevel: ${isShopLvl}`);
             if (isShopLvl) {
-                console.log(`🏪 [SHOP TRIGGER] Mode: ${mode}, MAGASIN VA S'OUVRIR pour le niveau ${lobby.currentLevel}`);
-                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode), level: lobby.currentLevel });
-                console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Niveau ${lobby.currentLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
+                console.log(`🏪 [SHOP TRIGGER] Mode: ${mode}, MAGASIN VA S'OUVRIR après le niveau ${completedLevel}`);
+                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode), level: completedLevel });
+                console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
             } else {
                 const mazeSize = 15 + (lobby.currentLevel * 2);
                 console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize}x${mazeSize} généré`);

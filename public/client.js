@@ -24,7 +24,7 @@ let currentHighScore = null;
 let myPlayerId = null; // <--- LA VARIABLE QUI VA NOUS SAUVER
 
 let level = 1;
-let levelStartTime = Date.now(); // Temps du début du niveau
+let levelStartTime = null; // Ne pas initialiser tout de suite
 let lastLevel = 0; // Pour détecter les changements de niveau
 
 // VARIABLES CHECKPOINT
@@ -66,11 +66,19 @@ socket.on('levelUpdate', (newLevel) => {
         if (playerData) {
             console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         }
+    } else if (newLevel === 1 && lastLevel === 0) {
+        // Premier niveau : initialiser le chronomètre maintenant
+        levelStartTime = Date.now();
     }
     
     level = newLevel;
     lastLevel = newLevel;
-    levelStartTime = Date.now() + TRANSITION_DURATION; // Démarrer le chrono APRÈS la transition (+ 3 sec)
+    
+    // Si c'est une vraie transition (pas le premier niveau), attendre 3s
+    if (lastLevel > 1) {
+        levelStartTime = Date.now() + TRANSITION_DURATION; // Démarrer le chrono APRÈS la transition
+    }
+    
     checkpoint = null; // Réinitialiser le checkpoint au changement de niveau
     trails = {}; // Réinitialiser les traces au changement de niveau
 });

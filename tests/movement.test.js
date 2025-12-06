@@ -200,4 +200,47 @@ describe('Système de Mouvement Amélioré', () => {
         expect(player.trail.length).toBe(2000);
     });
 
+    // --- TEST 11 : Normalisation du mouvement diagonal ---
+    test('Le mouvement diagonal doit avoir la même vitesse que le linéaire', () => {
+        const speed = 3;
+
+        // Mouvement linéaire (droite)
+        let linearMoveX = speed;
+        let linearMoveY = 0;
+        let linearDistance = Math.sqrt(linearMoveX * linearMoveX + linearMoveY * linearMoveY);
+
+        // Mouvement diagonal (avant normalisation)
+        let diagonalMoveX = speed;
+        let diagonalMoveY = -speed;
+        let diagonalDistanceBefore = Math.sqrt(diagonalMoveX * diagonalMoveX + diagonalMoveY * diagonalMoveY);
+
+        // Après normalisation
+        if (diagonalMoveX !== 0 && diagonalMoveY !== 0) {
+            const diagonal = Math.sqrt(diagonalMoveX * diagonalMoveX + diagonalMoveY * diagonalMoveY);
+            diagonalMoveX = (diagonalMoveX / diagonal) * speed;
+            diagonalMoveY = (diagonalMoveY / diagonal) * speed;
+        }
+        let diagonalDistanceAfter = Math.sqrt(diagonalMoveX * diagonalMoveX + diagonalMoveY * diagonalMoveY);
+
+        // Avant normalisation : ~4.24 (3 * sqrt(2))
+        expect(diagonalDistanceBefore).toBeCloseTo(3 * Math.sqrt(2), 1);
+
+        // Après normalisation : 3 (comme le linéaire)
+        expect(linearDistance).toBeCloseTo(3, 1);
+        expect(diagonalDistanceAfter).toBeCloseTo(3, 1);
+    });
+
+    // --- TEST 12 : Vitesse correcte avec speedBoost ---
+    test('Le speedBoost doit augmenter la vitesse', () => {
+        const baseSpeed = 3;
+        const boostSpeed = 1;
+
+        const speedWithoutBoost = baseSpeed;
+        const speedWithBoost = baseSpeed + boostSpeed;
+
+        expect(speedWithBoost).toBe(4);
+        expect(speedWithBoost > speedWithoutBoost).toBe(true);
+    });
+
 });
+

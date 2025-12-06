@@ -123,7 +123,7 @@ io.on('connection', (socket) => {
         const player = players[socket.id];
         if (!player) return;
 
-        const speed = 5 + (player.purchasedFeatures.speedBoost ? 2 : 0); // Vitesse de base + boost optionnel
+        const speed = 3 + (player.purchasedFeatures.speedBoost ? 1 : 0); // Vitesse de base + boost optionnel
         let nextX = player.x;
         let nextY = player.y;
 
@@ -135,6 +135,16 @@ io.on('connection', (socket) => {
         if (input.right) moveX += speed;
         if (input.up) moveY -= speed;
         if (input.down) moveY += speed;
+
+        // Normaliser le vecteur en diagonale pour éviter les mouvements trop rapides
+        // En diagonale, sans normalisation : distance = sqrt(speed² + speed²) = speed * sqrt(2) ≈ 1.41x
+        // Après normalisation : distance = speed (constant)
+        if (moveX !== 0 && moveY !== 0) {
+            // C'est un mouvement diagonal : normaliser
+            const diagonal = Math.sqrt(moveX * moveX + moveY * moveY);
+            moveX = (moveX / diagonal) * speed;
+            moveY = (moveY / diagonal) * speed;
+        }
 
         // Essayer le mouvement diagonal complet d'abord
         nextX = player.x + moveX;

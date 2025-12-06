@@ -229,7 +229,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = "#FFD700";
         ctx.font = "bold 28px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("🏪 MAGASIN - Niveau " + level, canvas.width / 2, shopY + 40);
+        const shopNumber = Math.floor(level / 5); // Shop 1 = niveau 5, Shop 2 = niveau 10, etc.
+        ctx.fillText("🏪 SHOP " + shopNumber, canvas.width / 2, shopY + 40);
         
         // Affichage du timer
         ctx.fillStyle = shopTimeRemaining <= 5 ? "#FF0000" : "#FFD700";

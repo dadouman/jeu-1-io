@@ -68,7 +68,8 @@ socket.on('shopOpen', (data) => {
     shopTimerStart = Date.now();
     // PAUSE le temps du niveau pendant que le shop est ouvert
     levelStartTime = null;
-    console.log(`%c🏪 SHOP OUVERT - Niveau ${data.level} | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+    const shopNumber = Math.floor(data.level / 5);
+    console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
 });
 
 socket.on('shopPurchaseSuccess', (data) => {

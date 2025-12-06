@@ -44,6 +44,7 @@ let lobbies = {
     classic: {
         players: {},
         currentLevel: 1,
+        levelStartTime: Date.now(),
         map: generateMaze(15, 15),
         coin: getRandomEmptyPosition(generateMaze(15, 15)),
         currentRecord: { score: 0, skin: "❓" },
@@ -57,6 +58,7 @@ let lobbies = {
     infinite: {
         players: {},
         currentLevel: 1,
+        levelStartTime: Date.now(),
         map: generateMaze(15, 15),
         coin: getRandomEmptyPosition(generateMaze(15, 15)),
         currentRecord: { score: 0, skin: "❓" },
@@ -69,8 +71,12 @@ let lobbies = {
     }
 };
 
+// Solo sessions - chaque joueur a sa propre session solo
+// { playerId: { currentLevel, map, coin, startTime, checkpoints: [], totalTime } }
+let soloSessions = {};
+
 // Tracker le mode de chaque joueur
-let playerModes = {}; // { playerId: 'classic' ou 'infinite' }
+let playerModes = {}; // { playerId: 'classic', 'infinite', ou 'solo' }
 
 // --- FONCTIONS UTILITAIRES ---
 function getLobby(mode) {
@@ -322,40 +328,68 @@ io.on('connection', (socket) => {
 
     // --- SÉLECTION DU MODE DE JEU ---
     socket.on('selectGameMode', (data) => {
-        const mode = data.mode; // 'classic' ou 'infinite'
+        const mode = data.mode; // 'classic', 'infinite', ou 'solo'
         
-        if (!lobbies[mode]) {
-            socket.emit('error', { message: 'Mode invalide' });
-            return;
-        }
-        
-        const lobby = lobbies[mode];
         playerModes[socket.id] = mode;
         
-        console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
-        
-        // Ajouter le joueur à la lobby
-        const playerIndex = Object.keys(lobby.players).length;
-        const startPos = getRandomEmptyPosition(lobby.map);
-        lobby.players[socket.id] = initializePlayerForMode(startPos, playerIndex, mode);
-        
-        // Envoyer les données de la lobby au nouvel arrivant
-        socket.emit('mapData', lobby.map);
-        socket.emit('levelUpdate', lobby.currentLevel);
-        socket.emit('highScoreUpdate', lobby.currentRecord);
-        socket.emit('gameModSelected', { mode: mode });
-        
-        // Notifier les autres joueurs de la même lobby
-        emitToLobby(mode, 'playersCountUpdate', {
-            count: Object.keys(lobby.players).length
-        });
-        
-        console.log(`   ${lobby.players[socket.id].skin} rejoint ${mode} (${Object.keys(lobby.players).length} joueur(s))`);
+        if (mode === 'solo') {
+            // Mode solo: créer une session solo privée
+            console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO`);
+            
+            soloSessions[socket.id] = {
+                currentLevel: 1,
+                map: generateMaze(15, 15),
+                coin: getRandomEmptyPosition(generateMaze(15, 15)),
+                startTime: Date.now(), // Temps du début de la session
+                levelStartTime: Date.now(), // Temps du début du niveau
+                checkpoints: [], // Array de temps pour chaque niveau complété
+                totalTime: 0
+            };
+            
+            const session = soloSessions[socket.id];
+            socket.emit('mapData', session.map);
+            socket.emit('levelUpdate', session.currentLevel);
+            socket.emit('gameModSelected', { mode: 'solo' });
+            
+            console.log(`   Session solo créée pour joueur ${socket.id}`);
+        } else {
+            // Mode classique ou infini
+            if (!lobbies[mode]) {
+                socket.emit('error', { message: 'Mode invalide' });
+                return;
+            }
+            
+            const lobby = lobbies[mode];
+            console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
+            
+            // Ajouter le joueur à la lobby
+            const playerIndex = Object.keys(lobby.players).length;
+            const startPos = getRandomEmptyPosition(lobby.map);
+            lobby.players[socket.id] = initializePlayerForMode(startPos, playerIndex, mode);
+            
+            // Envoyer les données de la lobby au nouvel arrivant
+            socket.emit('mapData', lobby.map);
+            socket.emit('levelUpdate', lobby.currentLevel);
+            socket.emit('highScoreUpdate', lobby.currentRecord);
+            socket.emit('gameModSelected', { mode: mode });
+            
+            // Notifier les autres joueurs de la même lobby
+            emitToLobby(mode, 'playersCountUpdate', {
+                count: Object.keys(lobby.players).length
+            });
+            
+            console.log(`   ${lobby.players[socket.id].skin} rejoint ${mode} (${Object.keys(lobby.players).length} joueur(s))`);
+        }
     });
 
     socket.on('disconnect', () => { 
         const mode = playerModes[socket.id];
-        if (mode && lobbies[mode]) {
+        
+        if (mode === 'solo') {
+            // Supprime la session solo
+            delete soloSessions[socket.id];
+            console.log(`🎯 Joueur ${socket.id} déconnecté du mode solo`);
+        } else if (mode && lobbies[mode]) {
             const lobby = lobbies[mode];
             delete lobby.players[socket.id];
             console.log(`Joueur ${socket.id} déconnecté de ${mode} (${Object.keys(lobby.players).length} joueur(s) restant(s))`);

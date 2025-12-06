@@ -48,6 +48,120 @@ let coin = getRandomEmptyPosition(map);
 
 let currentRecord = { score: 0, skin: "❓" };
 
+// --- SYSTÈME DE VOTE POUR REDÉMARRER ---
+let restartVote = {
+    isActive: false,
+    votes: {}, // { playerId: true/false }
+    startTime: null,
+    VOTE_TIMEOUT: 60000 // 60 secondes max pour voter
+};
+
+function startRestartVote(initiatorId) {
+    if (restartVote.isActive) {
+        return { success: false, message: "Un vote est déjà en cours" };
+    }
+    
+    restartVote.isActive = true;
+    restartVote.votes = {};
+    restartVote.startTime = Date.now();
+    
+    console.log(`\n🗳️ ════════════════════════════════════\n   VOTE POUR REDÉMARRER LANCÉ\n   ${Object.keys(players).length} joueur(s) connecté(s)\n   Tapez O pour OUI, N ou rien pour NON\n════════════════════════════════════\n`);
+    
+    io.emit('restartVoteStarted', {
+        initiator: players[initiatorId]?.skin || "❓",
+        playerCount: Object.keys(players).length,
+        timeout: restartVote.VOTE_TIMEOUT
+    });
+    
+    return { success: true };
+}
+
+function submitRestartVote(playerId, voteValue) {
+    if (!restartVote.isActive) {
+        return { success: false, message: "Aucun vote en cours" };
+    }
+    
+    const player = players[playerId];
+    restartVote.votes[playerId] = voteValue;
+    
+    // Log
+    console.log(`   ${player.skin} a voté: ${voteValue ? "✅ OUI" : "❌ NON"}`);
+    
+    return { success: true, voteRegistered: voteValue };
+}
+
+function checkRestartVote() {
+    if (!restartVote.isActive) return false;
+    
+    const now = Date.now();
+    const elapsed = now - restartVote.startTime;
+    const totalPlayers = Object.keys(players).length;
+    const yesVotes = Object.values(restartVote.votes).filter(v => v === true).length;
+    const requiredYes = Math.ceil(totalPlayers / 2);
+    
+    // Vérifier si la majorité a voté oui - VALIDER IMMÉDIATEMENT
+    if (yesVotes >= requiredYes) {
+        finishRestartVote();
+        return true;
+    }
+    
+    // Vérifier si le vote est expiré (60 secondes max)
+    if (elapsed > restartVote.VOTE_TIMEOUT) {
+        finishRestartVote();
+        return false;
+    }
+    
+    return false;
+}
+
+function finishRestartVote() {
+    if (!restartVote.isActive) return false;
+    
+    const totalPlayers = Object.keys(players).length;
+    const yesVotes = Object.values(restartVote.votes).filter(v => v === true).length;
+    const requiredYes = Math.ceil(totalPlayers / 2);
+    const shouldRestart = yesVotes >= requiredYes;
+    
+    const result = {
+        shouldRestart,
+        yesVotes,
+        requiredYes,
+        totalPlayers,
+        totalVotesReceived: Object.keys(restartVote.votes).length
+    };
+    
+    console.log(`\n📊 RÉSULTAT DU VOTE: ${yesVotes}/${requiredYes} votes pour redémarrer`);
+    
+    // Réinitialiser le vote
+    restartVote.isActive = false;
+    restartVote.votes = {};
+    restartVote.startTime = null;
+    
+    io.emit('restartVoteFinished', result);
+    
+    return shouldRestart;
+}
+
+function restartGame() {
+    console.log(`\n🔄 ════════════════════════════════════\n   REDÉMARRAGE DU JEU\n════════════════════════════════════\n`);
+    
+    // Réinitialiser les variables du jeu
+    currentLevel = 1;
+    map = generateMaze(15, 15);
+    coin = getRandomEmptyPosition(map);
+    
+    // Réinitialiser tous les joueurs
+    for (let id in players) {
+        const startPos = getRandomEmptyPosition(map);
+        players[id] = initializePlayer(startPos, Object.keys(players).indexOf(id));
+    }
+    
+    // Notifier tous les clients
+    io.emit('gameRestarted');
+    io.emit('mapData', map);
+    io.emit('levelUpdate', currentLevel);
+}
+
 // Chargement du record
 async function loadHighScore() {
     if (!mongoURI) return;
@@ -223,6 +337,35 @@ io.on('connection', (socket) => {
                 socket.emit('error', { message: '⚡ Dash non acheté ! Rendez-vous au magasin' });
             } else {
                 performDash(player, socket.id);
+            }
+        }
+    });
+
+    // --- SYSTÈME DE VOTE POUR REDÉMARRER ---
+    socket.on('proposeRestart', () => {
+        const player = players[socket.id];
+        if (!player) return;
+        
+        const result = startRestartVote(socket.id);
+        if (result.success) {
+            socket.emit('restartVoteProposed', { success: true });
+        } else {
+            socket.emit('restartVoteProposed', { success: false, message: result.message });
+        }
+    });
+
+    socket.on('voteRestart', (data) => {
+        const player = players[socket.id];
+        if (!player) return;
+        
+        const voteValue = data.vote === true; // true = oui, false = non
+        const result = submitRestartVote(socket.id, voteValue);
+        
+        if (result.success) {
+            // Vérifier si le vote est terminé
+            const shouldRestart = checkRestartVote();
+            if (shouldRestart) {
+                restartGame();
             }
         }
     });

@@ -50,6 +50,12 @@ let levelUpPlayerSkin = null; // Skin du joueur qui a gagné
 let levelUpTime = 0; // Temps mis pour gagner
 let currentPlayers = {}; // Cache des joueurs pour la transition
 
+// VARIABLES VOTE
+let isVoteActive = false;
+let voteStartTime = null;
+let myVote = null; // null = pas voté, true = oui, false = non
+const VOTE_TIMEOUT = 60000; // 60 secondes
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
@@ -130,6 +136,25 @@ socket.on('shopPurchaseFailed', (data) => {
     console.log(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
 });
 
+// --- ÉVÉNEMENTS VOTE ---
+socket.on('restartVoteStarted', (data) => {
+    isVoteActive = true;
+    voteStartTime = Date.now();
+    myVote = null;
+    console.log(`%c🗳️ VOTE POUR REDÉMARRER LANCÉ (${data.playerCount} joueur(s)) - Tapez O pour OUI, N/Aucun pour NON`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
+});
+
+socket.on('restartVoteFinished', (data) => {
+    isVoteActive = false;
+    myVote = null;
+    const result = data.shouldRestart ? '✅ REDÉMARRAGE!' : '❌ Vote rejeté';
+    console.log(`%c📊 Vote terminé: ${data.yesVotes}/${data.requiredYes} votes pour OUI - ${result}`, 'color: #FF00FF; font-weight: bold');
+});
+
+socket.on('gameRestarted', () => {
+    console.log(`%c🔄 Le jeu a été redémarré!`, 'color: #00FF00; font-weight: bold; font-size: 14px');
+});
+
 // Événement d'erreur général
 socket.on('error', (data) => {
     console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
@@ -157,6 +182,25 @@ document.addEventListener('keydown', (e) => {
     // Dash avec Shift
     if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         actions.dash = true;
+        e.preventDefault();
+    }
+    
+    // --- SYSTÈME DE VOTE POUR REDÉMARRER ---
+    // P : Proposer un redémarrage
+    if(e.code === 'KeyP') {
+        socket.emit('proposeRestart');
+        e.preventDefault();
+    }
+    
+    // O : Voter oui
+    if(e.code === 'KeyO') {
+        socket.emit('voteRestart', { vote: true });
+        e.preventDefault();
+    }
+    
+    // N : Voter non
+    if(e.code === 'KeyN') {
+        socket.emit('voteRestart', { vote: false });
         e.preventDefault();
     }
     

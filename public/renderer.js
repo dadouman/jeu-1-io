@@ -17,7 +17,7 @@ function getRanking(players) {
     return playersList.sort((a, b) => b.score - a.score);
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -341,6 +341,56 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = "white";
         ctx.font = "14px Arial";
         ctx.fillText(`Niveau ${level}`, canvas.width / 2, barY + barHeight + 25);
+    }
+
+    // --- AFFICHAGE DU VOTE EN BAS ---
+    if (isVoteActive) {
+        // Fond semi-transparent noir
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+        
+        // Bordure dorée
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(0, canvas.height - 80, canvas.width, 80);
+        
+        // Texte du vote
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("🗳️ VOTE POUR REDÉMARRER EN COURS", canvas.width / 2, canvas.height - 55);
+        
+        // Temps restant
+        ctx.fillStyle = voteTimeRemaining <= 10 ? "#FF4444" : "#00FF00";
+        ctx.font = "bold 18px Arial";
+        ctx.fillText(`⏱️ ${voteTimeRemaining}s restant${voteTimeRemaining > 1 ? 's' : ''}`, canvas.width / 2, canvas.height - 25);
+        
+        // Instructions
+        ctx.fillStyle = "#AAAAAA";
+        ctx.font = "14px Arial";
+        ctx.fillText("Appuyez sur O (OUI) ou N (NON)", canvas.width / 2, canvas.height - 5);
+    }
+
+    // --- AFFICHAGE DU RÉSULTAT DU VOTE ---
+    if (voteResult) {
+        if (voteResult === 'success') {
+            ctx.fillStyle = "rgba(0, 255, 0, 0.2)";
+            ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+            
+            ctx.fillStyle = "#00FF00";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("✅ VOTE ACCEPTÉ - REDÉMARRAGE EN COURS", canvas.width / 2, canvas.height - 20);
+        } else if (voteResult === 'failed') {
+            ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
+            ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+            
+            ctx.fillStyle = "#FF0000";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("❌ VOTE REJETÉ", canvas.width / 2, canvas.height - 20);
+        }
     }
 
     // 9. Record

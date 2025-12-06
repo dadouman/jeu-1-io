@@ -1,0 +1,116 @@
+// socket-events.js - Tous les événements Socket.io
+
+// --- ÉVÉNEMENTS CONNEXION ---
+socket.on('init', (id) => {
+    myPlayerId = id;
+});
+
+socket.on('connect', () => {
+    if (!myPlayerId) myPlayerId = socket.id;
+});
+
+// --- ÉVÉNEMENTS JEU ---
+socket.on('mapData', (data) => {
+    map = data;
+});
+
+socket.on('highScoreUpdate', (data) => {
+    currentHighScore = data;
+});
+
+socket.on('checkpointUpdate', (data) => {
+    checkpoint = data;
+});
+
+socket.on('levelUpdate', (newLevel) => {
+    // Détecter si c'est vraiment un changement de niveau
+    if (newLevel !== lastLevel && lastLevel !== 0) {
+        // Niveau a changé ! Déclencher la transition
+        isInTransition = true;
+        transitionStartTime = Date.now();
+        levelUpTime = (Date.now() - levelStartTime) / 1000;
+        levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
+        
+        // Log de jeu
+        const playerData = currentPlayers[myPlayerId];
+        if (playerData) {
+            console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+        }
+    } else if (newLevel === 1 && lastLevel === 0) {
+        // Premier niveau : déclencher une transition spéciale
+        isInTransition = true;
+        isFirstLevel = true;
+        transitionStartTime = Date.now();
+        playerCountStart = Object.keys(currentPlayers).length;
+        levelStartTime = Date.now() + TRANSITION_DURATION;
+    }
+    
+    level = newLevel;
+    lastLevel = newLevel;
+    
+    // Si c'est une vraie transition (pas le premier niveau), attendre 3s
+    if (lastLevel > 1 && !isFirstLevel) {
+        levelStartTime = Date.now() + TRANSITION_DURATION;
+    }
+    
+    checkpoint = null;
+    trails = {};
+});
+
+// --- ÉVÉNEMENTS SHOP ---
+socket.on('shopOpen', (data) => {
+    isShopOpen = true;
+    shopItems = data.items;
+    shopTimerStart = Date.now();
+    console.log(`%c🏪 SHOP OUVERT - Niveau ${data.level} | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+});
+
+socket.on('shopPurchaseSuccess', (data) => {
+    purchasedFeatures[data.itemId] = true;
+    playerGems = data.gemsLeft;
+    console.log(`%c✅ ${data.item.name} acheté! | ${data.gemsLeft}💎 restants`, 'color: #00FF00; font-weight: bold');
+});
+
+socket.on('shopPurchaseFailed', (data) => {
+    console.log(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
+});
+
+// --- ÉVÉNEMENTS VOTE ---
+socket.on('restartVoteStarted', (data) => {
+    isVoteActive = true;
+    voteStartTime = Date.now();
+    myVote = null;
+    console.log(`%c🗳️ VOTE POUR REDÉMARRER LANCÉ (${data.playerCount} joueur(s)) - Tapez O pour OUI, N/Aucun pour NON`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
+});
+
+socket.on('restartVoteFinished', (data) => {
+    isVoteActive = false;
+    myVote = null;
+    
+    if (data.shouldRestart) {
+        voteResult = 'success';
+        console.log(`%c✅ REDÉMARRAGE VALIDÉ! ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #00FF00; font-weight: bold');
+        
+        // Déclencher la transition de début de partie
+        isInTransition = true;
+        isFirstLevel = true;
+        transitionStartTime = Date.now();
+        playerCountStart = data.playerCount;
+        levelStartTime = Date.now() + TRANSITION_DURATION;
+        level = 1;
+        lastLevel = 1;
+    } else {
+        voteResult = 'failed';
+        console.log(`%c❌ Vote rejeté: ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #FF0000; font-weight: bold');
+    }
+    
+    voteResultTime = Date.now();
+});
+
+socket.on('gameRestarted', () => {
+    console.log(`%c🔄 Le jeu a été redémarré!`, 'color: #00FF00; font-weight: bold; font-size: 14px');
+});
+
+socket.on('error', (data) => {
+    console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
+});

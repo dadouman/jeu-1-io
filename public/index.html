@@ -166,8 +166,12 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <!-- On charge d'abord le peintre, puis le joueur -->
+    <!-- Modules du client (ordre important) -->
+    <script src="game-state.js"></script>
     <script src="renderer.js"></script>
+    <script src="socket-events.js"></script>
+    <script src="keyboard-input.js"></script>
+    <script src="game-loop.js"></script>
     <script src="client.js"></script>
     <script src="mobile-controls.js"></script>
 </body>

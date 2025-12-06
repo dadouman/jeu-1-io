@@ -427,10 +427,21 @@ io.on('connection', (socket) => {
         if (input.up) player.lastDirection = 'up';
         if (input.down) player.lastDirection = 'down';
 
-        // Ajouter la position à la trace du joueur
-        player.trail.push({ x: player.x, y: player.y });
-        if (player.trail.length > 2000) {
-            player.trail.shift(); // Supprimer la plus ancienne position
+        // Optimisation de la trace : ajouter la position SEULEMENT si le joueur a acheté la corde
+        // ET ajouter un point tous les 4 pixels pour réduire la charge
+        if (player.purchasedFeatures && player.purchasedFeatures.rope) {
+            // Vérifier si la position a changé suffisamment depuis le dernier point de trace
+            const lastTrailPoint = player.trail[player.trail.length - 1];
+            if (!lastTrailPoint || Math.hypot(lastTrailPoint.x - player.x, lastTrailPoint.y - player.y) >= 4) {
+                player.trail.push({ x: player.x, y: player.y });
+                // Limiter à 500 points au lieu de 2000 pour 20 secondes de trace à 60 FPS
+                if (player.trail.length > 500) {
+                    player.trail.shift(); // Supprimer la plus ancienne position
+                }
+            }
+        } else {
+            // Si la corde n'est pas achetée, vider la trace
+            player.trail = [];
         }
     });
 

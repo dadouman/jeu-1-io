@@ -62,16 +62,34 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.scale(zoomLevel, zoomLevel);
     ctx.translate(-myPlayer.x, -myPlayer.y);
 
-    // 5. Map
+    // 5. Map - Rendu optimisé avec murs continus sans séparations visuelles
     for (let y = 0; y < map.length; y++) {
         for (let x = 0; x < map[0].length; x++) {
             if (map[y][x] === 1) {
-                // Mur
-                ctx.fillStyle = "#555";
+                // Mur - couleur principale
+                ctx.fillStyle = "#3a3a3a";
                 ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                // Bordure du mur
-                ctx.strokeStyle = "#333";
-                ctx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                
+                // Ombres subtiles pour créer une profondeur sans bordures
+                // Vérifier les voisins pour déterminer où ajouter les ombres
+                const hasTopWall = y > 0 && map[y - 1][x] === 1;
+                const hasLeftWall = x > 0 && map[y][x - 1] === 1;
+                const hasBottomWall = y < map.length - 1 && map[y + 1][x] === 1;
+                const hasRightWall = x < map[0].length - 1 && map[y][x + 1] === 1;
+                
+                // Ombre en haut-gauche (bord exposé)
+                if (!hasTopWall || !hasLeftWall) {
+                    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, 2);
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, 2, TILE_SIZE);
+                }
+                
+                // Highlight en bas-droite (bord intérieur)
+                if (!hasBottomWall || !hasRightWall) {
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE - 2, TILE_SIZE, 2);
+                    ctx.fillRect(x * TILE_SIZE + TILE_SIZE - 2, y * TILE_SIZE, 2, TILE_SIZE);
+                }
             }
         }
     }

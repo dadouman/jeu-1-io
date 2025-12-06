@@ -28,7 +28,8 @@ socket.on('levelUpdate', (newLevel) => {
         // Niveau a changé ! Déclencher la transition
         isInTransition = true;
         transitionStartTime = Date.now();
-        levelUpTime = (Date.now() - levelStartTime) / 1000;
+        // Calculer le temps SEULEMENT si le timer était actif (pas null pendant le shop)
+        levelUpTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
         levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
         
         // Log de jeu

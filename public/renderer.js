@@ -95,8 +95,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // 5.5 Traces des joueurs (les corder qui suivent leur parcours)
-    if (trails) {
-        ctx.save(); // Sauvegarder l'état avant de modifier globalAlpha
+    if (trails && Object.keys(trails).length > 0) {
+        // Sauvegarder UNIQUEMENT les propriétés de style, pas la transformation
+        const savedGlobalAlpha = ctx.globalAlpha;
         for (let playerId in trails) {
             const trail = trails[playerId];
             if (trail.positions && trail.positions.length > 1) {
@@ -115,7 +116,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 ctx.stroke();
             }
         }
-        ctx.restore(); // Restaurer l'état (y compris globalAlpha = 1.0)
+        // Restaurer globalAlpha uniquement
+        ctx.globalAlpha = savedGlobalAlpha;
     }
 
     // 6. Pièce

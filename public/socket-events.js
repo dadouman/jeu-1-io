@@ -12,6 +12,11 @@ socket.on('connect', () => {
 // --- ÉVÉNEMENTS JEU ---
 socket.on('mapData', (data) => {
     map = data;
+    // Si on n'a pas encore de session solo start time et on a une map, initialiser le chrono
+    if (soloSessionStartTime === null && data && data.length > 0) {
+        // Heuristique: si c'est une nouvelle session (level=1), initialiser le chrono
+        soloSessionStartTime = Date.now();
+    }
 });
 
 socket.on('highScoreUpdate', (data) => {
@@ -178,6 +183,23 @@ socket.on('soloLeaderboard', (data) => {
     console.log(`%c🏆 Leaderboard Solo reçu:`, 'color: #FFD700; font-weight: bold');
     window.soloLeaderboard = data.scores;
     
+    // Sauvegarder le meilleur temps du leaderboard (record mondial)
+    if (data.scores && data.scores.length > 0) {
+        soloLeaderboardBest = data.scores[0].totalTime;
+    }
+    
+    // Calculer et sauvegarder le meilleur temps personnel en localStorage
+    const savedPersonalBest = localStorage.getItem('soloPersonalBest');
+    if (savedPersonalBest) {
+        soloPersonalBestTime = parseFloat(savedPersonalBest);
+    }
+    
+    // Si ce temps est meilleur que le précédent, le sauvegarder
+    if (!soloPersonalBestTime || soloTotalTime < soloPersonalBestTime) {
+        soloPersonalBestTime = soloTotalTime;
+        localStorage.setItem('soloPersonalBest', soloTotalTime.toString());
+    }
+    
     // Calculer le rang du joueur actuel
     let playerRank = 1;
     for (let i = 0; i < data.scores.length; i++) {
@@ -190,6 +212,8 @@ socket.on('soloLeaderboard', (data) => {
     window.soloPlayerRank = playerRank;
     
     console.log(`%c🏆 Votre rang: #${playerRank}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    console.log(`%c🎯 Meilleur temps personnel: ${soloPersonalBestTime ? soloPersonalBestTime.toFixed(2) + 's' : 'N/A'}`, 'color: #00FF00; font-weight: bold; font-size: 12px');
+    console.log(`%c🌍 Record mondial: ${soloLeaderboardBest ? soloLeaderboardBest.toFixed(2) + 's' : 'N/A'}`, 'color: #FF0000; font-weight: bold; font-size: 12px');
     
     data.scores.slice(0, 10).forEach((run, index) => {
         console.log(`%c ${index + 1}. ${run.playerSkin} - ${run.totalTime.toFixed(2)}s`, 'color: #FFD700; font-size: 12px');

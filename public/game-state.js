@@ -57,3 +57,8 @@ let soloTotalTime = 0;
 let soloCheckpoints = [];
 let isSoloGameFinished = false;
 let soloFinishedTime = null;
+let soloSessionStartTime = null; // Temps de démarrage de la session solo
+let soloCurrentLevelTime = 0; // Temps du niveau actuel
+let soloPersonalBestTime = null; // Meilleur temps personnel (localStorage)
+let soloLeaderboardBest = null; // Meilleur temps du leaderboard (record mondial)
+let soloShowPersonalDelta = true; // Toggle: true = delta personnel, false = delta mondial

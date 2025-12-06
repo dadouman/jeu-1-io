@@ -81,6 +81,13 @@ document.addEventListener('keydown', (e) => {
             e.preventDefault();
         }
     }
+    
+    // --- SOLO MODE : Toggle delta time (T) ---
+    if(e.code === 'KeyT') {
+        soloShowPersonalDelta = !soloShowPersonalDelta;
+        console.log(`%c🔄 Delta mode: ${soloShowPersonalDelta ? '🎯 Personnel' : '🌍 Mondial'}`, 'color: #00FFFF; font-weight: bold; font-size: 14px');
+        e.preventDefault();
+    }
 });
 
 document.addEventListener('keyup', (e) => {

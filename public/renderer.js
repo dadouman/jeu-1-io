@@ -17,7 +17,7 @@ function getRanking(players) {
     return playersList.sort((a, b) => b.score - a.score);
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null) {
     
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
@@ -179,12 +179,29 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.font = "bold 18px Arial";
     ctx.textAlign = "center";
     ctx.fillText("⏱️ " + currentLevelTime.toFixed(1) + "s", canvas.width / 2, 40);
+    
+    // Affichage du Temps Total de la session solo (si en mode solo)
+    if (soloRunTotalTime > 0) {
+        ctx.fillStyle = "#00FF00"; // Vert (temps total en plus)
+        ctx.font = "bold 16px Arial";
+        ctx.fillText("⏳ Total: " + soloRunTotalTime.toFixed(1) + "s", canvas.width / 2, 65);
+    }
+    
     ctx.textAlign = "left";
 
     // Affichage du Niveau
     ctx.fillStyle = "#aaa"; // Gris clair
     ctx.font = "16px Arial";
     ctx.fillText("Niveau " + (level || 1), 20, 65); // Juste en dessous du score
+    
+    // Affichage du niveau à droite (pour mode solo, avec plus de détail)
+    if (soloRunTotalTime > 0) {
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText(`Niveau ${level || 1}/20`, canvas.width - 20, 65);
+        ctx.textAlign = "left";
+    }
     
     // Affichage des Gems
     ctx.fillStyle = "#FFD700"; // Or
@@ -206,6 +223,20 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         controlsText += "| Shift: Dash ❌";
     }
     ctx.fillText(controlsText, 20, canvas.height - 20);
+    
+    // --- AFFICHAGE DU DELTA TIME (SOLO MODE) ---
+    if (soloRunTotalTime > 0 && soloDeltaTime !== null) {
+        const deltaColor = soloDeltaTime < 0 ? "#00FF00" : soloDeltaTime > 0 ? "#FF6666" : "#FFFF00";
+        const deltaSign = soloDeltaTime < 0 ? "-" : "+";
+        const deltaLabel = soloDeltaReference === 'personal' ? "🎯 vs Perso" : "🌍 vs Record";
+        
+        ctx.fillStyle = deltaColor;
+        ctx.font = "bold 14px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(`${deltaSign}${Math.abs(soloDeltaTime).toFixed(2)}s (${deltaLabel})`, canvas.width - 20, canvas.height - 20);
+        ctx.fillText("Appuyer T pour changer", canvas.width - 20, canvas.height - 40);
+        ctx.textAlign = "left";
+    }
 
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen) {

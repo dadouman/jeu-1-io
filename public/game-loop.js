@@ -42,6 +42,8 @@ socket.on('state', (gameState) => {
         if (elapsed >= SHOP_DURATION) {
             isShopOpen = false;
             shopTimerStart = null;
+            // Redémarrer le chrono du niveau APRÈS la fermeture du shop
+            levelStartTime = Date.now();
         }
     }
 

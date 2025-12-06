@@ -96,6 +96,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     // 5.5 Traces des joueurs (les corder qui suivent leur parcours)
     if (trails) {
+        ctx.save(); // Sauvegarder l'état avant de modifier globalAlpha
         for (let playerId in trails) {
             const trail = trails[playerId];
             if (trail.positions && trail.positions.length > 1) {
@@ -114,8 +115,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 ctx.stroke();
             }
         }
-        // Réinitialiser l'opacité après toutes les traces
-        ctx.globalAlpha = 1.0;
+        ctx.restore(); // Restaurer l'état (y compris globalAlpha = 1.0)
     }
 
     // 6. Pièce
@@ -143,7 +143,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // 7. Joueurs
-    ctx.globalAlpha = 1.0; // Opacité complète pour les joueurs (réinitialisation)
     for (let id in players) {
         const p = players[id];
         
@@ -160,7 +159,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     ctx.restore(); // Fin Caméra
-    ctx.globalAlpha = 1.0; // Réinitialiser l'opacité après restore
 
     // 8. Interface (UI) - Dessinée par dessus le brouillard
     ctx.fillStyle = "white";

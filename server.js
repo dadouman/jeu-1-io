@@ -39,87 +39,136 @@ const HighScoreSchema = new mongoose.Schema({ score: Number, skin: String });
 const HighScoreModel = mongoose.model('HighScore', HighScoreSchema);
 
 // --- INITIALISATION DU JEU ---
-let players = {};
-
-// VARIABLES DU ROGUE-LIKE
-let currentLevel = 1;
-let gameMode = 'classic'; // 'classic' ou 'infinite'
-let map = generateMaze(15, 15); 
-let coin = getRandomEmptyPosition(map);
-
-let currentRecord = { score: 0, skin: "❓" };
-
-// --- SYSTÈME DE VOTE POUR REDÉMARRER ---
-let restartVote = {
-    isActive: false,
-    votes: {}, // { playerId: true/false }
-    startTime: null,
-    VOTE_TIMEOUT: 60000 // 60 secondes max pour voter
+// Structure de lobbies multi-modes
+let lobbies = {
+    classic: {
+        players: {},
+        currentLevel: 1,
+        map: generateMaze(15, 15),
+        coin: getRandomEmptyPosition(generateMaze(15, 15)),
+        currentRecord: { score: 0, skin: "❓" },
+        restartVote: {
+            isActive: false,
+            votes: {},
+            startTime: null,
+            VOTE_TIMEOUT: 60000
+        }
+    },
+    infinite: {
+        players: {},
+        currentLevel: 1,
+        map: generateMaze(15, 15),
+        coin: getRandomEmptyPosition(generateMaze(15, 15)),
+        currentRecord: { score: 0, skin: "❓" },
+        restartVote: {
+            isActive: false,
+            votes: {},
+            startTime: null,
+            VOTE_TIMEOUT: 60000
+        }
+    }
 };
 
-function startRestartVote(initiatorId) {
-    if (restartVote.isActive) {
+// Tracker le mode de chaque joueur
+let playerModes = {}; // { playerId: 'classic' ou 'infinite' }
+
+// --- FONCTIONS UTILITAIRES ---
+function getLobby(mode) {
+    return lobbies[mode];
+}
+
+function getPlayerLobby(playerId) {
+    const mode = playerModes[playerId];
+    return mode ? lobbies[mode] : null;
+}
+
+function emitToLobby(mode, eventName, data) {
+    const lobby = lobbies[mode];
+    if (!lobby) return;
+    
+    Object.keys(lobby.players).forEach(playerId => {
+        const socket = io.sockets.sockets.get(playerId);
+        if (socket) {
+            socket.emit(eventName, data);
+        }
+    });
+}
+
+// Tous les données de jeu sont maintenant dans lobbies[mode]
+
+function startRestartVote(initiatorId, mode) {
+    const lobby = getLobby(mode);
+    if (!lobby) return { success: false, message: "Lobby invalide" };
+    
+    if (lobby.restartVote.isActive) {
         return { success: false, message: "Un vote est déjà en cours" };
     }
     
-    restartVote.isActive = true;
-    restartVote.votes = {};
-    restartVote.startTime = Date.now();
+    lobby.restartVote.isActive = true;
+    lobby.restartVote.votes = {};
+    lobby.restartVote.startTime = Date.now();
     
-    console.log(`\n🗳️ ════════════════════════════════════\n   VOTE POUR REDÉMARRER LANCÉ\n   ${Object.keys(players).length} joueur(s) connecté(s)\n   Tapez O pour OUI, N ou rien pour NON\n════════════════════════════════════\n`);
+    const playerCount = Object.keys(lobby.players).length;
+    console.log(`\n🗳️ ════════════════════════════════════\n   VOTE POUR REDÉMARRER LANCÉ (${mode})\n   ${playerCount} joueur(s) connecté(s)\n   Tapez O pour OUI, N ou rien pour NON\n════════════════════════════════════\n`);
     
-    io.emit('restartVoteStarted', {
-        initiator: players[initiatorId]?.skin || "❓",
-        playerCount: Object.keys(players).length,
-        timeout: restartVote.VOTE_TIMEOUT
+    emitToLobby(mode, 'restartVoteStarted', {
+        initiator: lobby.players[initiatorId]?.skin || "❓",
+        playerCount: playerCount,
+        timeout: lobby.restartVote.VOTE_TIMEOUT
     });
     
     return { success: true };
 }
 
-function submitRestartVote(playerId, voteValue) {
-    if (!restartVote.isActive) {
+function submitRestartVote(playerId, voteValue, mode) {
+    const lobby = getLobby(mode);
+    if (!lobby) return { success: false, message: "Lobby invalide" };
+    
+    if (!lobby.restartVote.isActive) {
         return { success: false, message: "Aucun vote en cours" };
     }
     
-    const player = players[playerId];
-    restartVote.votes[playerId] = voteValue;
+    const player = lobby.players[playerId];
+    lobby.restartVote.votes[playerId] = voteValue;
     
-    // Log
     console.log(`   ${player.skin} a voté: ${voteValue ? "✅ OUI" : "❌ NON"}`);
     
     return { success: true, voteRegistered: voteValue };
 }
 
-function checkRestartVote() {
-    if (!restartVote.isActive) return false;
+function checkRestartVote(mode) {
+    const lobby = getLobby(mode);
+    if (!lobby) return false;
+    
+    if (!lobby.restartVote.isActive) return false;
     
     const now = Date.now();
-    const elapsed = now - restartVote.startTime;
-    const totalPlayers = Object.keys(players).length;
-    const yesVotes = Object.values(restartVote.votes).filter(v => v === true).length;
+    const elapsed = now - lobby.restartVote.startTime;
+    const totalPlayers = Object.keys(lobby.players).length;
+    const yesVotes = Object.values(lobby.restartVote.votes).filter(v => v === true).length;
     const requiredYes = Math.ceil(totalPlayers / 2);
     
-    // Vérifier si la majorité a voté oui - VALIDER IMMÉDIATEMENT
     if (yesVotes >= requiredYes) {
-        finishRestartVote();
+        finishRestartVote(mode);
         return true;
     }
     
-    // Vérifier si le vote est expiré (60 secondes max)
-    if (elapsed > restartVote.VOTE_TIMEOUT) {
-        finishRestartVote();
+    if (elapsed > lobby.restartVote.VOTE_TIMEOUT) {
+        finishRestartVote(mode);
         return false;
     }
     
     return false;
 }
 
-function finishRestartVote() {
-    if (!restartVote.isActive) return false;
+function finishRestartVote(mode) {
+    const lobby = getLobby(mode);
+    if (!lobby) return false;
     
-    const totalPlayers = Object.keys(players).length;
-    const yesVotes = Object.values(restartVote.votes).filter(v => v === true).length;
+    if (!lobby.restartVote.isActive) return false;
+    
+    const totalPlayers = Object.keys(lobby.players).length;
+    const yesVotes = Object.values(lobby.restartVote.votes).filter(v => v === true).length;
     const requiredYes = Math.ceil(totalPlayers / 2);
     const shouldRestart = yesVotes >= requiredYes;
     
@@ -128,34 +177,42 @@ function finishRestartVote() {
         yesVotes,
         requiredYes,
         totalPlayers,
-        totalVotesReceived: Object.keys(restartVote.votes).length
+        totalVotesReceived: Object.keys(lobby.restartVote.votes).length
     };
     
-    console.log(`\n📊 RÉSULTAT DU VOTE: ${yesVotes}/${requiredYes} votes pour redémarrer`);
+    console.log(`\n📊 RÉSULTAT DU VOTE (${mode}): ${yesVotes}/${requiredYes} votes pour redémarrer`);
     
     // Réinitialiser le vote
-    restartVote.isActive = false;
-    restartVote.votes = {};
-    restartVote.startTime = null;
+    lobby.restartVote.isActive = false;
+    lobby.restartVote.votes = {};
+    lobby.restartVote.startTime = null;
     
-    io.emit('restartVoteFinished', result);
+    emitToLobby(mode, 'restartVoteFinished', result);
     
     return shouldRestart;
 }
 
-function restartGame() {
-    console.log(`\n🔄 ════════════════════════════════════\n   REDÉMARRAGE DU JEU\n════════════════════════════════════\n`);
+function restartGame(mode) {
+    const lobby = getLobby(mode);
+    if (!lobby) return;
+    
+    console.log(`\n🔄 ════════════════════════════════════\n   REDÉMARRAGE DU JEU (${mode})\n════════════════════════════════════\n`);
     
     // Réinitialiser les variables du jeu
-    currentLevel = 1;
-    map = generateMaze(15, 15);
-    coin = getRandomEmptyPosition(map);
+    lobby.currentLevel = 1;
+    lobby.map = generateMaze(15, 15);
+    lobby.coin = getRandomEmptyPosition(lobby.map);
     
-    // Réinitialiser tous les joueurs
-    for (let id in players) {
-        const startPos = getRandomEmptyPosition(map);
-        players[id] = initializePlayer(startPos, Object.keys(players).indexOf(id));
+    // Réinitialiser tous les joueurs de la lobby
+    const playerIds = Object.keys(lobby.players);
+    for (let i = 0; i < playerIds.length; i++) {
+        const id = playerIds[i];
+        const startPos = getRandomEmptyPosition(lobby.map);
+        lobby.players[id] = initializePlayer(startPos, i);
     }
+    
+    // Notifier tous les clients de la lobby
+    emitToLobby(mode, 'returnToModeSelection');
     
     // Notifier tous les clients - Retourner à la sélection de mode
     io.emit('returnToModeSelection');
@@ -217,7 +274,7 @@ function getShopItemsForMode(mode = 'classic') {
 }
 
 // --- FONCTION DE DASH ---
-function performDash(player, playerId) {
+function performDash(player, playerId, gameMap) {
     // Déterminer la direction du dash
     let dashDx = 0;
     let dashDy = 0;
@@ -242,7 +299,7 @@ function performDash(player, playerId) {
         const nextX = currentX + dashDx * dashDistance;
         const nextY = currentY + dashDy * dashDistance;
 
-        if (checkWallCollision(nextX, nextY, map)) {
+        if (checkWallCollision(nextX, nextY, gameMap)) {
             break; // Collision, on arrête
         }
 
@@ -259,53 +316,70 @@ function performDash(player, playerId) {
 io.on('connection', (socket) => {
     console.log('Joueur connecté : ' + socket.id);
     
-    // Init immédiat
+    // Init immédiat - le joueur doit d'abord sélectionner un mode
     socket.emit('init', socket.id);
-    socket.emit('mapData', map);
-    socket.emit('levelUpdate', currentLevel);
-    socket.emit('highScoreUpdate', currentRecord);
-
-    const startPos = getRandomEmptyPosition(map);
-    const playerIndex = Object.keys(players).length;
-    players[socket.id] = initializePlayer(startPos, playerIndex);
+    socket.emit('modeSelectionRequired', { message: 'Veuillez sélectionner un mode' });
 
     // --- SÉLECTION DU MODE DE JEU ---
     socket.on('selectGameMode', (data) => {
         const mode = data.mode; // 'classic' ou 'infinite'
-        gameMode = mode;
         
-        console.log(`🎮 Mode sélectionné: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
-        
-        // Réinitialiser le jeu avec les paramètres du mode
-        currentLevel = 1;
-        const mazeSize = calculateMazeSize(1, gameMode);
-        map = generateMaze(mazeSize.width, mazeSize.height);
-        coin = getRandomEmptyPosition(map);
-        
-        // Réinitialiser les joueurs avec les features appropriées au mode
-        for (let id in players) {
-            const startPos = getRandomEmptyPosition(map);
-            const playerIndex = Object.keys(players).indexOf(id);
-            players[id] = initializePlayerForMode(startPos, playerIndex, gameMode);
+        if (!lobbies[mode]) {
+            socket.emit('error', { message: 'Mode invalide' });
+            return;
         }
         
-        // Notifier les clients que le jeu est prêt
-        io.emit('mapData', map);
-        io.emit('levelUpdate', currentLevel);
-        io.emit('gameModSelected', { mode: gameMode });
+        const lobby = lobbies[mode];
+        playerModes[socket.id] = mode;
+        
+        console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
+        
+        // Ajouter le joueur à la lobby
+        const playerIndex = Object.keys(lobby.players).length;
+        const startPos = getRandomEmptyPosition(lobby.map);
+        lobby.players[socket.id] = initializePlayerForMode(startPos, playerIndex, mode);
+        
+        // Envoyer les données de la lobby au nouvel arrivant
+        socket.emit('mapData', lobby.map);
+        socket.emit('levelUpdate', lobby.currentLevel);
+        socket.emit('highScoreUpdate', lobby.currentRecord);
+        socket.emit('gameModSelected', { mode: mode });
+        
+        // Notifier les autres joueurs de la même lobby
+        emitToLobby(mode, 'playersCountUpdate', {
+            count: Object.keys(lobby.players).length
+        });
+        
+        console.log(`   ${lobby.players[socket.id].skin} rejoint ${mode} (${Object.keys(lobby.players).length} joueur(s))`);
     });
 
-    socket.on('disconnect', () => { delete players[socket.id]; });
+    socket.on('disconnect', () => { 
+        const mode = playerModes[socket.id];
+        if (mode && lobbies[mode]) {
+            const lobby = lobbies[mode];
+            delete lobby.players[socket.id];
+            console.log(`Joueur ${socket.id} déconnecté de ${mode} (${Object.keys(lobby.players).length} joueur(s) restant(s))`);
+            
+            // Notifier les autres joueurs
+            emitToLobby(mode, 'playersCountUpdate', {
+                count: Object.keys(lobby.players).length
+            });
+        }
+        delete playerModes[socket.id];
+    });
 
     socket.on('movement', (input) => {
-        const player = players[socket.id];
+        const mode = playerModes[socket.id];
+        if (!mode || !lobbies[mode]) return;
+        
+        const lobby = lobbies[mode];
+        const player = lobby.players[socket.id];
         if (!player) return;
 
-        const speed = 3 + (player.purchasedFeatures.speedBoost ? 1 : 0); // Vitesse de base + boost optionnel
+        const speed = 3 + (player.purchasedFeatures.speedBoost ? 1 : 0);
         let nextX = player.x;
         let nextY = player.y;
 
-        // Calculer les mouvements en X et Y séparément
         let moveX = 0;
         let moveY = 0;
 
@@ -314,42 +388,35 @@ io.on('connection', (socket) => {
         if (input.up) moveY -= speed;
         if (input.down) moveY += speed;
 
-        // Normaliser le vecteur en diagonale pour éviter les mouvements trop rapides
-        // En diagonale, sans normalisation : distance = sqrt(speed² + speed²) = speed * sqrt(2) ≈ 1.41x
-        // Après normalisation : distance = speed (constant)
         if (moveX !== 0 && moveY !== 0) {
-            // C'est un mouvement diagonal : normaliser
             const diagonal = Math.sqrt(moveX * moveX + moveY * moveY);
             moveX = (moveX / diagonal) * speed;
             moveY = (moveY / diagonal) * speed;
         }
 
-        // Essayer le mouvement diagonal complet d'abord
         nextX = player.x + moveX;
         nextY = player.y + moveY;
 
-        if (!checkWallCollision(nextX, nextY, map)) {
-            // Mouvement diagonal possible
+        if (!checkWallCollision(nextX, nextY, lobby.map)) {
             player.x = nextX;
             player.y = nextY;
         } else if (moveX !== 0 && moveY !== 0) {
-            // Si le diagonal échoue, essayer X seul
-            if (!checkWallCollision(player.x + moveX, player.y, map)) {
+            if (!checkWallCollision(player.x + moveX, player.y, lobby.map)) {
                 player.x += moveX;
             }
             // Puis essayer Y seul
-            else if (!checkWallCollision(player.x, player.y + moveY, map)) {
+            else if (!checkWallCollision(player.x, player.y + moveY, lobby.map)) {
                 player.y += moveY;
             }
             // Si les deux échouent, pas de mouvement
         } else if (moveX !== 0) {
             // Mouvement horizontal uniquement
-            if (!checkWallCollision(player.x + moveX, player.y, map)) {
+            if (!checkWallCollision(player.x + moveX, player.y, lobby.map)) {
                 player.x += moveX;
             }
         } else if (moveY !== 0) {
             // Mouvement vertical uniquement
-            if (!checkWallCollision(player.x, player.y + moveY, map)) {
+            if (!checkWallCollision(player.x, player.y + moveY, lobby.map)) {
                 player.y += moveY;
             }
         }
@@ -369,7 +436,11 @@ io.on('connection', (socket) => {
 
     // Gestion des checkpoints
     socket.on('checkpoint', (actions) => {
-        const player = players[socket.id];
+        const mode = playerModes[socket.id];
+        if (!mode) return;
+        
+        const lobby = lobbies[mode];
+        const player = lobby.players[socket.id];
         if (!player) return;
 
         // Appui sur Espace : créer ou déplacer le checkpoint
@@ -400,17 +471,21 @@ io.on('connection', (socket) => {
             if (!player.purchasedFeatures.dash) {
                 socket.emit('error', { message: '⚡ Dash non acheté ! Rendez-vous au magasin' });
             } else {
-                performDash(player, socket.id);
+                performDash(player, socket.id, lobby.map);
             }
         }
     });
 
     // --- SYSTÈME DE VOTE POUR REDÉMARRER ---
     socket.on('proposeRestart', () => {
-        const player = players[socket.id];
+        const mode = playerModes[socket.id];
+        if (!mode) return;
+        
+        const lobby = lobbies[mode];
+        const player = lobby.players[socket.id];
         if (!player) return;
         
-        const result = startRestartVote(socket.id);
+        const result = startRestartVote(socket.id, mode);
         if (result.success) {
             socket.emit('restartVoteProposed', { success: true });
         } else {
@@ -419,24 +494,32 @@ io.on('connection', (socket) => {
     });
 
     socket.on('voteRestart', (data) => {
-        const player = players[socket.id];
+        const mode = playerModes[socket.id];
+        if (!mode) return;
+        
+        const lobby = lobbies[mode];
+        const player = lobby.players[socket.id];
         if (!player) return;
         
         const voteValue = data.vote === true; // true = oui, false = non
-        const result = submitRestartVote(socket.id, voteValue);
+        const result = submitRestartVote(socket.id, voteValue, mode);
         
         if (result.success) {
             // Vérifier si le vote est terminé
-            const shouldRestart = checkRestartVote();
+            const shouldRestart = checkRestartVote(mode);
             if (shouldRestart) {
-                restartGame();
+                restartGame(mode);
             }
         }
     });
 
     // --- SYSTÈME DE SHOP ---
     socket.on('shopPurchase', (data) => {
-        const player = players[socket.id];
+        const mode = playerModes[socket.id];
+        if (!mode) return;
+        
+        const lobby = lobbies[mode];
+        const player = lobby.players[socket.id];
         const { itemId } = data;
 
         if (!player) return;
@@ -444,7 +527,7 @@ io.on('connection', (socket) => {
         const result = purchaseItem(player, itemId);
         
         if (result.success) {
-            const player = players[socket.id];
+            const player = lobby.players[socket.id];
             console.log(`💎 [SHOP] ${player.skin} a acheté "${result.item.name}" pour ${result.item.price}💎 | ${result.gemsLeft}💎 restants`);
             socket.emit('shopPurchaseSuccess', { itemId, item: result.item, gemsLeft: result.gemsLeft });
         } else {
@@ -459,87 +542,90 @@ io.on('connection', (socket) => {
 
 // --- BOUCLE DE JEU ---
 setInterval(() => {
-    let recordChanged = false;
-    let levelChanged = false;
+    // Traiter chaque lobby indépendamment
+    for (const mode of ['classic', 'infinite']) {
+        const lobby = lobbies[mode];
+        let recordChanged = false;
+        let levelChanged = false;
 
-    for (const id in players) {
-        const p = players[id];
-        const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
-        
-        // --- COLLISION AVEC LA PIÈCE ---
-        if (dist < 30) {
-            addScore(p, 1);
+        for (const id in lobby.players) {
+            const p = lobby.players[id];
+            const dist = Math.hypot(p.x - lobby.coin.x, p.y - lobby.coin.y);
             
-            // SYSTÈME DE GEMS : À chaque niveau, on gagne des gems
-            const gemsEarned = calculateGemsForLevel(currentLevel);
-            addGems(p, gemsEarned);
-            
-            // Afficher les stats de progression
-            const isShopLevelNext = isShopLevel(currentLevel + 1);
-            console.log(`✨ [PROGRESSION] ${p.skin} Niveau ${currentLevel} complété en ${(Date.now() / 1000).toFixed(0)}s | +${gemsEarned}💎 (Total: ${p.gems}💎)${isShopLevelNext ? ' | 🏪 Magasin au prochain niveau!' : ''}`);
-            
-            // 1. ON AUGMENTE LE NIVEAU
-            currentLevel++;
-            levelChanged = true;
+            // --- COLLISION AVEC LA PIÈCE ---
+            if (dist < 30) {
+                addScore(p, 1);
+                
+                // SYSTÈME DE GEMS : À chaque niveau, on gagne des gems
+                const gemsEarned = calculateGemsForLevel(lobby.currentLevel);
+                addGems(p, gemsEarned);
+                
+                // Afficher les stats de progression
+                const isShopLevelNext = isShopLevel(lobby.currentLevel + 1);
+                console.log(`✨ [PROGRESSION ${mode}] ${p.skin} Niveau ${lobby.currentLevel} complété en ${(Date.now() / 1000).toFixed(0)}s | +${gemsEarned}💎 (Total: ${p.gems}💎)${isShopLevelNext ? ' | 🏪 Magasin au prochain niveau!' : ''}`);
+                
+                // 1. ON AUGMENTE LE NIVEAU
+                lobby.currentLevel++;
+                levelChanged = true;
 
-            // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Mode classique, 40 niveaux)
-            if (gameMode === 'classic' && currentLevel > 40) {
-                io.emit('gameFinished', { finalLevel: 40, mode: 'classic' });
-                currentLevel = 40; // Rester au niveau 40
-                break;
+                // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Mode classique, 40 niveaux)
+                if (mode === 'classic' && lobby.currentLevel > 40) {
+                    emitToLobby(mode, 'gameFinished', { finalLevel: 40, mode: 'classic' });
+                    lobby.currentLevel = 40; // Rester au niveau 40
+                    break;
+                }
+
+                // 3. ON AGRANDIT LE LABYRINTHE SELON LE MODE
+                const mazeSize = calculateMazeSize(lobby.currentLevel, mode);
+                lobby.map = generateMaze(mazeSize.width, mazeSize.height); // Génération du nouveau labyrinthe
+                
+                // 3. ON DÉPLACE LA PIÈCE
+                lobby.coin = getRandomEmptyPosition(lobby.map);
+
+                // 4. ON TÉLÉPORTE TOUS LES JOUEURS (Sécurité anti-mur)
+                for (let pid in lobby.players) {
+                    const safePos = getRandomEmptyPosition(lobby.map);
+                    resetPlayerForNewLevel(lobby.players[pid], safePos);
+                }
+
+                // Gestion Record
+                if (p.score > lobby.currentRecord.score) {
+                    lobby.currentRecord.score = p.score;
+                    lobby.currentRecord.skin = p.skin;
+                    recordChanged = true;
+                }
+                
+                // Si on a trouvé la pièce, on arrête la boucle des joueurs ici 
+                // pour éviter que 2 joueurs la prennent en même temps
+                break; 
             }
+        }
 
-            // 3. ON AGRANDIT LE LABYRINTHE SELON LE MODE
-            const mazeSize = calculateMazeSize(currentLevel, gameMode);
-            map = generateMaze(mazeSize.width, mazeSize.height); // Génération du nouveau labyrinthe
+        // SI LE NIVEAU A CHANGÉ
+        if (levelChanged) {
+            emitToLobby(mode, 'mapData', lobby.map); // On envoie la nouvelle carte
+            emitToLobby(mode, 'levelUpdate', lobby.currentLevel); // On prévient du niveau
             
-            // 3. ON DÉPLACE LA PIÈCE
-            coin = getRandomEmptyPosition(map);
-
-            // 4. ON TÉLÉPORTE TOUS LES JOUEURS (Sécurité anti-mur)
-            for (let pid in players) {
-                const safePos = getRandomEmptyPosition(map);
-                resetPlayerForNewLevel(players[pid], safePos);
+            // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
+            if (isShopLevel(lobby.currentLevel)) {
+                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode), level: lobby.currentLevel });
+                console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Niveau ${lobby.currentLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
+            } else {
+                const mazeSize = 15 + (lobby.currentLevel * 2);
+                console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize}x${mazeSize} généré`);
             }
+        }
 
-            // Gestion Record
-            if (p.score > currentRecord.score) {
-                currentRecord.score = p.score;
-                currentRecord.skin = p.skin;
-                recordChanged = true;
+        // SI LE RECORD A CHANGÉ
+        if (recordChanged) {
+            emitToLobby(mode, 'highScoreUpdate', lobby.currentRecord);
+            if (mongoURI) {
+                HighScoreModel.updateOne({}, { score: lobby.currentRecord.score, skin: lobby.currentRecord.skin }).exec();
             }
-            
-            // Si on a trouvé la pièce, on arrête la boucle des joueurs ici 
-            // pour éviter que 2 joueurs la prennent en même temps
-            break; 
         }
+
+        emitToLobby(mode, 'state', { players: lobby.players, coin: lobby.coin });
     }
-
-    // SI LE NIVEAU A CHANGÉ
-    if (levelChanged) {
-        io.emit('mapData', map); // On envoie la nouvelle carte
-        io.emit('levelUpdate', currentLevel); // On prévient du niveau
-        
-        // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
-        if (isShopLevel(currentLevel)) {
-            io.emit('shopOpen', { items: getShopItemsForMode(gameMode), level: currentLevel });
-            console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT - Niveau ${currentLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
-        } else {
-            const mazeSize = 15 + (currentLevel * 2);
-            console.log(`🌍 [NIVEAU ${currentLevel}] Labyrinthe ${mazeSize}x${mazeSize} généré`);
-        }
-    }
-
-    // SI LE RECORD A CHANGÉ
-    if (recordChanged) {
-        io.emit('highScoreUpdate', currentRecord);
-        if (mongoURI) {
-            HighScoreModel.updateOne({}, { score: currentRecord.score, skin: currentRecord.skin }).exec();
-        }
-    }
-
-    io.emit('state', { players, coin });
-
 }, 1000 / 60);
 
 const PORT = process.env.PORT || 3000;

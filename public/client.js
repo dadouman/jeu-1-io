@@ -59,7 +59,8 @@ socket.on('levelUpdate', (newLevel) => {
         isInTransition = true;
         transitionStartTime = Date.now();
         levelUpTime = (Date.now() - levelStartTime) / 1000; // Temps en secondes
-        levelUpPlayerSkin = myPlayerId ? (players[myPlayerId]?.skin || "❓") : "❓";
+        levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
+        console.log("👤 Skin du joueur pour la transition :", levelUpPlayerSkin);
     }
     
     level = newLevel;
@@ -231,6 +232,16 @@ socket.on('state', (gameState) => {
             console.log('⏱️ Fin du magasin - Passage au niveau suivant');
             isShopOpen = false;
             shopTimerStart = null;
+        }
+    }
+
+    // --- FERMETURE AUTOMATIQUE DE LA TRANSITION APRÈS 3 SECONDES ---
+    if (isInTransition && transitionStartTime) {
+        const transitionElapsed = Date.now() - transitionStartTime;
+        if (transitionElapsed >= TRANSITION_DURATION) {
+            isInTransition = false;
+            transitionStartTime = null;
+            console.log('✨ Fin de la transition');
         }
     }
 

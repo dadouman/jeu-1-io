@@ -1,4 +1,4 @@
-// server-config.js - Configuration du serveur, base de données, constantes
+// server/config.js - Configuration du serveur, base de données, constantes
 
 const mongoose = require('mongoose');
 

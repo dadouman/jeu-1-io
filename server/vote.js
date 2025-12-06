@@ -1,4 +1,4 @@
-// server-vote.js - Système de vote pour redémarrer
+// server/vote.js - Système de vote pour redémarrer
 
 function startRestartVote(initiatorId, mode, io, lobbies) {
     const lobby = lobbies[mode];

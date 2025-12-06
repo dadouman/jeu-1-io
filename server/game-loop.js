@@ -1,9 +1,9 @@
-// server-game-loop.js - Boucle de jeu principale
+// server/game-loop.js - Boucle de jeu principale
 
-const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
-const { resetPlayerForNewLevel, addScore } = require('./utils/player');
-const { calculateGemsForLevel, addGems } = require('./utils/gems');
-const { isShopLevel } = require('./utils/shop');
+const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
+const { resetPlayerForNewLevel, addScore } = require('../utils/player');
+const { calculateGemsForLevel, addGems } = require('../utils/gems');
+const { isShopLevel } = require('../utils/shop');
 
 function startGameLoop(io, lobbies, soloSessions, playerModes, { 
     calculateMazeSize, 

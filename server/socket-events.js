@@ -1,16 +1,16 @@
-// server-socket-events.js - Gestion des événements Socket.io
+// server/socket-events.js - Gestion des événements Socket.io
 
-const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
-const { checkWallCollision } = require('./utils/collisions');
-const { initializePlayerForMode } = require('./utils/player');
-const { purchaseItem } = require('./utils/shop');
-const { emitToLobby } = require('./server-utils');
+const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
+const { checkWallCollision } = require('../utils/collisions');
+const { initializePlayerForMode } = require('../utils/player');
+const { purchaseItem } = require('../utils/shop');
+const { emitToLobby } = require('./utils');
 const { 
     startRestartVote, 
     submitRestartVote, 
     checkRestartVote, 
     restartGame 
-} = require('./server-vote');
+} = require('./vote');
 
 // --- FONCTION DE DASH ---
 function performDash(player, playerId, gameMap) {

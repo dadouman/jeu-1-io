@@ -1,8 +1,8 @@
-// server-utils.js - Fonctions utilitaires du serveur
+// server/utils.js - Fonctions utilitaires du serveur
 
-const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
-const { isShopLevel, getShopItems } = require('./utils/shop');
-const { initializePlayer } = require('./utils/player');
+const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
+const { isShopLevel, getShopItems } = require('../utils/shop');
+const { initializePlayer } = require('../utils/player');
 
 // --- FONCTION POUR CALCULER LA TAILLE DU LABYRINTHE SELON LE MODE ---
 function calculateMazeSize(level, mode = 'classic') {

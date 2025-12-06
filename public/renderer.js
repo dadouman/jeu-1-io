@@ -156,12 +156,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textBaseline = "middle";
         ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
         
-        // Dessin du Score (petit au dessus) - uniquement en classique/infini
-        if (soloRunTotalTime === 0) {
-            ctx.fillStyle = "white";
-            ctx.font = "12px Arial";
-            ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
-        }
+        // Dessin du Score (petit au dessus)
+        ctx.fillStyle = "white";
+        ctx.font = "12px Arial";
+        ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
     }
 
     ctx.restore(); // Fin Caméra
@@ -212,12 +210,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "left";
     }
     
-    // Affichage des Gems - UNIQUEMENT en mode solo
-    if (soloRunTotalTime > 0) {
-        ctx.fillStyle = "#FFD700"; // Or
-        ctx.font = "18px Arial";
-        ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
-    }
+    // Affichage des Gems
+    ctx.fillStyle = "#FFD700"; // Or
+    ctx.font = "18px Arial";
+    ctx.fillText("💎 Gems : " + (playerGems || 0), 20, 90);
 
     // Affichage des contrôles - varient selon les features achetées
     ctx.fillStyle = "#FFD700"; // Or

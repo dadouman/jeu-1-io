@@ -2,7 +2,7 @@
 
 const TILE_SIZE = 40;
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime) {
     
     // 1. Fond noir
     ctx.fillStyle = "black";
@@ -40,6 +40,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     const camX = canvas.width / 2 - myPlayer.x;
     const camY = canvas.height / 2 - myPlayer.y;
     ctx.translate(camX, camY);
+    
+    // 4.5 Zoom progressif (miniaturisation progressive du monde)
+    // Le zoom se fait autour du joueur (centre de l'écran)
+    ctx.translate(myPlayer.x, myPlayer.y);
+    ctx.scale(zoomLevel, zoomLevel);
+    ctx.translate(-myPlayer.x, -myPlayer.y);
 
     // 5. Map
     for (let y = 0; y < map.length; y++) {
@@ -206,6 +212,47 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
         ctx.fillText("Appuyez sur 1, 2, 3 ou 4 pour acheter", canvas.width / 2, shopY + shopHeight - 30);
+    }
+
+    // --- ÉCRAN DE TRANSITION ---
+    if (isInTransition && transitionProgress < 1.0) {
+        // Fond semi-transparent noir
+        ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + transitionProgress * 0.3})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Message de transition
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 36px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        const message = `${levelUpPlayerSkin} Gem récupérée en ${levelUpTime.toFixed(1)}s`;
+        ctx.fillText(message, canvas.width / 2, canvas.height / 2 - 40);
+        
+        // Barre de chargement (agrandissement du niveau)
+        const barWidth = 300;
+        const barHeight = 30;
+        const barX = (canvas.width - barWidth) / 2;
+        const barY = canvas.height / 2 + 40;
+        
+        // Fond de la barre
+        ctx.fillStyle = "#444";
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // Barre de progression
+        const progress = transitionProgress;
+        ctx.fillStyle = "#00FF00";
+        ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+        
+        // Bordure
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+        
+        // Texte de la barre
+        ctx.fillStyle = "white";
+        ctx.font = "14px Arial";
+        ctx.fillText(`Niveau ${level}`, canvas.width / 2, barY + barHeight + 25);
     }
 
     // 9. Record

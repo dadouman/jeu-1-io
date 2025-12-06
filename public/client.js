@@ -22,6 +22,8 @@ let currentHighScore = null;
 let myPlayerId = null; // <--- LA VARIABLE QUI VA NOUS SAUVER
 
 let level = 1;
+let levelStartTime = Date.now(); // Temps du début du niveau
+let lastLevel = 0; // Pour détecter les changements de niveau
 
 // VARIABLES CHECKPOINT
 let checkpoint = null;
@@ -38,11 +40,31 @@ let purchasedFeatures = {};
 let shopTimerStart = null;
 const SHOP_DURATION = 15000; // 15 secondes en millisecondes
 
+// VARIABLES TRANSITION
+let isInTransition = false;
+let transitionStartTime = null;
+const TRANSITION_DURATION = 3000; // 3 secondes
+let levelUpPlayerSkin = null; // Skin du joueur qui a gagné
+let levelUpTime = 0; // Temps mis pour gagner
+let currentPlayers = {}; // Cache des joueurs pour la transition
+
 // --- RÉCEPTION DE L'ID (Le Correctif) ---
 // Quand le serveur dit qu'on change de niveau
 socket.on('levelUpdate', (newLevel) => {
     console.log("🆙 Passage au niveau :", newLevel);
+    
+    // Détecter si c'est vraiment un changement de niveau
+    if (newLevel !== lastLevel && lastLevel !== 0) {
+        // Niveau a changé ! Déclencher la transition
+        isInTransition = true;
+        transitionStartTime = Date.now();
+        levelUpTime = (Date.now() - levelStartTime) / 1000; // Temps en secondes
+        levelUpPlayerSkin = myPlayerId ? (players[myPlayerId]?.skin || "❓") : "❓";
+    }
+    
     level = newLevel;
+    lastLevel = newLevel;
+    levelStartTime = Date.now(); // Réinitialiser le chrono
     checkpoint = null; // Réinitialiser le checkpoint au changement de niveau
     trails = {}; // Réinitialiser les traces au changement de niveau
 });
@@ -168,6 +190,11 @@ socket.on('state', (gameState) => {
     // On utilise notre ID manuel (s'il existe), sinon l'ID natif
     const finalId = myPlayerId || socket.id;
 
+    // Sauvegarder les joueurs pour la transition
+    if (gameState.players) {
+        currentPlayers = gameState.players;
+    }
+
     // Récupérer les traces de tous les joueurs
     if (gameState.players) {
         for (let playerId in gameState.players) {
@@ -209,6 +236,14 @@ socket.on('state', (gameState) => {
 
     if (typeof renderGame === "function") {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining);
+        
+        // Calculer le zoom progressif (1.0 = pas de zoom, 0.95 = 5% plus petit)
+        // Formule : 1.0 - (level - 1) * 0.02, mais limité entre 0.7 et 1.0
+        const zoomLevel = Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
+        
+        // Calculer la progression de transition
+        const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
+        
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime);
     }
 });

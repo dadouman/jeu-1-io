@@ -40,6 +40,10 @@ socket.on('state', (gameState) => {
     if (isShopOpen && shopTimerStart) {
         const elapsed = Date.now() - shopTimerStart;
         if (elapsed >= SHOP_DURATION) {
+            // Ajouter le temps du shop au temps inactif (solo mode)
+            if (soloSessionStartTime) {
+                soloInactiveTime += SHOP_DURATION;
+            }
             isShopOpen = false;
             shopTimerStart = null;
             // Redémarrer le chrono du niveau APRÈS la fermeture du shop
@@ -51,6 +55,10 @@ socket.on('state', (gameState) => {
     if (isInTransition && transitionStartTime) {
         const transitionElapsed = Date.now() - transitionStartTime;
         if (transitionElapsed >= TRANSITION_DURATION) {
+            // Ajouter le temps de transition au temps inactif (solo mode)
+            if (soloSessionStartTime) {
+                soloInactiveTime += TRANSITION_DURATION;
+            }
             isInTransition = false;
             isFirstLevel = false;
             transitionStartTime = null;
@@ -73,10 +81,11 @@ socket.on('state', (gameState) => {
         const currentLevelTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
-        // Calculer le temps total de la session solo
+        // Calculer le temps total de la session solo (déduire le temps inactif)
         let soloRunTotalTime = 0;
         if (soloSessionStartTime) {
-            soloRunTotalTime = (Date.now() - soloSessionStartTime) / 1000;
+            const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
+            soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
         }
         
         // Calculer le delta time (différence avec le record)

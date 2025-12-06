@@ -62,3 +62,6 @@ let soloCurrentLevelTime = 0; // Temps du niveau actuel
 let soloPersonalBestTime = null; // Meilleur temps personnel (localStorage)
 let soloLeaderboardBest = null; // Meilleur temps du leaderboard (record mondial)
 let soloShowPersonalDelta = true; // Toggle: true = delta personnel, false = delta mondial
+let soloInactiveTime = 0; // Temps total d'inactivité (shop + transition)
+let soloShopStartTime = null; // Temps de début du shop
+let soloTransitionStartTime = null; // Temps de début de la transition

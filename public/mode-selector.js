@@ -153,8 +153,33 @@ function getShopItemsForMode() {
             }
         };
     } else if (mode === 'solo') {
-        // Mode solo: pas de shop, pas d'achat
-        return {};
+        // Mode solo: tous les items disponibles à l'achat
+        return {
+            dash: {
+                id: 'dash',
+                name: 'Dash ⚡',
+                price: 5,
+                description: 'Dash rapide en direction'
+            },
+            checkpoint: {
+                id: 'checkpoint',
+                name: 'Checkpoint 🚩',
+                price: 3,
+                description: 'Marquer et téléporter'
+            },
+            rope: {
+                id: 'rope',
+                name: 'Corde 🪢',
+                price: 1,
+                description: 'Se déplacer plus vite'
+            },
+            speedBoost: {
+                id: 'speedBoost',
+                name: 'Vitesse+ 💨',
+                price: 2,
+                description: 'Boost de vitesse'
+            }
+        };
     } else {
         // Mode classic: tous les items normaux
         return {
@@ -202,11 +227,11 @@ function getInitialPurchasedFeaturesForMode() {
             speedBoost: 0
         };
     } else if (mode === 'solo') {
-        // Mode solo: tous les objets sont déverrouillés (pas d'achat)
+        // Mode solo: rien de déverrouillé au départ (comme en classic)
         return {
-            dash: true,
-            checkpoint: true,
-            rope: true,
+            dash: false,
+            checkpoint: false,
+            rope: false,
             speedBoost: 0
         };
     } else {

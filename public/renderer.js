@@ -172,7 +172,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.font = "20px Arial";
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
-    ctx.fillText("Score : " + myPlayer.score, 20, 40);
+    
+    // N'afficher le score que si pas en mode solo
+    if (soloRunTotalTime === 0) {
+        ctx.fillText("Score : " + myPlayer.score, 20, 40);
+    }
 
     // Affichage du Temps du Niveau en haut au centre
     ctx.fillStyle = "#FFD700"; // Or
@@ -331,15 +335,41 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         for (let i = 0; i < soloCheckpoints.length; i++) {
             const level = i + 1;
             const time = soloCheckpoints[i];
-            const text = `L${level}: ${time.toFixed(1)}s`;
+            
+            // Récupérer le temps du checkpoint du record personnel pour la comparaison
+            let personalBestCheckpoint = null;
+            if (soloPersonalBestTime && window.soloLeaderboard && window.soloLeaderboard.length > 0) {
+                // Trouver l'entrée du leaderboard qui correspond au meilleur temps personnel
+                const personalBestEntry = window.soloLeaderboard.find(entry => 
+                    Math.abs(entry.totalTime - soloPersonalBestTime) < 0.1
+                );
+                if (personalBestEntry && personalBestEntry.checkpoints && personalBestEntry.checkpoints[i]) {
+                    personalBestCheckpoint = personalBestEntry.checkpoints[i];
+                }
+            }
+            
+            // Calculer le delta
+            let deltaText = "";
+            if (personalBestCheckpoint) {
+                const delta = time - personalBestCheckpoint;
+                const deltaSign = delta < 0 ? "−" : "+";
+                const deltaColor = delta < 0 ? "#00FF00" : delta > 0 ? "#FF6666" : "#FFFF00";
+                deltaText = ` ${deltaSign}${Math.abs(delta).toFixed(1)}s`;
+            }
+            
+            const text = `L${level}: ${time.toFixed(1)}s${deltaText}`;
             
             // Deux colonnes
             if (i < 10) {
+                ctx.fillStyle = personalBestCheckpoint && (time - personalBestCheckpoint) < 0 ? "#00FF00" : "#FFFFFF";
                 ctx.fillText(text, 40, checkpointStart + i * checkpointSpacing);
             } else {
+                ctx.fillStyle = personalBestCheckpoint && (time - personalBestCheckpoint) < 0 ? "#00FF00" : "#FFFFFF";
                 ctx.fillText(text, canvas.width / 2 - 30, checkpointStart + (i - 10) * checkpointSpacing);
             }
         }
+        
+        ctx.fillStyle = "#FFFFFF"; // Reset la couleur
         
         // SECTION DROITE - Leaderboard
         ctx.fillStyle = "#FFD700";

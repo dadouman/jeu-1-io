@@ -22,6 +22,10 @@ const { initializePlayer, initializePlayerForMode, resetPlayerForNewLevel, addSc
 const { calculateGemsForLevel, addGems } = require('./utils/gems');
 const { isShopLevel, getShopItems, purchaseItem } = require('./utils/shop');
 
+// --- CONSTANTES (Doit correspondre au client) ---
+const SHOP_DURATION = 15000; // 15 secondes (ms)
+const TRANSITION_DURATION = 3000; // 3 secondes (ms)
+
 app.use(express.static('public'));
 
 // --- CONNEXION MONGODB ---
@@ -368,7 +372,7 @@ io.on('connection', (socket) => {
                 coin: getRandomEmptyPosition(generateMaze(15, 15)),
                 player: player,
                 startTime: Date.now(), // Temps du début de la session
-                levelStartTime: Date.now(), // Temps du début du niveau
+                levelStartTime: Date.now() + TRANSITION_DURATION, // Attendre la transition avant de commencer à compter
                 checkpoints: [], // Array de temps pour chaque niveau complété
                 totalTime: 0
             };
@@ -804,22 +808,35 @@ setInterval(() => {
                 // Supprimer la session solo
                 delete soloSessions[playerId];
             } else {
-                // Générer le prochain niveau
+                // Générer TOUJOURS le prochain niveau d'abord
                 const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
                 session.map = generateMaze(mazeSize.width, mazeSize.height);
                 session.coin = getRandomEmptyPosition(session.map);
-                session.levelStartTime = Date.now(); // Reset chrono du niveau
                 
                 // Téléporter le joueur à une position safe
                 const safePos = getRandomEmptyPosition(session.map);
                 player.x = safePos.x;
                 player.y = safePos.y;
                 
-                // Envoyer les nouvelles données
+                // Vérifier si un shop s'ouvre après ce niveau (pas au niveau 20 qui est la fin)
+                const completedLevel = session.currentLevel - 1;
+                const isShopAfterThisLevel = isShopLevel(completedLevel) && completedLevel < 20;
+                
+                // Envoyer les nouvelles données (mapData ET levelUpdate)
                 const socket = io.sockets.sockets.get(playerId);
                 if (socket) {
                     socket.emit('mapData', session.map);
                     socket.emit('levelUpdate', session.currentLevel);
+                    
+                    if (isShopAfterThisLevel) {
+                        // Relancer le levelStartTime après la transition + shop duration
+                        session.levelStartTime = Date.now() + TRANSITION_DURATION + SHOP_DURATION;
+                        socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
+                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel} (chrono relancera à t+${TRANSITION_DURATION + SHOP_DURATION}ms)`);
+                    } else {
+                        // Relancer le levelStartTime après la transition
+                        session.levelStartTime = Date.now() + TRANSITION_DURATION;
+                    }
                 }
             }
         }

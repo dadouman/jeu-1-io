@@ -58,14 +58,15 @@ socket.on('levelUpdate', (newLevel) => {
         // Niveau a changé ! Déclencher la transition
         isInTransition = true;
         transitionStartTime = Date.now();
-        levelUpTime = (Date.now() - levelStartTime) / 1000; // Temps en secondes
+        levelUpTime = (Date.now() - levelStartTime) / 1000; // Temps en secondes (AVANT de réinitialiser)
         levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
         console.log("👤 Skin du joueur pour la transition :", levelUpPlayerSkin);
+        console.log("⏱️ Temps de jeu pour ce niveau :", levelUpTime.toFixed(1), "secondes");
     }
     
     level = newLevel;
     lastLevel = newLevel;
-    levelStartTime = Date.now(); // Réinitialiser le chrono
+    levelStartTime = Date.now() + TRANSITION_DURATION; // Démarrer le chrono APRÈS la transition (+ 3 sec)
     checkpoint = null; // Réinitialiser le checkpoint au changement de niveau
     trails = {}; // Réinitialiser les traces au changement de niveau
 });

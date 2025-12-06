@@ -112,9 +112,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.lineTo(trail.positions[i].x + TILE_SIZE/2, trail.positions[i].y + TILE_SIZE/2);
                 }
                 ctx.stroke();
-                ctx.globalAlpha = 1.0; // Réinitialiser l'opacité
             }
         }
+        // Réinitialiser l'opacité après toutes les traces
+        ctx.globalAlpha = 1.0;
     }
 
     // 6. Pièce

@@ -64,6 +64,27 @@ function initializePlayer(startPos, playerIndex) {
 }
 
 /**
+ * Initialise un joueur avec les features selon le mode de jeu
+ * @param {object} startPos - Position de départ { x, y }
+ * @param {number} playerIndex - Index du joueur (pour la couleur)
+ * @param {string} gameMode - Le mode de jeu ('classic' ou 'infinite')
+ * @returns {object} - L'objet joueur initialisé avec features du mode
+ */
+function initializePlayerForMode(startPos, playerIndex, gameMode = 'classic') {
+    const player = initializePlayer(startPos, playerIndex);
+    
+    // En mode infini, débloquer tous les pouvoirs sauf speedBoost
+    if (gameMode === 'infinite') {
+        player.purchasedFeatures.dash = true;
+        player.purchasedFeatures.checkpoint = true;
+        player.purchasedFeatures.rope = true;
+        player.purchasedFeatures.speedBoost = 0; // À acheter avec des gems
+    }
+    
+    return player;
+}
+
+/**
  * Réinitialise les données d'un joueur au changement de niveau
  * (position et traces uniquement, garder les gems et features)
  * @param {object} player - L'objet joueur à réinitialiser
@@ -115,6 +136,7 @@ module.exports = {
     getRandomSkin,
     getPlayerColor,
     initializePlayer,
+    initializePlayerForMode,
     resetPlayerForNewLevel,
     getPlayerPublicInfo,
     addScore

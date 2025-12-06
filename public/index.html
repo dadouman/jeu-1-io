@@ -6,136 +6,57 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Labyrinthe .io</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; 
-            background: #111; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            font-family: sans-serif;
-            touch-action: none;
-        }
-        canvas { 
-            background: #000; 
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        /* Contrôles tactiles */
-        .mobile-controls {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 0;
-            right: 0;
-            padding: 0 10px;
-            z-index: 100;
-        }
-
-        .mobile-controls.active { display: flex; }
-
-        .joystick-container {
-            flex: 1;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            gap: 20px;
-            max-width: 100%;
-        }
-
-        /* Contrôles directionnels (croix D-Pad) */
-        .dpad-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .dpad-row {
-            display: flex;
-            gap: 5px;
-        }
-
-        .dpad-btn {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #4ECDC4;
-            background: rgba(78, 205, 196, 0.1);
-            color: #4ECDC4;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            font-size: 18px;
-            transition: all 0.1s ease;
-            box-shadow: 0 0 10px rgba(78, 205, 196, 0.2);
-        }
-
-        .dpad-btn:active {
-            background: rgba(78, 205, 196, 0.3);
-            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
-            transform: scale(0.9);
-        }
-
-        .dpad-btn.invisible {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .mobile-btn {
-            width: 70px;
-            height: 70px;
-            border: 2px solid #FFD700;
-            background: rgba(255, 215, 0, 0.1);
-            color: #FFD700;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 11px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
-            flex-direction: column;
-            transition: all 0.1s ease;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-        }
-
-        .mobile-btn:active {
-            background: rgba(255, 215, 0, 0.3);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            transform: scale(0.95);
-        }
-
-        @media (max-width: 768px) {
-            .mobile-controls { display: flex; }
-            canvas { max-height: calc(100vh - 120px); }
-        }
-    </style>
+    
+    <!-- Styles externes -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Canvas pour le jeu -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Contrôles tactiles -->
+    <!-- Éléments UI (mode selector + contrôles mobiles) -->
+    <!-- Inclus directement ici pour simplicité, ou via JavaScript si préféré -->
+    <div id="modeSelector">
+        <h1>🎮 CHOISIS TON MODE 🎮</h1>
+        <div class="modes-grid">
+            <!-- Mode 40 Niveaux -->
+            <div class="mode-card">
+                <h2>📊 40 Niveaux</h2>
+                <p><strong>Montée et Descente</strong></p>
+                <p style="color: #FFD700; font-size: 12px;">
+                    🔼 20 niveaux (labyrinthes grandissent)<br>
+                    🔽 20 niveaux (labyrinthes rétrécissent)
+                </p>
+                <p>Challenge progressif avec twist à mi-parcours!</p>
+                <button onclick="selectMode('classic')">JOUER</button>
+            </div>
+
+            <!-- Mode Infini -->
+            <div class="mode-card">
+                <h2>♾️ Mode Infini</h2>
+                <p><strong>Sans Limites</strong></p>
+                <p style="color: #FFD700; font-size: 12px;">
+                    🔓 Tous les objets déverrouillés<br>
+                    💨 Seule la vitesse à l'achat
+                </p>
+                <p>Explore les labyrinthes éternels!</p>
+                <button onclick="selectMode('infinite')">JOUER</button>
+            </div>
+
+            <!-- Mode Construction -->
+            <div class="mode-card coming-soon">
+                <h2>🚀 En Construction</h2>
+                <p><strong>À Venir</strong></p>
+                <p style="color: #FFD700; font-size: 12px;">
+                    ? ? ?
+                </p>
+                <p>Surprises à découvrir très bientôt!</p>
+                <span class="coming-soon-badge">EN DÉVELOPPEMENT</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contrôles tactiles (Mobile) -->
     <div class="mobile-controls" id="mobileControls">
         <div class="joystick-container">
             <!-- D-Pad Directionnel -->
@@ -165,7 +86,12 @@
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Mode selector (avant les autres modules) -->
+    <script src="mode-selector.js"></script>
+    
     <!-- Modules du client (ordre important) -->
     <script src="game-state.js"></script>
     <script src="renderer.js"></script>

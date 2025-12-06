@@ -1,0 +1,243 @@
+/* ============================================
+   STYLES GLOBAUX
+   ============================================ */
+* { 
+    box-sizing: border-box; 
+}
+
+body { 
+    margin: 0; 
+    background: #111; 
+    overflow: hidden; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    font-family: sans-serif;
+    touch-action: none;
+}
+
+canvas { 
+    background: #000; 
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* ============================================
+   CONTRÔLES TACTILES (Mobile)
+   ============================================ */
+.mobile-controls {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    padding: 0 10px;
+    z-index: 100;
+}
+
+.mobile-controls.active { 
+    display: flex; 
+}
+
+.joystick-container {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    max-width: 100%;
+}
+
+/* D-Pad Directionnel */
+.dpad-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.dpad-row {
+    display: flex;
+    gap: 5px;
+}
+
+.dpad-btn {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #4ECDC4;
+    background: rgba(78, 205, 196, 0.1);
+    color: #4ECDC4;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    font-size: 18px;
+    transition: all 0.1s ease;
+    box-shadow: 0 0 10px rgba(78, 205, 196, 0.2);
+}
+
+.dpad-btn:active {
+    background: rgba(78, 205, 196, 0.3);
+    box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+    transform: scale(0.9);
+}
+
+.dpad-btn.invisible {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Groupe de boutons d'action */
+.button-group {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.mobile-btn {
+    width: 70px;
+    height: 70px;
+    border: 2px solid #FFD700;
+    background: rgba(255, 215, 0, 0.1);
+    color: #FFD700;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    flex-direction: column;
+    transition: all 0.1s ease;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.mobile-btn:active {
+    background: rgba(255, 215, 0, 0.3);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    transform: scale(0.95);
+}
+
+/* Responsive - Afficher les contrôles sur mobile */
+@media (max-width: 768px) {
+    .mobile-controls { 
+        display: flex; 
+    }
+    canvas { 
+        max-height: calc(100vh - 120px); 
+    }
+}
+
+/* ============================================
+   SÉLECTION DE MODE
+   ============================================ */
+#modeSelector {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+}
+
+#modeSelector h1 {
+    color: #FFD700;
+    font-size: 48px;
+    margin-bottom: 50px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Grille des modes */
+.modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 20px;
+}
+
+/* Carte de mode */
+.mode-card {
+    background: rgba(255, 215, 0, 0.05);
+    border: 3px solid #FFD700;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+.mode-card:hover {
+    background: rgba(255, 215, 0, 0.15);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.mode-card h2 {
+    color: #FFD700;
+    font-size: 28px;
+    margin: 0 0 15px 0;
+}
+
+.mode-card p {
+    color: #aaa;
+    font-size: 14px;
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.mode-card button {
+    background: #FFD700;
+    color: #000;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.2s ease;
+}
+
+.mode-card button:hover {
+    background: #fff;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.mode-card.coming-soon {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mode-card.coming-soon button {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Badge "En Développement" */
+.coming-soon-badge {
+    background: #ff6b6b;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}

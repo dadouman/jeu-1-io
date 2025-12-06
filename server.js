@@ -18,7 +18,7 @@ const io = new Server(server, {
 // IMPORTANT : On importe la NOUVELLE fonction 'generateMaze'
 const { generateMaze, getRandomEmptyPosition } = require('./utils/map');
 const { checkWallCollision } = require('./utils/collisions');
-const { initializePlayer, resetPlayerForNewLevel, addScore, skins } = require('./utils/player');
+const { initializePlayer, initializePlayerForMode, resetPlayerForNewLevel, addScore, skins } = require('./utils/player');
 const { calculateGemsForLevel, addGems } = require('./utils/gems');
 const { isShopLevel, getShopItems, purchaseItem } = require('./utils/shop');
 
@@ -43,6 +43,7 @@ let players = {};
 
 // VARIABLES DU ROGUE-LIKE
 let currentLevel = 1;
+let gameMode = 'classic'; // 'classic' ou 'infinite'
 let map = generateMaze(15, 15); 
 let coin = getRandomEmptyPosition(map);
 
@@ -178,6 +179,45 @@ async function loadHighScore() {
 }
 loadHighScore();
 
+// --- FONCTION POUR CALCULER LA TAILLE DU LABYRINTHE SELON LE MODE ---
+function calculateMazeSize(level, mode = 'classic') {
+    const baseSize = 15;
+    const sizeIncrement = 2;
+    
+    if (mode === 'classic') {
+        // 40 niveaux: 20 montée, 20 descente
+        if (level <= 20) {
+            // Phase montante: 15x15 -> 55x55
+            const size = baseSize + (level - 1) * sizeIncrement;
+            return { width: size, height: size };
+        } else {
+            // Phase descendante: 55x55 -> 15x15
+            const descendLevel = level - 20;
+            const size = baseSize + (20 - descendLevel) * sizeIncrement;
+            return { width: size, height: size };
+        }
+    } else if (mode === 'infinite') {
+        // Mode infini: continue à grandir
+        const size = baseSize + (level - 1) * sizeIncrement;
+        return { width: size, height: size };
+    }
+}
+
+// --- FONCTION POUR OBTENIR LES ITEMS DU SHOP SELON LE MODE ---
+function getShopItemsForMode(mode = 'classic') {
+    const allItems = getShopItems();
+    
+    if (mode === 'infinite') {
+        // En mode infini, seulement le speedBoost est à acheter
+        return {
+            speedBoost: allItems.speedBoost
+        };
+    }
+    
+    // Mode classique: tous les items disponibles
+    return allItems;
+}
+
 // --- FONCTION DE DASH ---
 function performDash(player, playerId) {
     // Déterminer la direction du dash
@@ -230,6 +270,32 @@ io.on('connection', (socket) => {
     const startPos = getRandomEmptyPosition(map);
     const playerIndex = Object.keys(players).length;
     players[socket.id] = initializePlayer(startPos, playerIndex);
+
+    // --- SÉLECTION DU MODE DE JEU ---
+    socket.on('selectGameMode', (data) => {
+        const mode = data.mode; // 'classic' ou 'infinite'
+        gameMode = mode;
+        
+        console.log(`🎮 Mode sélectionné: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
+        
+        // Réinitialiser le jeu avec les paramètres du mode
+        currentLevel = 1;
+        const mazeSize = calculateMazeSize(1, gameMode);
+        map = generateMaze(mazeSize.width, mazeSize.height);
+        coin = getRandomEmptyPosition(map);
+        
+        // Réinitialiser les joueurs avec les features appropriées au mode
+        for (let id in players) {
+            const startPos = getRandomEmptyPosition(map);
+            const playerIndex = Object.keys(players).indexOf(id);
+            players[id] = initializePlayerForMode(startPos, playerIndex, gameMode);
+        }
+        
+        // Notifier les clients que le jeu est prêt
+        io.emit('mapData', map);
+        io.emit('levelUpdate', currentLevel);
+        io.emit('gameModSelected', { mode: gameMode });
+    });
 
     socket.on('disconnect', () => { delete players[socket.id]; });
 
@@ -418,10 +484,16 @@ setInterval(() => {
             currentLevel++;
             levelChanged = true;
 
-            // 2. ON AGRANDIT LE LABYRINTHE
-            // Taille de base 15 + (2 cases par niveau)
-            const newSize = 15 + (currentLevel * 2);
-            map = generateMaze(newSize, newSize); // Génération du nouveau labyrinthe
+            // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Mode classique, 40 niveaux)
+            if (gameMode === 'classic' && currentLevel > 40) {
+                io.emit('gameFinished', { finalLevel: 40, mode: 'classic' });
+                currentLevel = 40; // Rester au niveau 40
+                break;
+            }
+
+            // 3. ON AGRANDIT LE LABYRINTHE SELON LE MODE
+            const mazeSize = calculateMazeSize(currentLevel, gameMode);
+            map = generateMaze(mazeSize.width, mazeSize.height); // Génération du nouveau labyrinthe
             
             // 3. ON DÉPLACE LA PIÈCE
             coin = getRandomEmptyPosition(map);
@@ -452,7 +524,7 @@ setInterval(() => {
         
         // VÉRIFIER SI C'EST UN NIVEAU DE MAGASIN
         if (isShopLevel(currentLevel)) {
-            io.emit('shopOpen', { items: getShopItems(), level: currentLevel });
+            io.emit('shopOpen', { items: getShopItemsForMode(gameMode), level: currentLevel });
             console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT - Niveau ${currentLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
         } else {
             const mazeSize = 15 + (currentLevel * 2);

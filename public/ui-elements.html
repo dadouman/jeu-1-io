@@ -1,0 +1,74 @@
+<!-- ============================================
+     ÉCRAN DE SÉLECTION DE MODE
+     ============================================ -->
+<div id="modeSelector">
+    <h1>🎮 CHOISIS TON MODE 🎮</h1>
+    <div class="modes-grid">
+        <!-- Mode 40 Niveaux -->
+        <div class="mode-card">
+            <h2>📊 40 Niveaux</h2>
+            <p><strong>Montée et Descente</strong></p>
+            <p style="color: #FFD700; font-size: 12px;">
+                🔼 20 niveaux (labyrinthes grandissent)<br>
+                🔽 20 niveaux (labyrinthes rétrécissent)
+            </p>
+            <p>Challenge progressif avec twist à mi-parcours!</p>
+            <button onclick="selectMode('classic')">JOUER</button>
+        </div>
+
+        <!-- Mode Infini -->
+        <div class="mode-card">
+            <h2>♾️ Mode Infini</h2>
+            <p><strong>Sans Limites</strong></p>
+            <p style="color: #FFD700; font-size: 12px;">
+                🔓 Tous les objets déverrouillés<br>
+                💨 Seule la vitesse à l'achat
+            </p>
+            <p>Explore les labyrinthes éternels!</p>
+            <button onclick="selectMode('infinite')">JOUER</button>
+        </div>
+
+        <!-- Mode Construction -->
+        <div class="mode-card coming-soon">
+            <h2>🚀 En Construction</h2>
+            <p><strong>À Venir</strong></p>
+            <p style="color: #FFD700; font-size: 12px;">
+                ? ? ?
+            </p>
+            <p>Surprises à découvrir très bientôt!</p>
+            <span class="coming-soon-badge">EN DÉVELOPPEMENT</span>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================
+     CONTRÔLES TACTILES (Mobile)
+     ============================================ -->
+<div class="mobile-controls" id="mobileControls">
+    <div class="joystick-container">
+        <!-- D-Pad Directionnel -->
+        <div class="dpad-container">
+            <div class="dpad-row">
+                <button class="dpad-btn invisible"></button>
+                <button class="dpad-btn" id="btnUp">↑</button>
+                <button class="dpad-btn invisible"></button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn" id="btnLeft">←</button>
+                <button class="dpad-btn invisible"></button>
+                <button class="dpad-btn" id="btnRight">→</button>
+            </div>
+            <div class="dpad-row">
+                <button class="dpad-btn invisible"></button>
+                <button class="dpad-btn" id="btnDown">↓</button>
+                <button class="dpad-btn invisible"></button>
+            </div>
+        </div>
+
+        <!-- Boutons d'action -->
+        <div class="button-group">
+            <button class="mobile-btn" id="checkpointBtn">🚩<br>Checkpoint</button>
+            <button class="mobile-btn" id="teleportBtn">R<br>Teleport</button>
+        </div>
+    </div>
+</div>

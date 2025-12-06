@@ -111,6 +111,14 @@ socket.on('gameRestarted', () => {
     console.log(`%c🔄 Le jeu a été redémarré!`, 'color: #00FF00; font-weight: bold; font-size: 14px');
 });
 
+socket.on('gameModSelected', (data) => {
+    console.log(`%c🎮 Mode de jeu confirmé: ${data.mode === 'classic' ? '40 NIVEAUX 🎯' : 'MODE INFINI ∞'}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+});
+
+socket.on('gameFinished', (data) => {
+    console.log(`%c🏁 Jeu terminé! Vous avez atteint le niveau ${data.finalLevel} en mode ${data.mode}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
+});
+
 socket.on('error', (data) => {
     console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
 });

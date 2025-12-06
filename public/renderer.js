@@ -19,6 +19,9 @@ function getRanking(players) {
 
 function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null) {
     
+    // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
+    ctx.globalAlpha = 1.0;
+    
     // 1. Fond noir
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);

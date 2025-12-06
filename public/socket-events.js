@@ -26,6 +26,7 @@ socket.on('levelUpdate', (newLevel) => {
     // Détecter si c'est vraiment un changement de niveau
     if (newLevel !== lastLevel && lastLevel !== 0) {
         // Niveau a changé ! Déclencher la transition
+        console.log(`📥 [LEVEL UPDATE] Reçu levelUpdate: ${newLevel} (lastLevel était ${lastLevel})`);
         isInTransition = true;
         transitionStartTime = Date.now();
         // Calculer le temps SEULEMENT si le timer était actif (pas null pendant le shop)
@@ -38,6 +39,7 @@ socket.on('levelUpdate', (newLevel) => {
             console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         }
     } else if (newLevel === 1 && lastLevel === 0) {
+        console.log(`📥 [FIRST LEVEL] Premier niveau`);
         // Premier niveau : déclencher une transition spéciale
         isInTransition = true;
         isFirstLevel = true;
@@ -60,6 +62,7 @@ socket.on('levelUpdate', (newLevel) => {
 
 // --- ÉVÉNEMENTS SHOP ---
 socket.on('shopOpen', (data) => {
+    console.log(`🏪 [SHOP OPEN EVENT] Reçu shopOpen avec level: ${data.level}`);
     isShopOpen = true;
     shopItems = data.items;
     shopTimerStart = Date.now();

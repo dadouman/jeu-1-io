@@ -99,11 +99,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     // 5.5 Traces des joueurs (les corder qui suivent leur parcours)
     if (trails && Object.keys(trails).length > 0) {
-        // Sauvegarder UNIQUEMENT les propriétés de style, pas la transformation
-        const savedGlobalAlpha = ctx.globalAlpha;
         for (let playerId in trails) {
             const trail = trails[playerId];
             if (trail.positions && trail.positions.length > 1) {
+                const savedGlobalAlpha = ctx.globalAlpha;
                 ctx.strokeStyle = trail.color;
                 ctx.globalAlpha = 0.5; // Semi-transparent
                 ctx.lineWidth = 3;
@@ -117,10 +116,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.lineTo(trail.positions[i].x + TILE_SIZE/2, trail.positions[i].y + TILE_SIZE/2);
                 }
                 ctx.stroke();
+                // Restaurer globalAlpha IMMÉDIATEMENT après chaque trail
+                ctx.globalAlpha = savedGlobalAlpha;
             }
         }
-        // Restaurer globalAlpha uniquement
-        ctx.globalAlpha = savedGlobalAlpha;
     }
 
     // 6. Pièce
@@ -164,6 +163,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     ctx.restore(); // Fin Caméra
+
+    // ASSURER que globalAlpha est à 1.0 pour l'interface
+    ctx.globalAlpha = 1.0;
 
     // 8. Interface (UI) - Dessinée par dessus le brouillard
     ctx.fillStyle = "white";

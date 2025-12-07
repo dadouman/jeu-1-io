@@ -56,6 +56,13 @@ class EmailService {
                 console.warn('⚠️  Vérification SMTP échouée, mais on va essayer d\'envoyer:', verifyError.message);
             }
             
+            // Envoyer un email de test à l'initialisation
+            try {
+                await this.sendTestEmail();
+            } catch (testError) {
+                console.warn('⚠️  Impossible d\'envoyer l\'email de test:', testError.message);
+            }
+            
             this.initialized = true;
             return true;
         } catch (error) {
@@ -63,6 +70,35 @@ class EmailService {
             console.log('⚠️  Les bugs seront sauvegardés mais les emails ne seront pas envoyés');
             this.initialized = false;
             return false;
+        }
+    }
+
+    /**
+     * Envoyer un email de test à l'initialisation
+     * @returns {Promise<void>}
+     */
+    async sendTestEmail() {
+        const adminEmail = process.env.EMAIL_USER || 'sabatini79@gmail.com';
+        
+        const mailOptions = {
+            from: adminEmail,
+            to: adminEmail,
+            subject: '✅ Service d\'email initialisé - Jeu .io',
+            html: `
+                <h2>🎉 Service d'email fonctionnel!</h2>
+                <p><strong>Serveur redémarré:</strong> ${new Date().toLocaleString('fr-FR')}</p>
+                <p>Le système de report de bugs est opérationnel.</p>
+                <hr>
+                <p><small>Cet email a été envoyé automatiquement pour vérifier la connectivité SMTP.</small></p>
+            `
+        };
+
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            console.log('✅ Email de test envoyé:', info.response);
+        } catch (error) {
+            console.error('❌ Erreur lors de l\'envoi de l\'email de test:', error.message);
+            throw error;
         }
     }
 

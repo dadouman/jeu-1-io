@@ -30,6 +30,11 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+    // ⚠️ IGNORER LES TOUCHES SI LA MODAL DE BUG EST OUVERTE
+    if (window.bugReporter && window.bugReporter.isOpen) {
+        return; // Laisser la modal avoir tous les inputs
+    }
+
     if(e.code === 'ArrowUp') { inputs.up = true; inputsMomentum.up = 1; }
     if(e.code === 'ArrowDown') { inputs.down = true; inputsMomentum.down = 1; }
     if(e.code === 'ArrowLeft') { inputs.left = true; inputsMomentum.left = 1; }
@@ -96,6 +101,11 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keyup', (e) => {
+    // ⚠️ IGNORER LES TOUCHES SI LA MODAL DE BUG EST OUVERTE
+    if (window.bugReporter && window.bugReporter.isOpen) {
+        return;
+    }
+
     if(e.code === 'ArrowUp') inputs.up = false;
     if(e.code === 'ArrowDown') inputs.down = false;
     if(e.code === 'ArrowLeft') inputs.left = false;

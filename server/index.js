@@ -12,29 +12,7 @@ const app = express();
 const http = require('http');
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-
-// Configuration Socket.io pour Render
-const io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] }
-});
-
-app.use(express.static('public'));
-
-// --- MIDDLEWARE ---
-app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// --- INITIALISATION DU SERVICE D'EMAIL ---
-emailService.initialize().then(success => {
-    if (success) {
-        console.log('✅ Service d\'email initialisé');
-    } else {
-        console.log('⚠️  Service d\'email désactivé');
-    }
-});
-
-// --- ROUTES API ---
-app.use('/api/bugs', bugRoutes);
+const mongoose = require('mongoose');
 
 // --- IMPORT DES MODULES ---
 const {
@@ -67,7 +45,29 @@ const { startGameLoop } = require('./game-loop');
 const { initializeSocketEvents } = require('./socket-events');
 const bugRoutes = require('./bug-routes');
 const emailService = require('./email-service');
-const mongoose = require('mongoose');
+
+// Configuration Socket.io pour Render
+const io = new Server(server, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+});
+
+app.use(express.static('public'));
+
+// --- MIDDLEWARE ---
+app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// --- INITIALISATION DU SERVICE D'EMAIL ---
+emailService.initialize().then(success => {
+    if (success) {
+        console.log('✅ Service d\'email initialisé');
+    } else {
+        console.log('⚠️  Service d\'email désactivé');
+    }
+});
+
+// --- ROUTES API ---
+app.use('/api/bugs', bugRoutes);
 
 // --- INITIALISATION DU LABYRINTHE INITIAL ---
 const { generateMaze, getRandomEmptyPosition } = require('../utils/map');

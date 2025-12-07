@@ -20,6 +20,22 @@ const io = new Server(server, {
 
 app.use(express.static('public'));
 
+// --- MIDDLEWARE ---
+app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// --- INITIALISATION DU SERVICE D'EMAIL ---
+emailService.initialize().then(success => {
+    if (success) {
+        console.log('✅ Service d\'email initialisé');
+    } else {
+        console.log('⚠️  Service d\'email désactivé');
+    }
+});
+
+// --- ROUTES API ---
+app.use('/api/bugs', bugRoutes);
+
 // --- IMPORT DES MODULES ---
 const {
     SHOP_DURATION,
@@ -49,6 +65,9 @@ const {
 
 const { startGameLoop } = require('./game-loop');
 const { initializeSocketEvents } = require('./socket-events');
+const bugRoutes = require('./bug-routes');
+const emailService = require('./email-service');
+const mongoose = require('mongoose');
 
 // --- INITIALISATION DU LABYRINTHE INITIAL ---
 const { generateMaze, getRandomEmptyPosition } = require('../utils/map');

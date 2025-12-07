@@ -51,8 +51,9 @@ function processSoloGameLoop(soloSessions, io, {
                     });
                 }
                 
-                // Supprimer la session solo
+                // Supprimer la session solo et continuer à la session suivante
                 delete soloSessions[playerId];
+                continue;  // ← IMPORTANT: ne pas accéder à session après suppression
             } else {
                 // Générer le prochain niveau
                 const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
@@ -93,7 +94,7 @@ function processSoloGameLoop(soloSessions, io, {
         // Envoyer l'état du jeu au joueur (avec les gems) - SEULEMENT si la session existe toujours
         if (soloSessions[playerId]) {
             const socket = io.sockets.sockets.get(playerId);
-            if (socket) {
+            if (socket && socket.connected) {
                 socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
             }
         }

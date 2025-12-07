@@ -62,7 +62,9 @@ let currentGameMode = null; // 'classic', 'infinite', 'solo'
 let soloMaxLevel = 10; // Solo: toujours 10 niveaux
 let soloCurrentLevelTime = 0; // Temps du niveau actuel
 let soloPersonalBestTime = null; // Meilleur temps personnel (localStorage)
+let soloPersonalBestSplits = {}; // Meilleurs splits personnels: { 1: 12.3, 2: 26.8, ... }
 let soloLeaderboardBest = null; // Meilleur temps du leaderboard (record mondial)
+let soloBestSplits = {}; // Meilleurs splits mondiaux: { 1: 12.1, 2: 26.5, ... }
 let soloShowPersonalDelta = true; // Toggle: true = delta personnel, false = delta mondial
 let soloInactiveTime = 0; // Temps total d'inactivité (shop + transition)
 let soloShopStartTime = null; // Temps de début du shop

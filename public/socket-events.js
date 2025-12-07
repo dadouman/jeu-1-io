@@ -178,8 +178,9 @@ socket.on('soloGameFinished', (data) => {
         finalLevel: data.finalLevel || soloMaxLevel
     });
     
-    // Demander le leaderboard
+    // Demander le leaderboard et les meilleurs splits
     socket.emit('getSoloLeaderboard');
+    socket.emit('getSoloBestSplits');
     
     // Afficher l'écran de résultats
     isInTransition = true;
@@ -225,6 +226,14 @@ socket.on('soloLeaderboard', (data) => {
     data.scores.slice(0, 10).forEach((run, index) => {
         console.log(`%c ${index + 1}. ${run.playerSkin} - ${run.totalTime.toFixed(2)}s`, 'color: #FFD700; font-size: 12px');
     });
+});
+
+socket.on('soloBestSplits', (data) => {
+    console.log(`%c🏁 Meilleurs splits reçus:`, 'color: #00FF00; font-weight: bold');
+    soloBestSplits = data.splits;
+    for (let level in data.splits) {
+        console.log(`%c  Niveau ${level}: ${data.splits[level].toFixed(2)}s`, 'color: #00FF00; font-size: 12px');
+    }
 });
 
 socket.on('error', (data) => {

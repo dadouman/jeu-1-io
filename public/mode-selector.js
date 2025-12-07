@@ -4,16 +4,15 @@ let selectedMode = null;
 
 /**
  * Sélectionne un mode de jeu
- * @param {string} mode - 'classic', 'infinite', 'solo', ou 'solo-express'
+ * @param {string} mode - 'classic', 'infinite', ou 'solo'
  */
 function selectMode(mode) {
-    if (mode === 'classic' || mode === 'infinite' || mode === 'solo' || mode === 'solo-express') {
+    if (mode === 'classic' || mode === 'infinite' || mode === 'solo') {
         selectedMode = mode;
         const modeNames = {
             'classic': '40 Niveaux',
             'infinite': 'Mode Infini',
-            'solo': 'Mode Solo (20 niveaux)',
-            'solo-express': 'Mode Solo Express ⚡ (10 niveaux)'
+            'solo': 'Mode Solo (10 niveaux)'
         };
         console.log(`%c🎮 Mode sélectionné: ${modeNames[mode]}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
@@ -67,10 +66,10 @@ function calculateMazeSize(level, maxLevels = 40) {
         // Mode infini: continue à grandir
         const size = baseSize + (level - 1) * sizeIncrement;
         return { width: size, height: size };
-    } else if (mode === 'solo' || mode === 'solo-express') {
-        // Mode solo et solo-express avec même logique (10 ou 20 niveaux)
-        const maxLvl = mode === 'solo' ? 20 : 10;
-        const expandLvl = Math.floor(maxLvl / 2); // 10 pour solo, 5 pour solo-express
+    } else if (mode === 'solo') {
+        // Mode solo: 10 niveaux (5 expansion, 5 contraction)
+        const maxLvl = 10;
+        const expandLvl = 5;
         
         if (level <= expandLvl) {
             // Phase d'expansion
@@ -109,11 +108,11 @@ function calculateZoomForMode(level) {
     } else if (mode === 'infinite') {
         // Mode infini: zoom progressif normal
         return Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
-    } else if (mode === 'solo' || mode === 'solo-express') {
-        // Mode solo et solo-express: similaire mais différents paliers
-        const maxLvl = mode === 'solo' ? 20 : 10;
-        const expandLvl = Math.floor(maxLvl / 2);
-        const zoomStep = mode === 'solo' ? 0.03 : 0.04; // Plus rapide en solo-express
+    } else if (mode === 'solo') {
+        // Mode solo: 10 niveaux (5 expansion, 5 contraction)
+        const maxLvl = 10;
+        const expandLvl = 5;
+        const zoomStep = 0.04; // Zoom modéré
         
         if (level <= expandLvl) {
             // Expansion: zoom qui diminue

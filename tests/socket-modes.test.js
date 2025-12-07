@@ -32,7 +32,6 @@ describe('Socket Events - Mode Safety', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    isExpress: false,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
@@ -46,11 +45,10 @@ describe('Socket Events - Mode Safety', () => {
             expect.fail('Should have returned early');
         });
 
-        test('proposeRestart en solo-express devrait retourner sans accéder au lobby', () => {
+        test('proposeRestart en solo (autre cas) devrait retourner sans accéder au lobby', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    isExpress: true,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
@@ -123,7 +121,6 @@ describe('Socket Events - Mode Safety', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    isExpress: false,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
@@ -137,11 +134,10 @@ describe('Socket Events - Mode Safety', () => {
             }
         });
 
-        test('checkpoint en solo-express accède à soloSessions', () => {
+        test('checkpoint en solo accède à soloSessions', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    isExpress: true,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };

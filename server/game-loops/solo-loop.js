@@ -34,8 +34,8 @@ function processSoloGameLoop(soloSessions, io, {
             // Augmenter le niveau
             session.currentLevel++;
             
-            // Vérifier si le jeu est terminé (20 niveaux pour solo standard, 10 pour express)
-            const maxLevel = session.isExpress ? 10 : 20;
+            // Vérifier si le jeu est terminé (10 niveaux pour solo)
+            const maxLevel = 10;
             if (session.currentLevel > maxLevel) {
                 session.totalTime = (Date.now() - session.startTime) / 1000;
                 console.log(`🏁 [SOLO] Joueur ${playerId} a terminé la session! Temps total: ${session.totalTime.toFixed(1)}s`);

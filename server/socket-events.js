@@ -67,33 +67,22 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // --- SÉLECTION DU MODE DE JEU ---
         socket.on('selectGameMode', (data) => {
-            let mode = data.mode; // 'classic', 'infinite', 'solo', ou 'solo-express'
-            let isExpress = false;
-            
-            // Normaliser 'solo-express' en 'solo' avec un flag
-            if (mode === 'solo-express') {
-                isExpress = true;
-                mode = 'solo'; // Normaliser en interne
-            }
+            let mode = data.mode; // 'classic', 'infinite', ou 'solo'
             
             playerModes[socket.id] = mode;
             
             if (mode === 'solo') {
-                const displayMode = isExpress ? 'SOLO EXPRESS (10 niveaux)' : 'SOLO (20 niveaux)';
-                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${displayMode}`);
+                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO (10 niveaux)`);
                 
                 const startPos = getRandomEmptyPosition(generateMaze(15, 15));
                 const player = initializePlayerForMode(startPos, 0, 'solo');
                 
-                // En solo-express, débloquer aléatoirement une feature au départ
-                if (isExpress) {
-                    const unlockedFeature = generateRandomFeatureWeighted();
-                    player.purchasedFeatures[unlockedFeature] = true;
-                    console.log(`   ⚡ Feature débloquée gratuitement: ${unlockedFeature}`);
-                }
+                // Débloquer aléatoirement une feature au départ en solo
+                const unlockedFeature = generateRandomFeatureWeighted();
+                player.purchasedFeatures[unlockedFeature] = true;
+                console.log(`   ⚡ Feature débloquée gratuitement: ${unlockedFeature}`);
                 
                 soloSessions[socket.id] = {
-                    isExpress: isExpress, // Important: flag pour savoir si c'est la version express
                     currentLevel: 1,
                     map: generateMaze(15, 15),
                     coin: getRandomEmptyPosition(generateMaze(15, 15)),
@@ -107,9 +96,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 const session = soloSessions[socket.id];
                 socket.emit('mapData', session.map);
                 socket.emit('levelUpdate', session.currentLevel);
-                socket.emit('gameModSelected', { mode: 'solo', isExpress: isExpress });
+                socket.emit('gameModSelected', { mode: 'solo' });
                 
-                console.log(`   Session ${displayMode} créée pour joueur ${socket.id}`);
+                console.log(`   Session SOLO (10 niveaux) créée pour joueur ${socket.id}`);
             } else {
                 if (!lobbies[mode]) {
                     socket.emit('error', { message: 'Mode invalide' });
@@ -139,16 +128,15 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;
-            const { totalTime, checkpoints, playerSkin, mode, isExpress, finalLevel } = data;
+            const { totalTime, checkpoints, playerSkin, mode, finalLevel } = data;
             
-            const displayMode = isExpress ? 'SOLO EXPRESS' : 'SOLO';
-            console.log(`💾 [${displayMode}] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux)`);
+            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux)`);
             
             if (mongoURI) {
                 try {
                     // Chercher le meilleur temps personnel existant
                     const previousBestRuns = await SoloRunModel
-                        .find({ playerId, mode })
+                        .find({ playerId, mode: 'solo' })
                         .sort({ totalTime: 1 })
                         .limit(1)
                         .exec();
@@ -160,16 +148,15 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     const soloRun = new SoloRunModel({
                         playerId,
                         playerSkin,
-                        mode: 'solo', // Always 'solo' in DB
+                        mode: 'solo',
                         totalTime,
                         checkpoints,
                         finalLevel,
-                        personalBestTime,
-                        isExpress: isExpress // Track express variant
+                        personalBestTime
                     });
                     
                     await soloRun.save();
-                    console.log(`✅ [${displayMode}] Résultat sauvegardé - Meilleur temps: ${personalBestTime.toFixed(2)}s`);
+                    console.log(`✅ [SOLO] Résultat sauvegardé - Meilleur temps: ${personalBestTime.toFixed(2)}s`);
                     
                     // Envoyer le meilleur temps personnel au client
                     socket.emit('personalBestTimeUpdated', { personalBestTime });

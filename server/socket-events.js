@@ -197,9 +197,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         socket.on('disconnect', () => { 
             const mode = playerModes[socket.id];
             
-            if (mode === 'solo') {
+            if (mode === 'solo' || mode === 'solo-express') {
                 delete soloSessions[socket.id];
-                console.log(`🎯 Joueur ${socket.id} déconnecté du mode solo`);
+                console.log(`🎯 Joueur ${socket.id} déconnecté du mode ${mode}`);
             } else if (mode && lobbies[mode]) {
                 const lobby = lobbies[mode];
                 delete lobby.players[socket.id];
@@ -219,7 +219,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             
             let player, map;
             
-            if (mode === 'solo') {
+            if (mode === 'solo' || mode === 'solo-express') {
                 const session = soloSessions[socket.id];
                 if (!session) return;
                 player = session.player;
@@ -290,7 +290,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 player.trail = [];
             }
             
-            if (mode === 'solo') {
+            if (mode === 'solo' || mode === 'solo-express') {
                 soloSessions[socket.id].player = player;
             }
         });

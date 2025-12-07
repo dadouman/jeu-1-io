@@ -411,16 +411,23 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             const mode = playerModes[socket.id];
             if (!mode) return;
             
-            const lobby = lobbies[mode];
-            const player = lobby.players[socket.id];
             const { itemId } = data;
+            let player;
 
-            if (!player) return;
+            // Récupérer le joueur selon le mode
+            if (mode === 'solo') {
+                const session = soloSessions[socket.id];
+                if (!session) return;
+                player = session.player;
+            } else {
+                const lobby = lobbies[mode];
+                if (!lobby || !lobby.players[socket.id]) return;
+                player = lobby.players[socket.id];
+            }
 
             const result = purchaseItem(player, itemId);
             
             if (result.success) {
-                const player = lobby.players[socket.id];
                 console.log(`💎 [SHOP] ${player.skin} a acheté "${result.item.name}" pour ${result.item.price}💎 | ${result.gemsLeft}💎 restants`);
                 socket.emit('shopPurchaseSuccess', { itemId, item: result.item, gemsLeft: result.gemsLeft });
             } else {

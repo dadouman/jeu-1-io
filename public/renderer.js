@@ -3,6 +3,39 @@
 const TILE_SIZE = 40;
 
 /**
+ * Retourne les zones cliquables des items du shop
+ * @param {number} canvasWidth 
+ * @param {number} canvasHeight 
+ * @returns {Array} Array de {id, rect: {x, y, width, height}}
+ */
+function getShopClickAreas(canvasWidth, canvasHeight) {
+    const shopWidth = 500;
+    const shopHeight = 350;
+    const shopX = (canvasWidth - shopWidth) / 2;
+    const shopY = (canvasHeight - shopHeight) / 2;
+    
+    const itemList = [
+        { id: 'dash', name: 'Dash ⚡', price: 5 },
+        { id: 'checkpoint', name: 'Checkpoint 🚩', price: 3 },
+        { id: 'rope', name: 'Corde 🪢', price: 1 },
+        { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
+    ];
+    
+    return itemList.map((item, index) => {
+        const yPos = shopY + 100 + (index * 45);
+        return {
+            id: item.id,
+            rect: {
+                x: shopX + 30,
+                y: yPos - 20,
+                width: 440,
+                height: 40
+            }
+        };
+    });
+}
+
+/**
  * Trie les joueurs par score (décroissant)
  * En cas d'égalité, le joueur qui a trouvé la gem en dernier est devant (l'ordre d'arrivée)
  */
@@ -289,7 +322,16 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "left";
         itemList.forEach((item, index) => {
             const yPos = shopY + 100 + (index * 45);
-            const color = playerGems >= item.price ? "#00FF00" : "#888";
+            const canBuy = playerGems >= item.price;
+            const color = canBuy ? "#00FF00" : "#888";
+            
+            // Dessiner une boîte cliquable pour chaque item
+            ctx.fillStyle = canBuy ? "rgba(0, 255, 0, 0.1)" : "rgba(136, 136, 136, 0.05)";
+            ctx.fillRect(shopX + 20, yPos - 20, shopWidth - 40, 40);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(shopX + 20, yPos - 20, shopWidth - 40, 40);
+            
             ctx.fillStyle = color;
             ctx.fillText(`${index + 1}. ${item.name} - ${item.price} gems`, shopX + 30, yPos);
         });
@@ -298,7 +340,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = "#888";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Appuyez sur 1, 2, 3 ou 4 pour acheter", canvas.width / 2, shopY + shopHeight - 30);
+        ctx.fillText("Appuyez sur 1, 2, 3 ou 4 OU cliquez sur un item pour acheter", canvas.width / 2, shopY + shopHeight - 30);
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

@@ -12,6 +12,29 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
 });
 
+// --- GESTION DES CLICS SOURIS POUR LE SHOP ---
+canvas.addEventListener('click', (event) => {
+    if (!isShopOpen) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    // Obtenir les zones cliquables du shop
+    const clickAreas = getShopClickAreas(canvas.width, canvas.height);
+    
+    // Vérifier si un item a été cliqué
+    for (const area of clickAreas) {
+        const { x, y, width, height } = area.rect;
+        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+            if (shopItems[area.id]) {
+                socket.emit('shopPurchase', { itemId: area.id });
+            }
+            break;
+        }
+    }
+});
+
 // Les modules sont chargés dans l'ordre suivant via les balises <script> dans index.html:
 // 1. game-state.js - Variables d'état globales
 // 2. socket-events.js - Événements Socket.io

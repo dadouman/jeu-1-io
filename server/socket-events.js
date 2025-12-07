@@ -300,7 +300,40 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             const mode = playerModes[socket.id];
             if (!mode) return;
             
+            // Solo/Solo-express: gérer le joueur solo
+            if (mode === 'solo' || mode === 'solo-express') {
+                const session = soloSessions[socket.id];
+                if (!session) return;
+                const player = session.player;
+                
+                if (actions.setCheckpoint) {
+                    if (!player.purchasedFeatures.checkpoint) {
+                        socket.emit('error', { message: '🚩 Checkpoint non acheté ! Rendez-vous au magasin' });
+                    } else {
+                        player.checkpoint = { x: player.x, y: player.y };
+                        socket.emit('checkpointUpdate', player.checkpoint);
+                    }
+                }
+                if (actions.teleportCheckpoint && player.checkpoint) {
+                    if (!player.purchasedFeatures.checkpoint) {
+                        socket.emit('error', { message: '🚩 Checkpoint non acheté !' });
+                    } else {
+                        player.x = player.checkpoint.x;
+                        player.y = player.checkpoint.y;
+                    }
+                }
+                if (actions.dash) {
+                    if (!player.purchasedFeatures.dash) {
+                        socket.emit('error', { message: '⚡ Dash non acheté ! Rendez-vous au magasin' });
+                    } else {
+                        socket.emit('dashActivated');
+                    }
+                }
+                return;
+            }
+            
             const lobby = lobbies[mode];
+            if (!lobby) return;
             const player = lobby.players[socket.id];
             if (!player) return;
 
@@ -339,7 +372,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             const mode = playerModes[socket.id];
             if (!mode) return;
             
+            // Les votes ne s'appliquent qu'aux modes multijoueur (classic/infinite)
+            if (mode === 'solo' || mode === 'solo-express') return;
+            
             const lobby = lobbies[mode];
+            if (!lobby) return;
             const player = lobby.players[socket.id];
             if (!player) return;
             
@@ -355,7 +392,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             const mode = playerModes[socket.id];
             if (!mode) return;
             
+            // Les votes ne s'appliquent qu'aux modes multijoueur (classic/infinite)
+            if (mode === 'solo' || mode === 'solo-express') return;
+            
             const lobby = lobbies[mode];
+            if (!lobby) return;
             const player = lobby.players[socket.id];
             if (!player) return;
             

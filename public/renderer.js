@@ -202,12 +202,51 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // ASSURER que globalAlpha est à 1.0 pour l'interface
     ctx.globalAlpha = 1.0;
 
-    // --- UI MINIMALE: JUSTE LES CONTRÔLES EN BAS ---
-    ctx.textAlign = "left";
+    // --- UI MINIMALISTE EN SOLO MODE ---
+    if (currentGameMode === 'solo') {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        
+        // Affichage du Temps Total (au milieu, sous le cercle de brouillard)
+        if (soloRunTotalTime > 0) {
+            // Format: MM:SS.mmm
+            const totalSeconds = Math.floor(soloRunTotalTime);
+            const totalMinutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const milliseconds = Math.round((soloRunTotalTime - totalSeconds) * 1000);
+            const timeFormatted = `${totalMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+            
+            // Afficher le temps total
+            ctx.fillStyle = "#00FF00"; // Vert
+            ctx.font = "bold 32px Arial";
+            ctx.fillText(timeFormatted, canvas.width / 2, canvas.height / 2 + 100);
+            
+            // Affichage du delta avec le world record
+            const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
+            const bestTime = displayPersonal ? soloPersonalBestTime : soloLeaderboardBest;
+            
+            if (bestTime) {
+                const delta = soloRunTotalTime - bestTime;
+                const deltaSeconds = Math.floor(Math.abs(delta));
+                const deltaMinutes = Math.floor(deltaSeconds / 60);
+                const deltaSecs = deltaSeconds % 60;
+                const deltaMilliseconds = Math.round((Math.abs(delta) - deltaSeconds) * 1000);
+                const deltaFormatted = `${delta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
+                
+                const deltaColor = delta >= 0 ? '#FF6B6B' : '#00FF00'; // Rouge si plus lent, vert si plus rapide
+                ctx.fillStyle = deltaColor;
+                ctx.font = "bold 24px Arial";
+                ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 140);
+            }
+            
+            // Affichage du niveau actuel en dessous
+            ctx.fillStyle = "#FFD700"; // Or
+            ctx.font = "bold 20px Arial";
+            ctx.fillText(`Niveau ${level} / ${soloMaxLevel}`, canvas.width / 2, canvas.height / 2 + 175);
+        }
+    }
     
-    // (Tous les affichages d'info supprimés pour une UI propre)
-    // La logique reste intacte, à restaurer quand on voudra améliorer l'affichage
-
+    ctx.textAlign = "left";
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen) {
         // Overlay semi-transparent

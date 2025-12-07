@@ -568,7 +568,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         }
     }
 
-    // 9. Record
+    // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)
+    // Toute la logique reste intacte pour restauration future
+    /*
     if (soloRunTotalTime > 0 || currentGameMode === 'solo') {
         // En solo: afficher le meilleur temps (personnel ou world record)
         const isSoloMode = currentGameMode === 'solo';

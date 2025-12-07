@@ -110,3 +110,30 @@ socket.on('state', (gameState) => {
         renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest);
     }
 });
+
+// --- BOUCLE DE RENDU CONTINUE (pour l'écran de fin solo et transitions) ---
+function continuousRender() {
+    if (typeof renderGame === "function" && ctx && canvas) {
+        const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
+        const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
+        const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
+        
+        // Calculer le temps total de la session solo
+        let soloRunTotalTime = 0;
+        if (soloSessionStartTime && !isSoloGameFinished) {
+            const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
+            soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
+        } else if (isSoloGameFinished) {
+            soloRunTotalTime = soloTotalTime; // Utiliser le temps sauvegardé
+        }
+        
+        const zoomLevel = typeof calculateZoomForMode === 'function' ? calculateZoomForMode(level) : Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
+        const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
+        
+        renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerId || socket.id, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest);
+    }
+    requestAnimationFrame(continuousRender);
+}
+
+// Démarrer la boucle de rendu continue
+requestAnimationFrame(continuousRender);

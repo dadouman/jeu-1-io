@@ -69,12 +69,22 @@ function generateMaze(width, height) {
 // Fonction pour trouver une case vide (inchangée)
 function getRandomEmptyPosition(map) {
     let x, y;
+    let attempts = 0;
+    const maxAttempts = 100;
+    
     do {
         x = Math.floor(Math.random() * map[0].length);
         y = Math.floor(Math.random() * map.length);
-    } while (map[y] === undefined || map[y][x] === 1);
+        attempts++;
+    } while ((map[y] === undefined || map[y][x] === 1) && attempts < maxAttempts);
     
-    return { x: x * TILE_SIZE, y: y * TILE_SIZE };
+    // Ajouter du padding pour éviter que le joueur se retrouve collé aux murs
+    // Position au centre de la case avec 10px de padding
+    const centerOffset = TILE_SIZE / 2;
+    return { 
+        x: x * TILE_SIZE + centerOffset,  // Centre horizontal de la case
+        y: y * TILE_SIZE + centerOffset   // Centre vertical de la case
+    };
 }
 
 module.exports = { generateMaze, getRandomEmptyPosition, TILE_SIZE };

@@ -26,7 +26,8 @@ const HighScoreModel = mongoose.model('HighScore', HighScoreSchema);
 const SoloRunSchema = new mongoose.Schema({
     playerId: String,
     playerSkin: String,
-    mode: { type: String, default: 'solo' }, // 'solo' ou 'solo-express'
+    mode: { type: String, default: 'solo' }, // Always 'solo' (express variant tracked via isExpress)
+    isExpress: { type: Boolean, default: false }, // true si solo-express, false si solo standard
     totalTime: Number, // Temps total en secondes
     checkpoints: [Number], // Array des temps de chaque niveau
     finalLevel: { type: Number, default: 20 },

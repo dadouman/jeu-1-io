@@ -147,10 +147,11 @@ socket.on('returnToModeSelection', () => {
 
 socket.on('gameModSelected', (data) => {
     currentGameMode = data.mode;
-    soloMaxLevel = data.mode === 'solo-express' ? 10 : 20;
+    isExpressMode = data.isExpress || false;
+    soloMaxLevel = isExpressMode ? 10 : 20;
     const modeName = data.mode === 'classic' ? '40 NIVEAUX 🎯' 
                    : data.mode === 'infinite' ? 'MODE INFINI ∞'
-                   : data.mode === 'solo-express' ? 'SOLO EXPRESS (10 niveaux) ⚡'
+                   : isExpressMode ? 'SOLO EXPRESS (10 niveaux) ⚡'
                    : 'SOLO (20 niveaux) 🎯';
     console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
 });
@@ -176,6 +177,7 @@ socket.on('soloGameFinished', (data) => {
         checkpoints: data.checkpoints,
         playerSkin: playerSkin,
         mode: currentGameMode || 'solo',
+        isExpress: isExpressMode,
         finalLevel: data.finalLevel || soloMaxLevel
     });
     

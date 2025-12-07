@@ -35,10 +35,10 @@ function processSoloGameLoop(soloSessions, io, {
             session.currentLevel++;
             
             // Vérifier si le jeu est terminé (20 niveaux pour solo standard, 10 pour express)
-            const maxLevel = session.mode === 'solo-express' ? 10 : 20;
+            const maxLevel = session.isExpress ? 10 : 20;
             if (session.currentLevel > maxLevel) {
                 session.totalTime = (Date.now() - session.startTime) / 1000;
-                console.log(`🏁 [${session.mode.toUpperCase()}] Joueur ${playerId} a terminé la session! Temps total: ${session.totalTime.toFixed(1)}s`);
+                console.log(`🏁 [SOLO] Joueur ${playerId} a terminé la session! Temps total: ${session.totalTime.toFixed(1)}s`);
                 
                 // Envoyer le résultat au client
                 const socket = io.sockets.sockets.get(playerId);
@@ -47,7 +47,7 @@ function processSoloGameLoop(soloSessions, io, {
                         totalTime: session.totalTime,
                         checkpoints: session.checkpoints,
                         finalLevel: maxLevel,
-                        mode: session.mode
+                        mode: 'solo'
                     });
                 }
                 
@@ -55,7 +55,7 @@ function processSoloGameLoop(soloSessions, io, {
                 delete soloSessions[playerId];
             } else {
                 // Générer le prochain niveau
-                const mazeSize = calculateMazeSize(session.currentLevel, session.mode);
+                const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
                 session.map = generateMaze(mazeSize.width, mazeSize.height);
                 session.coin = getRandomEmptyPosition(session.map);
                 
@@ -78,8 +78,8 @@ function processSoloGameLoop(soloSessions, io, {
                     if (isShopAfterThisLevel) {
                         // Relancer le levelStartTime après la shop duration
                         session.levelStartTime = Date.now() + SHOP_DURATION;
-                        socket.emit('shopOpen', { items: getShopItemsForMode(session.mode), level: completedLevel });
-                        console.log(`🏪 [${session.mode.toUpperCase()}] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
+                        socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
+                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {
                         // Relancer le levelStartTime immédiatement (pas de transition)
                         session.levelStartTime = Date.now();

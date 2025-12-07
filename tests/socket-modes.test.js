@@ -18,7 +18,7 @@ describe('Socket Events - Mode Safety', () => {
             };
             
             // Simulation: vérifier que le code ne crashe pas
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 expect(true).toBe(true); // Skip pour solo
                 return;
             }
@@ -28,17 +28,17 @@ describe('Socket Events - Mode Safety', () => {
             expect(lobby.players).toBeDefined();
         });
 
-        test('proposeRestart en solo devrait retourner sans accéder au lobby', () => {
+        test('proposeRestart en solo devrait retorner sans accéder au lobby', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    mode: 'solo',
+                    isExpress: false,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
             
             // Les votes ne s'appliquent qu'aux modes multijoueur
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 expect(true).toBe(true); // Should return early
                 return;
             }
@@ -47,10 +47,16 @@ describe('Socket Events - Mode Safety', () => {
         });
 
         test('proposeRestart en solo-express devrait retourner sans accéder au lobby', () => {
-            const mode = 'solo-express';
+            const mode = 'solo';
+            const soloSessions = {
+                'test-player': {
+                    isExpress: true,
+                    player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
+                }
+            };
             
             // Les votes ne s'appliquent qu'aux modes multijoueur
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 expect(true).toBe(true); // Should return early
                 return;
             }
@@ -70,7 +76,7 @@ describe('Socket Events - Mode Safety', () => {
                 }
             };
             
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 expect.fail('Solo modes should not reach this code');
                 return;
             }
@@ -83,7 +89,7 @@ describe('Socket Events - Mode Safety', () => {
         test('voteRestart en solo devrait ignorer sans crasher', () => {
             const mode = 'solo';
             
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 // Early return - ne pas crasher
                 expect(true).toBe(true);
                 return;
@@ -102,7 +108,7 @@ describe('Socket Events - Mode Safety', () => {
                 }
             };
             
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 // Récupère depuis soloSessions
                 expect.fail('Should access lobby');
                 return;
@@ -117,12 +123,12 @@ describe('Socket Events - Mode Safety', () => {
             const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    mode: 'solo',
+                    isExpress: false,
                     player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
             
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 const session = soloSessions['test-player'];
                 expect(session).toBeDefined();
                 expect(session.player).toBeDefined();
@@ -132,15 +138,15 @@ describe('Socket Events - Mode Safety', () => {
         });
 
         test('checkpoint en solo-express accède à soloSessions', () => {
-            const mode = 'solo-express';
+            const mode = 'solo';
             const soloSessions = {
                 'test-player': {
-                    mode: 'solo-express',
-                    player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo-express')
+                    isExpress: true,
+                    player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo')
                 }
             };
             
-            if (mode === 'solo' || mode === 'solo-express') {
+            if (mode === 'solo') {
                 const session = soloSessions['test-player'];
                 expect(session).toBeDefined();
                 expect(session.player).toBeDefined();
@@ -238,18 +244,19 @@ describe('Socket Events - Mode Safety', () => {
     });
 
     describe('playerModes tracking', () => {
-        test('playerModes devrait tracker tous les modes', () => {
+        test('playerModes devrait tracker tous les modes (solo est normalisé)', () => {
+            // Note: 'solo-express' est normalisé en 'solo' avec un flag dans soloSessions
             const playerModes = {
                 'player-1': 'classic',
                 'player-2': 'infinite',
                 'player-3': 'solo',
-                'player-4': 'solo-express'
+                'player-4': 'solo' // solo-express est aussi normé en 'solo'
             };
             
             expect(playerModes['player-1']).toBe('classic');
             expect(playerModes['player-2']).toBe('infinite');
             expect(playerModes['player-3']).toBe('solo');
-            expect(playerModes['player-4']).toBe('solo-express');
+            expect(playerModes['player-4']).toBe('solo');
         });
 
         test('Vérifier mode avant d\'accéder à lobbies ou soloSessions', () => {
@@ -263,7 +270,7 @@ describe('Socket Events - Mode Safety', () => {
             
             // Pour player-1 (classic)
             const mode1 = playerModes['player-1'];
-            if (mode1 === 'solo' || mode1 === 'solo-express') {
+            if (mode1 === 'solo') {
                 expect.fail('Should not be solo');
             } else {
                 expect(lobbies[mode1]).toBeDefined();
@@ -271,7 +278,7 @@ describe('Socket Events - Mode Safety', () => {
             
             // Pour player-3 (solo)
             const mode3 = playerModes['player-3'];
-            if (mode3 === 'solo' || mode3 === 'solo-express') {
+            if (mode3 === 'solo') {
                 expect(soloSessions[mode3]).not.toBeDefined(); // L'ID est la clé, pas le mode
                 expect(soloSessions['player-3']).toBeDefined();
             } else {

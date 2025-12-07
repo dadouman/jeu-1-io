@@ -10,18 +10,18 @@ describe('Solo Express Mode - 10 Levels Challenge', () => {
 
     test('Solo express session devrait avoir maxLevel = 10', () => {
         const session = {
-            mode: 'solo-express',
+            isExpress: true, // Flag pour distinguer express de standard
             currentLevel: 1,
             map: generateMaze(15, 15),
             coin: getRandomEmptyPosition(generateMaze(15, 15)),
-            player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo-express'),
+            player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo'),
             startTime: Date.now(),
             levelStartTime: Date.now(),
             checkpoints: [],
             totalTime: 0
         };
 
-        expect(session.mode).toBe('solo-express');
+        expect(session.isExpress).toBe(true);
         expect(session.currentLevel).toBe(1);
         
         // Simulation: atteindre le maximum (10 niveaux)
@@ -30,7 +30,7 @@ describe('Solo Express Mode - 10 Levels Challenge', () => {
     });
 
     test('Solo express débloque une feature aléatoire au départ', () => {
-        const player = initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo-express');
+        const player = initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo');
         
         // Simuler le déblocage de feature
         const unlockedFeature = generateRandomFeatureWeighted();
@@ -111,8 +111,8 @@ describe('Solo Express Mode - 10 Levels Challenge', () => {
         // À la fin du jeu, il ne peut pas y avoir de check shop car c'est gameFinished
     });
 
-    test('Mode solo-express accès au shop avec feature débloquée gratuitement', () => {
-        const player = initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo-express');
+    test('Mode solo-express accés au shop avec feature débloquée gratuitement', () => {
+        const player = initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo');
         
         // Au départ, une feature est débloquée
         const startingFeatures = Object.keys(player.purchasedFeatures).filter(k => player.purchasedFeatures[k] === true);
@@ -131,12 +131,12 @@ describe('Solo Express Mode - 10 Levels Challenge', () => {
 
     test('Solo express vs Solo: differences in level count', () => {
         const soloSession = {
-            mode: 'solo',
+            isExpress: false,
             maxLevel: 20
         };
         
         const soloExpressSession = {
-            mode: 'solo-express',
+            isExpress: true,
             maxLevel: 10
         };
         
@@ -145,7 +145,7 @@ describe('Solo Express Mode - 10 Levels Challenge', () => {
 
     test('Solo express timing should track same as solo (checkpoints array)', () => {
         const session = {
-            mode: 'solo-express',
+            isExpress: true,
             currentLevel: 1,
             checkpoints: [],
             totalTime: 0

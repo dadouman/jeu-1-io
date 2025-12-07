@@ -160,7 +160,7 @@ socket.on('gameFinished', (data) => {
 
 socket.on('soloGameFinished', (data) => {
     console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime.toFixed(2)}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
-    console.log(`%c📊 Checkpoints: ${data.checkpoints.map(t => t.toFixed(1)).join(', ')}`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
+    console.log(`%c📊 Split times: ${data.splitTimes.map(t => t.toFixed(1)).join(', ')}`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
     
     // Stocker les résultats
     soloTotalTime = data.totalTime;

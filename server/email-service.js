@@ -22,14 +22,21 @@ class EmailService {
             // Note: Vous devez configurer une "App Password" dans Gmail
             // ou utiliser un service comme SendGrid, Mailgun, etc.
             
+            const emailUser = process.env.EMAIL_USER || 'sabatini79@gmail.com';
+            const emailPass = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || '').trim();
+            
+            if (!emailPass) {
+                throw new Error('EMAIL_PASSWORD ou EMAIL_APP_PASSWORD manquant!');
+            }
+            
             const emailConfig = {
                 // Option 1: Gmail avec App Password
                 host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-                port: process.env.EMAIL_PORT || 587,
-                secure: process.env.EMAIL_SECURE === 'true' || false,
+                port: parseInt(process.env.EMAIL_PORT || '465'),
+                secure: process.env.EMAIL_SECURE === 'true',
                 auth: {
-                    user: process.env.EMAIL_USER || 'sabatini79@gmail.com',
-                    pass: process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD
+                    user: emailUser,
+                    pass: emailPass
                 }
             };
 

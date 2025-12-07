@@ -24,6 +24,12 @@ class EmailService {
             
             const emailUser = process.env.EMAIL_USER || 'sabatini79@gmail.com';
             const emailPass = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || '').trim();
+            const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
+            const emailPort = parseInt(process.env.EMAIL_PORT || '465');
+            const emailSecure = process.env.EMAIL_SECURE === 'true';
+            
+            // DEBUG: Afficher les variables (sans le password!)
+            console.log(`📧 Email Config: user=${emailUser}, host=${emailHost}, port=${emailPort}, secure=${emailSecure}, hasPassword=${!!emailPass}`);
             
             if (!emailPass) {
                 throw new Error('EMAIL_PASSWORD ou EMAIL_APP_PASSWORD manquant!');
@@ -31,9 +37,9 @@ class EmailService {
             
             const emailConfig = {
                 // Option 1: Gmail avec App Password
-                host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-                port: parseInt(process.env.EMAIL_PORT || '465'),
-                secure: process.env.EMAIL_SECURE === 'true',
+                host: emailHost,
+                port: emailPort,
+                secure: emailSecure,
                 auth: {
                     user: emailUser,
                     pass: emailPass

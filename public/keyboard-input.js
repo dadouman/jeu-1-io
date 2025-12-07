@@ -10,7 +10,7 @@ document.addEventListener('click', (e) => {
             // Réinitialiser l'état solo
             isSoloGameFinished = false;
             soloTotalTime = 0;
-            soloCheckpoints = [];
+            soloSplitTimes = [];
             socket.emit('selectGameMode', { mode: 'solo' });
             window.replayButtonRect = null;
             return;

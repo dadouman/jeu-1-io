@@ -386,9 +386,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         const checkpointStart = 250;
         const checkpointSpacing = 20;
         
-        for (let i = 0; i < soloCheckpoints.length; i++) {
+        for (let i = 0; i < soloSplitTimes.length; i++) {
             const level = i + 1;
-            const time = soloCheckpoints[i];
+            const time = soloSplitTimes[i];
             
             // Récupérer le temps du checkpoint du record personnel pour la comparaison
             let personalBestCheckpoint = null;

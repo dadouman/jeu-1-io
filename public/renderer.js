@@ -227,6 +227,19 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = "#00FF00"; // Vert (temps total en plus)
         ctx.font = "bold 16px Arial";
         ctx.fillText("⏳ Total: " + soloRunTotalTime.toFixed(1) + "s", canvas.width / 2, 65);
+        
+        // Affichage du record personnel/mondial à droite du temps total
+        const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
+        const bestTime = displayPersonal ? soloPersonalBestTime : soloLeaderboardBest;
+        const recordLabel = displayPersonal ? '🎯' : '🌍';
+        const recordColor = displayPersonal ? '#00FF00' : '#FF0000';
+        
+        if (bestTime) {
+            ctx.fillStyle = recordColor;
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "right";
+            ctx.fillText(`${recordLabel} ${bestTime.toFixed(2)}s`, canvas.width - 20, 65);
+        }
     }
     
     ctx.textAlign = "left";

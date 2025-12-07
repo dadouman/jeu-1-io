@@ -80,14 +80,14 @@ describe('Solo Mode - Replay et redémarrage', () => {
         const stateAfter = {
             level: 1,
             totalTime: 0,
-            checkpoints: [],
+            splitTimes: [],
             isFinished: false
         };
         
         expect(stateBefore.level).toBe(20);
         expect(stateAfter.level).toBe(1);
         expect(stateAfter.totalTime).toBe(0);
-        expect(stateAfter.checkpoints.length).toBe(0);
+        expect(stateAfter.splitTimes.length).toBe(0);
         expect(stateAfter.isFinished).toBe(false);
     });
 

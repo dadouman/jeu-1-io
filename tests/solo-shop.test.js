@@ -303,17 +303,17 @@ describe('Solo Mode - Shop & Checkpoint Interaction', () => {
 
     // --- TEST 1 : Checkpoint times not affected by shop ---
     test('Le temps des checkpoints ne doit pas être affecté par le shop', () => {
-        // Simuler les checkpoints
-        soloSession.checkpoints = [2.5, 3.1, 2.8, 2.9, 3.0]; // Niveaux 1-5
+        // Simuler les splitTimes
+        soloSession.splitTimes = [2.5, 3.1, 2.8, 2.9, 3.0]; // Niveaux 1-5
         
-        // Après le shop au niveau 5, les checkpoints suivants continuent
-        soloSession.checkpoints.push(3.2); // Niveau 6
-        soloSession.checkpoints.push(2.7); // Niveau 7
+        // Après le shop au niveau 5, les splitTimes suivants continuent
+        soloSession.splitTimes.push(3.2); // Niveau 6
+        soloSession.splitTimes.push(2.7); // Niveau 7
         
-        // Vérifier que les checkpoints restent valides
-        expect(soloSession.checkpoints.length).toBe(7);
-        expect(soloSession.checkpoints[4]).toBe(3.0); // Dernier avant shop
-        expect(soloSession.checkpoints[5]).toBe(3.2); // Premier après shop
+        // Vérifier que les splitTimes restent valides
+        expect(soloSession.splitTimes.length).toBe(7);
+        expect(soloSession.splitTimes[4]).toBe(3.0); // Dernier avant shop
+        expect(soloSession.splitTimes[5]).toBe(3.2); // Premier après shop
     });
 
     // --- TEST 2 : Shop timing deduction from total time ---

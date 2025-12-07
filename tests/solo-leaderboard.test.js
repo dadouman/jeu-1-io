@@ -22,7 +22,7 @@ describe('Solo Mode - Leaderboard', () => {
             playerId: 'player123',
             playerSkin: '🐸',
             totalTime: 123.45,
-            checkpoints: [2.5, 3.1, 2.8, 3.5, 4.0, 3.2, 3.9, 4.1, 3.8, 3.6, 2.9, 3.3, 2.7, 3.6, 4.2, 3.1, 4.0, 4.3, 3.9, 3.7],
+            splitTimes: [2.5, 3.1, 2.8, 3.5, 4.0, 3.2, 3.9, 4.1, 3.8, 3.6, 2.9, 3.3, 2.7, 3.6, 4.2, 3.1, 4.0, 4.3, 3.9, 3.7],
             finalLevel: 20,
             createdAt: new Date()
         };
@@ -30,7 +30,7 @@ describe('Solo Mode - Leaderboard', () => {
         expect(entry.playerId).toBeDefined();
         expect(entry.playerSkin).toBeDefined();
         expect(entry.totalTime).toBeDefined();
-        expect(entry.checkpoints).toBeDefined();
+        expect(entry.splitTimes).toBeDefined();
         expect(entry.finalLevel).toBe(20);
     });
 

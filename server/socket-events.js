@@ -367,6 +367,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     if (!player.purchasedFeatures.dash) {
                         socket.emit('error', { message: '⚡ Dash non acheté ! Rendez-vous au magasin' });
                     } else {
+                        performDash(player, socket.id, session.map);
                         socket.emit('dashActivated');
                     }
                 }

@@ -127,13 +127,13 @@ describe('Display - Mode Visual Elements', () => {
             player: initializePlayerForMode(getRandomEmptyPosition(generateMaze(15, 15)), 0, 'solo'),
             startTime: Date.now(),
             levelStartTime: Date.now() + 3000,
-            checkpoints: [],
+            splitTimes: [],
             totalTime: 0
         };
         
         expect(soloSession.startTime).toBeDefined();
         expect(soloSession.levelStartTime).toBeDefined();
-        expect(soloSession.checkpoints).toEqual([]);
+        expect(soloSession.splitTimes).toEqual([]);
     });
 
     test('Mode classique ne stocke pas le timing solo', () => {

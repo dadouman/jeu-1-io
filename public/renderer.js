@@ -397,8 +397,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 const personalBestEntry = window.soloLeaderboard.find(entry => 
                     Math.abs(entry.totalTime - soloPersonalBestTime) < 0.1
                 );
-                if (personalBestEntry && personalBestEntry.checkpoints && personalBestEntry.checkpoints[i]) {
-                    personalBestCheckpoint = personalBestEntry.checkpoints[i];
+                if (personalBestEntry && personalBestEntry.splitTimes && personalBestEntry.splitTimes[i]) {
+                    personalBestCheckpoint = personalBestEntry.splitTimes[i];
                 }
             }
             

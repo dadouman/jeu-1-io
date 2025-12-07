@@ -42,13 +42,17 @@ function processSoloGameLoop(soloSessions, io, {
                 
                 // Envoyer le résultat au client
                 const socket = io.sockets.sockets.get(playerId);
+                console.log(`   Socket existe: ${!!socket}, Connected: ${socket ? socket.connected : false}`);
                 if (socket && socket.connected) {
+                    console.log(`   📤 Envoi de soloGameFinished au client ${playerId}`);
                     socket.emit('soloGameFinished', {
                         totalTime: session.totalTime,
                         splitTimes: session.splitTimes,
                         finalLevel: maxLevel,
                         mode: 'solo'
                     });
+                } else {
+                    console.log(`   ❌ Socket non disponible ou déconnectée pour ${playerId}`);
                 }
                 
                 // Supprimer la session solo et continuer à la session suivante

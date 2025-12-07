@@ -23,12 +23,11 @@ function processSoloGameLoop(soloSessions, io, {
         if (dist < 30) {
             // En solo, on track le temps du checkpoint
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
-            session.checkpoints.push(checkpointTime);
+            session.splitTimes.push(checkpointTime);
             
             // Ajouter les gems au joueur en solo
             const gemsEarned = calculateGemsForLevel(session.currentLevel);
             addGems(player, gemsEarned);
-            session.gems.push(gemsEarned);
             
             console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
             
@@ -46,8 +45,7 @@ function processSoloGameLoop(soloSessions, io, {
                 if (socket) {
                     socket.emit('soloGameFinished', {
                         totalTime: session.totalTime,
-                        checkpoints: session.checkpoints,
-                        gems: session.gems,
+                        splitTimes: session.splitTimes,
                         finalLevel: maxLevel,
                         mode: 'solo'
                     });

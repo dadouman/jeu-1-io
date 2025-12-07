@@ -30,13 +30,23 @@ const SoloRunSchema = new mongoose.Schema({
     playerSkin: String,
     mode: { type: String, default: 'solo' },
     totalTime: Number, // Temps total en secondes
-    checkpoints: [Number], // Array des temps de chaque niveau
-    gems: [Number], // Array des gems gagnés à chaque niveau
+    splitTimes: [Number], // Array des temps intermédiaires pour chaque niveau (cumulatifs)
     finalLevel: { type: Number, default: 10 }, // Solo toujours 10 niveaux
-    personalBestTime: { type: Number, default: null }, // Meilleur temps personnel
+    personalBestTime: { type: Number, default: null }, // Meilleur temps personnel (total)
+    bestSplitTimes: [Number], // Meilleur temps pour chaque niveau (pour chaque run)
     createdAt: { type: Date, default: Date.now }
 });
 const SoloRunModel = mongoose.model('SoloRun', SoloRunSchema);
+
+// Modèle SoloBestSplits - Pour tracker les meilleurs splits par niveau globalement
+const SoloBestSplitsSchema = new mongoose.Schema({
+    level: { type: Number, required: true }, // Niveau 1-10
+    bestSplitTime: Number, // Meilleur temps pour atteindre ce niveau (cumulatif)
+    playerSkin: String, // Skin du joueur qui a le meilleur time
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+const SoloBestSplitsModel = mongoose.model('SoloBestSplits', SoloBestSplitsSchema);
 
 // --- INITIALISATION DES LOBBIES ---
 const lobbies = {
@@ -101,6 +111,7 @@ module.exports = {
     mongoURI,
     HighScoreModel,
     SoloRunModel,
+    SoloBestSplitsModel,
     lobbies,
     soloSessions,
     playerModes

@@ -27,6 +27,7 @@ const {
     mongoURI,
     HighScoreModel,
     SoloRunModel,
+    SoloBestSplitsModel,
     lobbies,
     soloSessions,
     playerModes
@@ -59,6 +60,7 @@ lobbies.infinite.coin = getRandomEmptyPosition(lobbies.infinite.map);
 // --- INITIALISATION DES ÉVÉNEMENTS SOCKET ---
 initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
     SoloRunModel,
+    SoloBestSplitsModel,
     mongoURI
 }, {
     startRestartVoteFunc: startRestartVote,

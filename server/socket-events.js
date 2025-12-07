@@ -50,7 +50,8 @@ function performDash(player, playerId, gameMap) {
 
 // --- FONCTION D'INITIALISATION DES ÉVÉNEMENTS ---
 function initializeSocketEvents(io, lobbies, soloSessions, playerModes, { 
-    SoloRunModel, 
+    SoloRunModel,
+    SoloBestSplitsModel,
     mongoURI 
 }, {
     startRestartVoteFunc,
@@ -89,8 +90,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     player: player,
                     startTime: Date.now(),
                     levelStartTime: Date.now(),
-                    checkpoints: [],
-                    gems: [],
+                    splitTimes: [],
                     totalTime: 0
                 };
                 
@@ -129,9 +129,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;
-            const { totalTime, checkpoints, gems, playerSkin, mode, finalLevel } = data;
+            const { totalTime, splitTimes, playerSkin, mode, finalLevel } = data;
             
-            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux) | Gems: ${gems ? gems.join(', ') : 'N/A'}`);
+            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux) | Splits: ${splitTimes ? splitTimes.map(t => t.toFixed(1)).join(', ') : 'N/A'}`);
             
             if (mongoURI) {
                 try {
@@ -151,8 +151,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                         playerSkin,
                         mode: 'solo',
                         totalTime,
-                        checkpoints,
-                        gems: gems || [],
+                        splitTimes: splitTimes || [],
                         finalLevel,
                         personalBestTime
                     });
@@ -160,11 +159,56 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     await soloRun.save();
                     console.log(`✅ [SOLO] Résultat sauvegardé - Meilleur temps: ${personalBestTime.toFixed(2)}s`);
                     
+                    // Mettre à jour les meilleurs splits pour chaque niveau
+                    if (splitTimes && splitTimes.length > 0) {
+                        for (let i = 0; i < splitTimes.length; i++) {
+                            const level = i + 1;
+                            const splitTime = splitTimes[i];
+                            
+                            // Chercher le meilleur split pour ce niveau
+                            const existingSplit = await SoloBestSplitsModel.findOne({ level });
+                            
+                            if (!existingSplit || splitTime < existingSplit.bestSplitTime) {
+                                await SoloBestSplitsModel.updateOne(
+                                    { level },
+                                    { bestSplitTime: splitTime, playerSkin, updatedAt: new Date() },
+                                    { upsert: true }
+                                );
+                            }
+                        }
+                    }
+                    
                     // Envoyer le meilleur temps personnel au client
                     socket.emit('personalBestTimeUpdated', { personalBestTime });
                 } catch (err) {
                     console.error(`❌ Erreur lors de la sauvegarde du résultat solo:`, err);
                 }
+            }
+        });
+
+        // --- OBTENIR LES MEILLEURS SPLITS PAR NIVEAU ---
+        socket.on('getSoloBestSplits', async () => {
+            console.log(`📊 Demande des meilleurs splits solo`);
+            
+            if (mongoURI && SoloBestSplitsModel) {
+                try {
+                    const bestSplits = await SoloBestSplitsModel
+                        .find({})
+                        .sort({ level: 1 })
+                        .exec();
+                    
+                    const splitsMap = {};
+                    bestSplits.forEach(split => {
+                        splitsMap[split.level] = split.bestSplitTime;
+                    });
+                    
+                    socket.emit('soloBestSplits', { splits: splitsMap });
+                } catch (err) {
+                    console.error(`❌ Erreur lors de la récupération des meilleurs splits:`, err);
+                    socket.emit('soloBestSplits', { splits: {} });
+                }
+            } else {
+                socket.emit('soloBestSplits', { splits: {} });
             }
         });
 

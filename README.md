@@ -19,6 +19,10 @@ Toute la documentation est dans le dossier **`docs/`** :
 - **[EXEMPLES_CONFIG.md](docs/EXEMPLES_CONFIG.md)** - 5 exemples concrets de nouveaux modes
 - **[MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md)** - Plan d'intégration progressive
 
+### 🐛 Système de Report de Bugs
+- **[BUG_REPORTING_QUICK_START.md](docs/BUG_REPORTING_QUICK_START.md)** - Configuration rapide (10 min)
+- **[BUG_REPORTING.md](docs/BUG_REPORTING.md)** - Documentation complète
+
 ### 📋 Autres
 - **[CODE_QUALITY_REPORT.md](docs/CODE_QUALITY_REPORT.md)** - Rapport de qualité
 

@@ -24,6 +24,13 @@
 |----------|-------|---------|
 | **[MIGRATION_PLAN.md](MIGRATION_PLAN.md)** | 20 min | Plan détaillé pour migrer progressivement |
 
+## 🐛 Report de Bugs
+
+| Document | Temps | Contenu |
+|----------|-------|---------|
+| **[BUG_REPORTING_QUICK_START.md](BUG_REPORTING_QUICK_START.md)** | 10 min | Guide rapide pour configurer et utiliser |
+| **[BUG_REPORTING.md](BUG_REPORTING.md)** | 20 min | Documentation complète du système |
+
 ## 📝 Code
 
 | Fichier | Ligne | Contenu |

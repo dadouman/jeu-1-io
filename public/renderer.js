@@ -207,7 +207,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         
-        // Affichage du Temps Total (au milieu, sous le cercle de brouillard)
+        // Affichage du Temps Total (au milieu, EN DESSOUS du cercle de brouillard)
         if (soloRunTotalTime > 0) {
             // Format: MM:SS.mmm
             const totalSeconds = Math.floor(soloRunTotalTime);
@@ -216,10 +216,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             const milliseconds = Math.round((soloRunTotalTime - totalSeconds) * 1000);
             const timeFormatted = `${totalMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
             
-            // Afficher le temps total
+            // Afficher le temps total EN DESSOUS du cercle
             ctx.fillStyle = "#00FF00"; // Vert
             ctx.font = "bold 32px Arial";
-            ctx.fillText(timeFormatted, canvas.width / 2, canvas.height / 2 + 100);
+            ctx.fillText(timeFormatted, canvas.width / 2, canvas.height / 2 + 220);
             
             // Affichage du delta avec le world record
             const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
@@ -236,17 +236,27 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 const deltaColor = delta >= 0 ? '#FF6B6B' : '#00FF00'; // Rouge si plus lent, vert si plus rapide
                 ctx.fillStyle = deltaColor;
                 ctx.font = "bold 24px Arial";
-                ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 140);
+                ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
             }
             
             // Affichage du niveau actuel en dessous
             ctx.fillStyle = "#FFD700"; // Or
             ctx.font = "bold 20px Arial";
-            ctx.fillText(`Niveau ${level} / ${soloMaxLevel}`, canvas.width / 2, canvas.height / 2 + 175);
+            ctx.fillText(`Niveau ${level} / ${soloMaxLevel}`, canvas.width / 2, canvas.height / 2 + 295);
         }
     }
     
     ctx.textAlign = "left";
+    
+    // Redessiner le joueur EN DEHORS du brouillard pour qu'il soit opaque
+    if (currentGameMode === 'solo' && myPlayer) {
+        ctx.font = "30px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        // Position du joueur au centre de l'écran
+        ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+    }
+    
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen) {
         // Overlay semi-transparent

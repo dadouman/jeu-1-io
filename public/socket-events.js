@@ -146,7 +146,13 @@ socket.on('returnToModeSelection', () => {
 });
 
 socket.on('gameModSelected', (data) => {
-    console.log(`%c🎮 Mode de jeu confirmé: ${data.mode === 'classic' ? '40 NIVEAUX 🎯' : 'MODE INFINI ∞'}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    currentGameMode = data.mode;
+    soloMaxLevel = data.mode === 'solo-express' ? 10 : 20;
+    const modeName = data.mode === 'classic' ? '40 NIVEAUX 🎯' 
+                   : data.mode === 'infinite' ? 'MODE INFINI ∞'
+                   : data.mode === 'solo-express' ? 'SOLO EXPRESS (10 niveaux) ⚡'
+                   : 'SOLO (20 niveaux) 🎯';
+    console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
 });
 
 socket.on('gameFinished', (data) => {
@@ -168,7 +174,9 @@ socket.on('soloGameFinished', (data) => {
     socket.emit('saveSoloResults', {
         totalTime: data.totalTime,
         checkpoints: data.checkpoints,
-        playerSkin: playerSkin
+        playerSkin: playerSkin,
+        mode: currentGameMode || 'solo',
+        finalLevel: data.finalLevel || soloMaxLevel
     });
     
     // Demander le leaderboard

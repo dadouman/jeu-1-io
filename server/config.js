@@ -26,9 +26,11 @@ const HighScoreModel = mongoose.model('HighScore', HighScoreSchema);
 const SoloRunSchema = new mongoose.Schema({
     playerId: String,
     playerSkin: String,
+    mode: { type: String, default: 'solo' }, // 'solo' ou 'solo-express'
     totalTime: Number, // Temps total en secondes
     checkpoints: [Number], // Array des temps de chaque niveau
     finalLevel: { type: Number, default: 20 },
+    personalBestTime: { type: Number, default: null }, // Meilleur temps personnel
     createdAt: { type: Date, default: Date.now }
 });
 const SoloRunModel = mongoose.model('SoloRun', SoloRunSchema);

@@ -156,10 +156,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textBaseline = "middle";
         ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
         
-        // Dessin du Score (petit au dessus)
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
+        // Dessin du Score (petit au dessus) - UNIQUEMENT en classique/infini, PAS en solo
+        if (soloRunTotalTime === 0) {
+            ctx.fillStyle = "white";
+            ctx.font = "12px Arial";
+            ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
+        }
     }
 
     ctx.restore(); // Fin Caméra
@@ -432,8 +434,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // --- ÉCRAN DE TRANSITION ---
-
-    if (isInTransition && transitionProgress < 1.0) {
+    // EN SOLO: ON CACHE LES TRANSITIONS, ON ENCHAINE DIRECTEMENT
+    if (isInTransition && transitionProgress < 1.0 && soloRunTotalTime === 0) {
         // Fond semi-transparent noir
         ctx.fillStyle = `rgba(0, 0, 0, ${0.7 + transitionProgress * 0.3})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);

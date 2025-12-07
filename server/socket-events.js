@@ -3,6 +3,7 @@
 const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
 const { checkWallCollision } = require('../utils/collisions');
 const { initializePlayerForMode } = require('../utils/player');
+const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
 const { purchaseItem } = require('../utils/shop');
 const { emitToLobby } = require('./utils');
 const { 
@@ -66,23 +67,32 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // --- SÉLECTION DU MODE DE JEU ---
         socket.on('selectGameMode', (data) => {
-            const mode = data.mode;
+            const mode = data.mode; // 'classic', 'infinite', 'solo', ou 'solo-express'
             
             playerModes[socket.id] = mode;
             
-            if (mode === 'solo') {
-                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO`);
+            if (mode === 'solo' || mode === 'solo-express') {
+                const displayMode = mode === 'solo' ? 'SOLO (20 niveaux)' : 'SOLO EXPRESS (10 niveaux)';
+                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${displayMode}`);
                 
                 const startPos = getRandomEmptyPosition(generateMaze(15, 15));
-                const player = initializePlayerForMode(startPos, 0, 'solo');
+                const player = initializePlayerForMode(startPos, 0, mode);
+                
+                // En solo-express, débloquer aléatoirement une feature au départ
+                if (mode === 'solo-express') {
+                    const unlockedFeature = generateRandomFeatureWeighted();
+                    player.purchasedFeatures[unlockedFeature] = true;
+                    console.log(`   ⚡ Feature débloquée gratuitement: ${unlockedFeature}`);
+                }
                 
                 soloSessions[socket.id] = {
+                    mode: mode, // Important: stocker le mode pour les calculs de maxLevel
                     currentLevel: 1,
                     map: generateMaze(15, 15),
                     coin: getRandomEmptyPosition(generateMaze(15, 15)),
                     player: player,
                     startTime: Date.now(),
-                    levelStartTime: Date.now() + 3000,
+                    levelStartTime: Date.now(),
                     checkpoints: [],
                     totalTime: 0
                 };
@@ -90,9 +100,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 const session = soloSessions[socket.id];
                 socket.emit('mapData', session.map);
                 socket.emit('levelUpdate', session.currentLevel);
-                socket.emit('gameModSelected', { mode: 'solo' });
+                socket.emit('gameModSelected', { mode: mode });
                 
-                console.log(`   Session solo créée pour joueur ${socket.id}`);
+                console.log(`   Session ${mode} créée pour joueur ${socket.id}`);
             } else {
                 if (!lobbies[mode]) {
                     socket.emit('error', { message: 'Mode invalide' });
@@ -122,22 +132,39 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;
-            const { totalTime, checkpoints, playerSkin } = data;
+            const { totalTime, checkpoints, playerSkin, mode, finalLevel } = data;
             
-            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s`);
+            const displayMode = mode === 'solo-express' ? 'SOLO EXPRESS' : 'SOLO';
+            console.log(`💾 [${displayMode}] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux)`);
             
             if (mongoURI) {
                 try {
+                    // Chercher le meilleur temps personnel existant
+                    const previousBestRuns = await SoloRunModel
+                        .find({ playerId, mode })
+                        .sort({ totalTime: 1 })
+                        .limit(1)
+                        .exec();
+                    
+                    const personalBestTime = previousBestRuns.length > 0 
+                        ? Math.min(previousBestRuns[0].totalTime, totalTime)
+                        : totalTime;
+                    
                     const soloRun = new SoloRunModel({
                         playerId,
                         playerSkin,
+                        mode,
                         totalTime,
                         checkpoints,
-                        finalLevel: 20
+                        finalLevel,
+                        personalBestTime
                     });
                     
                     await soloRun.save();
-                    console.log(`✅ Résultat solo sauvegardé en base de données`);
+                    console.log(`✅ [${displayMode}] Résultat sauvegardé - Meilleur temps: ${personalBestTime.toFixed(2)}s`);
+                    
+                    // Envoyer le meilleur temps personnel au client
+                    socket.emit('personalBestTimeUpdated', { personalBestTime });
                 } catch (err) {
                     console.error(`❌ Erreur lors de la sauvegarde du résultat solo:`, err);
                 }

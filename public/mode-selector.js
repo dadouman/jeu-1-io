@@ -4,15 +4,16 @@ let selectedMode = null;
 
 /**
  * Sélectionne un mode de jeu
- * @param {string} mode - 'classic', 'infinite', ou 'solo'
+ * @param {string} mode - 'classic', 'infinite', 'solo', ou 'solo-express'
  */
 function selectMode(mode) {
-    if (mode === 'classic' || mode === 'infinite' || mode === 'solo') {
+    if (mode === 'classic' || mode === 'infinite' || mode === 'solo' || mode === 'solo-express') {
         selectedMode = mode;
         const modeNames = {
             'classic': '40 Niveaux',
             'infinite': 'Mode Infini',
-            'solo': 'Mode Solo (20 niveaux)'
+            'solo': 'Mode Solo (20 niveaux)',
+            'solo-express': 'Mode Solo Express ⚡ (10 niveaux)'
         };
         console.log(`%c🎮 Mode sélectionné: ${modeNames[mode]}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
@@ -66,16 +67,19 @@ function calculateMazeSize(level, maxLevels = 40) {
         // Mode infini: continue à grandir
         const size = baseSize + (level - 1) * sizeIncrement;
         return { width: size, height: size };
-    } else if (mode === 'solo') {
-        // Mode solo: 20 niveaux (10 expansion, 10 contraction)
-        if (level <= 10) {
-            // Niveaux 1-10: Expansion (15x15 -> 35x35)
+    } else if (mode === 'solo' || mode === 'solo-express') {
+        // Mode solo et solo-express avec même logique (10 ou 20 niveaux)
+        const maxLvl = mode === 'solo' ? 20 : 10;
+        const expandLvl = Math.floor(maxLvl / 2); // 10 pour solo, 5 pour solo-express
+        
+        if (level <= expandLvl) {
+            // Phase d'expansion
             const size = baseSize + (level - 1) * sizeIncrement;
             return { width: size, height: size };
         } else {
-            // Niveaux 11-20: Contraction (35x35 -> 15x15)
-            const contractLevel = level - 10;
-            const size = baseSize + (10 - contractLevel) * sizeIncrement;
+            // Phase de contraction
+            const contractLevel = level - expandLvl;
+            const size = baseSize + (expandLvl - contractLevel) * sizeIncrement;
             return { width: size, height: size };
         }
     }
@@ -105,15 +109,19 @@ function calculateZoomForMode(level) {
     } else if (mode === 'infinite') {
         // Mode infini: zoom progressif normal
         return Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
-    } else if (mode === 'solo') {
-        // Mode solo: similaire au classic mais pour 20 niveaux
-        if (level <= 10) {
+    } else if (mode === 'solo' || mode === 'solo-express') {
+        // Mode solo et solo-express: similaire mais différents paliers
+        const maxLvl = mode === 'solo' ? 20 : 10;
+        const expandLvl = Math.floor(maxLvl / 2);
+        const zoomStep = mode === 'solo' ? 0.03 : 0.04; // Plus rapide en solo-express
+        
+        if (level <= expandLvl) {
             // Expansion: zoom qui diminue
-            return Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.03));
+            return Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * zoomStep));
         } else {
             // Contraction: zoom qui augmente
-            const contractLevel = level - 10;
-            return Math.max(0.7, Math.min(1.0, 1.0 - (10 - contractLevel) * 0.03));
+            const contractLevel = level - expandLvl;
+            return Math.max(0.7, Math.min(1.0, 1.0 - (expandLvl - contractLevel) * zoomStep));
         }
     }
 }

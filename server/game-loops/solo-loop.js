@@ -91,13 +91,13 @@ function processSoloGameLoop(soloSessions, io, {
                         // Sinon le joueur peut collecter le même coin pendant le shop
                         session.coin = getRandomEmptyPosition(session.map);
                         
-                        // Marquer que le shop est actif pour CE niveau
-                        session.currentShopLevel = completedLevel;
+                        // Marquer que le shop est actif pour LE NIVEAU ACTUEL (où le joueur joue maintenant)
+                        session.currentShopLevel = session.currentLevel;
                         
                         // Relancer le levelStartTime après la shop duration
                         session.levelStartTime = Date.now() + SHOP_DURATION;
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
-                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
+                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}, bloquer collisions du niveau ${session.currentLevel}`);
                     } else {
                         // Réinitialiser le shop quand on change de niveau sans shop
                         session.currentShopLevel = null;

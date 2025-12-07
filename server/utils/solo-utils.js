@@ -32,21 +32,6 @@ function generateRandomFeatureWeighted() {
     return items[0].id; // Fallback
 }
 
-/**
- * Calcule la taille du labyrinthe selon le mode et le niveau
- * @param {number} level - Le niveau actuel
- * @param {string} mode - Le mode de jeu (solo, solo-express, etc.)
- * @returns {{width: number, height: number}} - Les dimensions du labyrinthe
- */
-function calculateSoloMazeSize(level, mode) {
-    const baseSize = 15;
-    const increment = 2;
-    const size = baseSize + (level * increment);
-    
-    return { width: size, height: size };
-}
-
 module.exports = {
-    generateRandomFeatureWeighted,
-    calculateSoloMazeSize
+    generateRandomFeatureWeighted
 };

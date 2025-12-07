@@ -26,15 +26,15 @@ function calculateMazeSize(level, mode = 'classic') {
         const size = baseSize + (level - 1) * sizeIncrement;
         return { width: size, height: size };
     } else if (mode === 'solo') {
-        // Mode solo: 20 niveaux (10 expansion, 10 contraction)
-        if (level <= 10) {
-            // Niveaux 1-10: Expansion (15x15 -> 35x35)
+        // Mode solo: 10 niveaux (5 expansion, 5 contraction)
+        if (level <= 5) {
+            // Niveaux 1-5: Expansion (15x15 -> 25x25)
             const size = baseSize + (level - 1) * sizeIncrement;
             return { width: size, height: size };
         } else {
-            // Niveaux 11-20: Contraction (35x35 -> 15x15)
-            const contractLevel = level - 10;
-            const size = baseSize + (10 - contractLevel) * sizeIncrement;
+            // Niveaux 6-10: Contraction (25x25 -> 15x15)
+            const contractLevel = level - 5;
+            const size = baseSize + (5 - contractLevel) * sizeIncrement;
             return { width: size, height: size };
         }
     }

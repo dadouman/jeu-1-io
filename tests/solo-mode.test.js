@@ -20,27 +20,27 @@ describe('Solo Mode - Configuration de base', () => {
         expect(size10).toBe(33);
     });
 
-    test('Calcul de taille de labyrinthe pour mode solo - Niveaux 11-20 (contraction)', () => {
-        // Niveaux 11-20: contraction de 33x33 à 15x15
-        // size = 15 + (10 - (level - 10)) * 2
-        const size11 = 15 + (10 - (11 - 10)) * 2;  // Niveau 11 = 33x33
-        const size15 = 15 + (10 - (15 - 10)) * 2;  // Niveau 15 = 25x25
-        const size20 = 15 + (10 - (20 - 10)) * 2;  // Niveau 20 = 15x15
+    test('Calcul de taille de labyrinthe pour mode solo - Niveaux 6-10 (contraction)', () => {
+        // Niveaux 6-10: contraction de 25x25 à 15x15
+        // size = 15 + (5 - (level - 5)) * 2
+        const size6 = 15 + (5 - (6 - 5)) * 2;   // Niveau 6 = 23x23
+        const size8 = 15 + (5 - (8 - 5)) * 2;   // Niveau 8 = 19x19
+        const size10 = 15 + (5 - (10 - 5)) * 2; // Niveau 10 = 15x15
         
-        expect(size11).toBe(33);
-        expect(size15).toBe(25);
-        expect(size20).toBe(15);
+        expect(size6).toBe(23);
+        expect(size8).toBe(19);
+        expect(size10).toBe(15);
     });
 
     test('Détermination de fin de jeu pour mode solo', () => {
-        // Le jeu finit après le niveau 20
-        const isFinished19 = 19 > 20 ? true : false;
-        const isFinished20 = 20 > 20 ? true : false;
-        const isFinished21 = 21 > 20 ? true : false;
+        // Le jeu finit après le niveau 10 (soloMaxLevel = 10)
+        const isFinished9 = 9 > 10 ? true : false;
+        const isFinished10 = 10 > 10 ? true : false;
+        const isFinished11 = 11 > 10 ? true : false;
         
-        expect(isFinished19).toBe(false);
-        expect(isFinished20).toBe(false);
-        expect(isFinished21).toBe(true);
+        expect(isFinished9).toBe(false);
+        expect(isFinished10).toBe(false);
+        expect(isFinished11).toBe(true);
     });
 
     test('Mode solo doit avoir tous les items d\'équipement débloqués par défaut', () => {

@@ -38,16 +38,14 @@ const bugReportSchema = new mongoose.Schema({
     // Métadonnées
     timestamp: {
         type: Date,
-        default: Date.now,
-        index: true
+        default: Date.now
     },
     
     // Statut du bug
     status: {
         type: String,
         enum: ['new', 'acknowledged', 'investigating', 'fixed', 'wontfix'],
-        default: 'new',
-        index: true
+        default: 'new'
     },
     
     // Notes internes

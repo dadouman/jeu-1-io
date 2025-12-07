@@ -9,8 +9,10 @@ const TRANSITION_DURATION = 3000; // 3 secondes (ms)
 // --- CONNEXION MONGODB ---
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
-    console.warn("⚠️ Pas de MONGO_URI. Le HighScore ne sera pas sauvegardé.");
+    console.warn("⚠️ Pas de MONGO_URI. Le HighScore et les résultats solo ne seront pas sauvegardés.");
+    console.warn("   Pour activer la sauvegarde, définis la variable d'environnement MONGO_URI");
 } else {
+    console.log("📡 Tentative de connexion à MongoDB...");
     mongoose.connect(mongoURI)
         .then(() => console.log('✅ Connecté à MongoDB !'))
         .catch(err => console.error('❌ Erreur Mongo :', err));

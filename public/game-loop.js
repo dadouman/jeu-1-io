@@ -78,7 +78,7 @@ socket.on('state', (gameState) => {
     // --- RENDU ---
     if (typeof renderGame === "function") {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
-        const currentLevelTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
+        const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
         // Calculer le temps total de la session solo (déduire le temps inactif)

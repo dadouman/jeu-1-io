@@ -240,8 +240,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     if (soloRunTotalTime > 0) {
         ctx.textAlign = "right";
         ctx.fillStyle = "#FFD700";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText(`Niveau ${level || 1}/20`, canvas.width - 20, 65);
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(`Niveau ${level || 1}/${soloMaxLevel}`, canvas.width - 20, 65);
         ctx.textAlign = "left";
     }
     
@@ -366,6 +366,13 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.fillStyle = "#FFD700";
             ctx.font = "bold 24px Arial";
             ctx.fillText(`🏆 Classement: #${window.soloPlayerRank}`, canvas.width / 2, 160);
+        }
+        
+        // Meilleur temps personnel
+        if (soloPersonalBestTime) {
+            ctx.fillStyle = "#00FF00";
+            ctx.font = "bold 18px Arial";
+            ctx.fillText(`🎯 Meilleur personnel: ${soloPersonalBestTime.toFixed(2)}s`, canvas.width / 2, 195);
         }
         
         // SECTION GAUCHE - Checkpoints

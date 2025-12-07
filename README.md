@@ -1,246 +1,188 @@
-# 🎮 Rogue-Like .io - Le Jeu Collaboratif du Labyrinthe
+# 🎮 Rogue-Like .io - Architecture & Documentation
 
-Bienvenue dans **Rogue-Like .io**, un jeu multijoueur temps réel où tu explores des labyrinthes procéduraux, collectionne les pièces et affrontes tes amis dans une aventure sans fin !
+## 📖 Documentation
 
-## 🌟 Principe du Jeu
+Toute la documentation est dans le dossier **`docs/`** :
 
-Tu explores un labyrinthe infini qui **grandit à chaque niveau**. Chaque pièce ramassée te propulse dans un nouveau monde plus grand et plus complexe. Les autres joueurs aussi sont dans le même labyrinthe - compétition directe !
+### 🚀 Pour Commencer
+- **[INDEX.md](docs/INDEX.md)** - Point de départ, navigation complète
+- **[README.md](docs/README.md)** - Description du jeu et des contrôles
+- **[README_ARCHITECTURE.md](docs/README_ARCHITECTURE.md)** - Guide d'utilisation rapide
 
-**C'est simple :** 
-- 🎯 Ramasse les pièces 💎
-- 📈 Monte de niveau
-- 👻 Sois plus rapide que tes potes
-- 🏆 Établis le meilleur score
+### 📚 Documentation Principale
+- **[SYNTHESE.md](docs/SYNTHESE.md)** - Résumé complet du projet
+- **[ARCHITECTURE_SUMMARY.md](docs/ARCHITECTURE_SUMMARY.md)** - Diagrammes et comparaisons
+- **[ARCHITECTURE_NEW.md](docs/ARCHITECTURE_NEW.md)** - Explication détaillée
 
-## 🎮 Contrôles
+### 🛠️ Guides Pratiques
+- **[SHOPMANAGER.md](docs/SHOPMANAGER.md)** - Gérer le shop de façon centralisée
+- **[EXEMPLES_CONFIG.md](docs/EXEMPLES_CONFIG.md)** - 5 exemples concrets de nouveaux modes
+- **[MIGRATION_PLAN.md](docs/MIGRATION_PLAN.md)** - Plan d'intégration progressive
 
-| Touche | Action |
-|--------|--------|
-| **↑ ↓ ← →** | Se déplacer (mouvement diagonal supporté) |
-| **ESPACE** | Créer/Déplacer un checkpoint 🚩 |
-| **R** | Téléporter au checkpoint |
-| **SHIFT** | Dash (propulsion rapide) |
-| **1-4** | Acheter des items au shop |
-| **P** | Proposer un vote pour redémarrer |
-| **O** | Voter OUI au redémarrage |
-| **N** | Voter NON au redémarrage |
+### 📋 Autres
+- **[CODE_QUALITY_REPORT.md](docs/CODE_QUALITY_REPORT.md)** - Rapport de qualité
 
-## ✨ Fonctionnalités
-
-### 🗺️ Labyrinthes Procéduraux
-- Chaque niveau génère un nouveau labyrinthe unique
-- La taille augmente progressivement (15x15 → 27x27 → ...)
-- Pas deux parties identiques !
-
-### 👥 Multijoueur Temps Réel
-- Joue avec tes amis **en même temps**
-- Vois les autres joueurs et leur skin unique
-- Compétition directe pour les pièces
-- WebSocket pour une synchronisation instantanée
-
-### 🚩 Système de Checkpoint (Achetable)
-- Crée un point de sauvegarde avec **ESPACE**
-- Déplace-le à volonté en rappuyant sur **ESPACE**
-- Téléporte-toi au checkpoint avec **R**
-- **Doit être acheté au shop** pour fonctionner
-
-### 🔥 Dash Achetable
-- Propulsion rapide avec **SHIFT**
-- Permet de traverser des zones rapidement
-- **Doit être acheté au shop** pour fonctionner
-
-### 🪢 Traces de Mouvement (Rope - Achetable)
-- Chaque joueur laisse une **trace colorée** quand activée
-- 10 couleurs différentes pour distinguer les joueurs
-- Visible par tous pour suivre la stratégie
-- **Doit être acheté au shop** pour être affiché
-- Disparaît au changement de niveau
-
-### 💎 Système de Gems et Shop
-- Collectionne des **Gems** en ramassant des pièces
-- **Shop automatique** qui s'ouvre après chaque niveau
-- **15 secondes** pour faire tes achats
-- Items disponibles :
-  - **Checkpoint** : Déverrouille la mécanique de checkpoint
-  - **Dash** : Déverrouille le dash
-  - **Rope** : Active l'affichage des traces
-  - **Speed Boost** : Augmente la vitesse de mouvement
-- Les features restent actives pour les niveaux suivants
-
-### 🏆 Système de Score
-- Ramasse les pièces pour augmenter ton score
-- Le **record global** est affiché et sauvegardé
-- Vois ton niveau actuel et celui des autres
-- Podium après chaque niveau avec les 3 meilleurs
-
-### 🎭 Skins Aléatoires
-- 12 emojis différents pour personnaliser ton joueur
-- Chaque connexion te donne un skin aléatoire
-- Sois 👻, 🤖, 🦄, 🐷 ou même 💩 !
-
-### ⏱️ Timing et Transitions
-- **Affichage du temps** du niveau en haut de l'écran
-- **Transition spéciale** au niveau 1 montrant les joueurs connectés
-- Zoom progressif de la caméra (+2% par niveau)
-- Écran de transition après chaque niveau avec podium
-
-### 🗳️ Système de Vote pour Redémarrer
-- N'importe quel joueur peut proposer un redémarrage avec **P**
-- Autres joueurs votent avec **O** (OUI) ou **N** (NON)
-- **60 secondes maximum** pour voter
-- Vote validé **immédiatement** dès qu'une majorité est atteinte
-- Affichage du vote en bas de l'écran avec compte-à-rebours
-- Écran de résultat après le vote (✅ ou ❌)
-- En cas de succès : transition de début de partie
-
-### 🎨 Interface Améliorée
-- **Brouillard de guerre** circulaire : tu ne vois que ta zone
-- Vue centrée sur ton personnage avec **zoom progressif**
-- **Score et niveau** en temps réel
-- **Affichage du meilleur score** de tous les temps
-- **Contrôles affichés** en bas (adjectent aux features achetées)
-
-## 🏗️ Architecture
+## 🗂️ Structure du Projet
 
 ```
-├── server.js              # Serveur principal (Socket.io, logique de jeu)
-├── public/
-│   ├── index.html         # Page d'accueil
-│   ├── client.js          # Point d'entrée principal
-│   ├── game-state.js      # Variables d'état du jeu (centralisées)
-│   ├── socket-events.js   # Tous les événements Socket.io
-│   ├── keyboard-input.js  # Gestion des entrées clavier
-│   ├── game-loop.js       # Boucle de rendu principale
-│   ├── renderer.js        # Affichage du jeu (Canvas)
-│   └── mobile-controls.js # Contrôles tactiles
-├── utils/
-│   ├── map.js             # Génération de labyrinthes
-│   ├── collisions.js      # Détection des collisions
-│   ├── gems.js            # Système de gems
-│   ├── shop.js            # Logique du shop
-│   └── player.js          # Initialisation des joueurs
-└── tests/                 # Tests Jest (14 suites, 105+ tests)
+Mon jeu .io/
+├── docs/                    📚 Documentation complète
+├── scripts/                 🔧 Scripts utilitaires
+├── config/                  ⚙️ Configuration des modes
+├── utils/                   🛠️ Utilitaires partagés
+├── server/                  🖥️ Code serveur
+├── Public/                  🌐 Code client
+├── tests/                   🧪 Tests (349 tests)
+├── server.js               🚀 Point d'entrée serveur
+└── package.json            📦 Dépendances
 ```
 
-## 🛠️ Stack Technique
+## 🎯 Concepts Clés
 
-- **Backend** : Node.js + Express + Socket.io
-- **Database** : MongoDB (pour les high scores)
-- **Frontend** : HTML5 Canvas + Vanilla JavaScript (modulaire)
-- **Tests** : Jest
-- **Déploiement** : Render.com + GitHub Actions
+### Nouvelle Architecture (Flexible)
 
-## 📊 Gameplay Stats
+**Avant:** Code dupliqué pour chaque mode (buggy, inflexible)
 
-- **Vitesse de mouvement** : 3px par frame (normalisée pour diagonales)
-- **Speed Boost** : +1px par frame quand acheté
-- **Historique de trace** : 200 dernières positions
-- **Taille initiale** : 15x15 cases
-- **Croissance** : +2 cases par niveau
-- **Transparence des traces** : 50%
-- **Rayon du brouillard** : 180px
-- **Durée du shop** : 15 secondes
-- **Durée du vote** : 60 secondes max
-- **Durée de transition** : 3 secondes
+**Après:** Configuration centralisée + classes partagées
 
-## 🚀 Démarrage Rapide
+#### Classes Principales
+- **`GameMode`** - Lit la configuration et fournit des méthodes
+- **`GameSessionManager`** - Gère les sessions pour tous les modes
+- **`PlayerActions`** - Actions partagées pour tous les modes
+- **`ShopManager`** - Gestion du shop de façon centralisée
+- **`UnifiedGameLoop`** - Boucle de jeu unique pour tous les modes
 
-### Prérequis
-- Node.js 14+
-- npm
+#### Configuration
+- **`config/gameModes.js`** - Définit tous les modes (classic, infinite, solo, etc)
+- Changer un niveau? 1 ligne. Ajouter un mode? 30 lignes.
 
-### Installation
+### Modes Disponibles
+
+| Mode | Joueurs | Niveaux | Shop | Description |
+|------|---------|---------|------|-------------|
+| **classic** | 1-8 | ∞ | Niveaux [5,10,15,20,25,30] | Multijoueur classique |
+| **infinite** | 1-4 | ∞ | Niveaux [3,6,9,12,15] | Mode infini plus agressif |
+| **solo** | 1 | 10 | Niveaux [5,10] | Speedrun solo personnel |
+| **solo20** | 1 | 20 | Niveaux [5,10,15,20] | Solo avec 20 niveaux |
+| **soloHardcore** | 1 | 15 | Désactivé | Solo hardcore, pas de shop |
+
+Voir **[EXEMPLES_CONFIG.md](docs/EXEMPLES_CONFIG.md)** pour créer vos propres modes!
+
+## ✅ Tests
+
+Tous les tests passent:
+
 ```bash
-git clone https://github.com/dadouman/jeu-1-io.git
-cd jeu-1-io
+npm test
+# 349 tests passent ✅
+```
+
+### Coberture
+- Rendering (gems, joueurs, UI)
+- Collision (murs, pièces, checkpoints)
+- Movement (déplacement, dash, rope)
+- Shop (achat, progression, timing)
+- Modes (solo, classic, infinite)
+- Scoring et timing
+- Architecture et refactorisation
+
+## 🚀 Démarrer Localement
+
+```bash
+# Installer les dépendances
 npm install
-```
 
-### Lancer le serveur
-```bash
+# Lancer le serveur
 npm start
+# ou: node server.js
+
+# Ouvrir dans le navigateur
+# http://localhost:3000
 ```
 
-Puis ouvre : **http://localhost:3000**
+## 🔧 Scripts Utilitaires
 
-### Lancer les tests
-```bash
-npm test
+Voir le dossier **`scripts/`** :
+
+- **`resetScore.js`** - Réinitialiser les scores (développement)
+
+## 📝 Commits Récents
+
+Dernière refactorisation majeure:
+- ✅ Architecture centralisée implémentée
+- ✅ ShopManager créé pour gérer le shop
+- ✅ 16 nouveaux tests pour ShopManager
+- ✅ 349/349 tests passant
+- ✅ Documentation complète créée
+
+## 🎓 Pour Les Développeurs
+
+### Ajouter un Nouveau Mode
+
+1. Aller dans `config/gameModes.js`
+2. Ajouter une nouvelle clé avec configuration
+3. C'est tout! Le mode est disponible
+
+```javascript
+// config/gameModes.js
+soloMassacre: {
+    name: 'Solo Massacre',
+    maxPlayers: 1,
+    maxLevels: 30,
+    shop: { enabled: true, levels: [5,10,15,20,25,30] },
+    shopItems: [...],
+    // ... autres paramètres
+}
 ```
 
-14 suites de tests avec 105+ cas testés ✅
+### Modifier le Comportement du Shop
 
-### Déploiement sur Render
-Le jeu est configuré pour se déployer automatiquement sur Render.com via GitHub Actions.
+1. Aller dans `utils/ShopManager.js`
+2. C'est l'unique endroit où le shop est géré
+3. Tous les modes utiliseront automatiquement la modification
 
-## 🎯 Stratégies
-
-- **Speed Runner** : Raconte aux murs et trouve le chemin le plus court
-- **Checkpoint Master** : Utilise les checkpoints achetés pour te créer des raccourcis
-- **Tracker** : Suis les traces des autres joueurs pour anticiper leurs mouvements
-- **Scout** : Explore à la recherche de la pièce avant les autres
-- **Economiste** : Accumule des gems pour maximiser tes achats
-
-## 📝 Changelog Récent
-
-### v2.0 (Dernière mise à jour)
-- 🗳️ Système de vote pour redémarrer (P/O/N)
-- ⏱️ Affichage du timer du niveau en haut
-- 🎪 Transition spéciale pour le niveau 1 avec compteur de joueurs
-- 🎨 Affichage du vote en bas avec temps restant et résultats
-- ♻️ **Refactorisation complète du client** :
-  - Division en modules (game-state, socket-events, keyboard-input, game-loop)
-  - Code plus lisible et maintenable
-  - Réduction de la complexité
-- 💎 Système de gems et shop amélioré
-- 🏆 Podium avec médailles au changement de niveau
-- ⚡ Mouvement diagonal optimisé
-- 🔧 Timing du niveau corrigé (n'inclut pas la transition)
-
-### v1.5
-- 🎪 Zoom progressif et transitions visuelles
-- 🏪 Shop système avec timers
-- 💎 Économie de gems
-
-### v1.3
-- ✨ Traces colorées de mouvement
-
-### v1.2
-- 🚩 Système de checkpoint avec téléportation
-
-### v1.1
-- 👥 Multijoueur temps réel
-- 🗺️ Labyrinthes procéduraux
-
-### v1.0
-- 🎮 Prototype initial
-
-## 🧪 Tests
-
-Le projet inclut une suite complète de tests Jest :
-- ✅ 14 suites de tests
-- ✅ 105+ cas testés
-- ✅ Coverage complet du système de jeu
-
-### Exécuter les tests
-```bash
-npm test
+```javascript
+// Exemple: Réduire la durée du shop
+getShopDuration() {
+    return this.config.shop.duration / 2;  // Moitié moins long
+}
 ```
 
-## 🐛 Bugs Connus
+### Modifier les Règles de Progression
 
-Aucun pour l'instant ! 🎉
+1. Aller dans `config/gameModes.js`
+2. Modifier la config du mode
+3. Les classes le liront automatiquement
 
-## 🤝 Contribuer
+```javascript
+// Exemple: Solo avec 50 niveaux
+solo: {
+    ...
+    maxLevels: 50,  // 50 niveaux au lieu de 10
+    shop: { levels: [5,10,15,20,25,30,35,40,45,50] }
+}
+```
 
-Tu as une idée cool ? Forks et PR bienvenues !
+## 🤝 Contribution
 
-## 📄 Licence
+Le code est organisé pour être facile à modifier:
 
-MIT - Libre d'utilisation !
+- **Pas de duplication** - Une logique = Un endroit
+- **Configuration centralisée** - Changer les règles = 1 ligne
+- **Tests automatisés** - 349 tests valident tout
+- **Documentation claire** - Voir `docs/` pour tous les détails
+
+## 📞 Support
+
+Pour les questions sur l'architecture:
+- Voir **[INDEX.md](docs/INDEX.md)** pour la navigation
+- Voir **[SHOPMANAGER.md](docs/SHOPMANAGER.md)** pour le shop
+- Voir **[EXEMPLES_CONFIG.md](docs/EXEMPLES_CONFIG.md)** pour créer des modes
 
 ---
 
-**Prêt à explorer ? Appelle tes potes et c'est parti ! 🚀**
+**Dernière mise à jour:** Décembre 2025
 
-> Made with 💜 pour les fans de roguelikes et de jeux multijoueur
+**Statut:** ✅ Stable - 349/349 tests passant
+
+**Architecture:** 🏗️ Centralisée et Flexible

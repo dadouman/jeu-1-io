@@ -3,7 +3,8 @@
 
 const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
-const { isShopLevel } = require('../../utils/shop');
+const GameMode = require('../../utils/GameMode');
+const { ShopManager } = require('../../utils/ShopManager');
 
 function processSoloGameLoop(soloSessions, io, { 
     calculateMazeSize, 
@@ -14,17 +15,28 @@ function processSoloGameLoop(soloSessions, io, {
     TRANSITION_DURATION, 
     SHOP_DURATION 
 }) {
+    // Initialiser les ShopManagers au première fois (cache)
+    if (!processSoloGameLoop.shopManagers) {
+        processSoloGameLoop.shopManagers = {};
+    }
+
     for (const playerId in soloSessions) {
         const session = soloSessions[playerId];
         const player = session.player;
         const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
         
-        // Vérifier si le shop est actuellement actif pour ce niveau spécifique
-        const isShopActive = session.currentShopLevel ? session.currentLevel === session.currentShopLevel : false;
-        
+        // Créer un ShopManager pour cette session s'il n'existe pas
+        if (!processSoloGameLoop.shopManagers[playerId]) {
+            const gameMode = new GameMode('solo');
+            processSoloGameLoop.shopManagers[playerId] = new ShopManager(gameMode);
+        }
+        const shopManager = processSoloGameLoop.shopManagers[playerId];
+
         // --- COLLISION AVEC LA PIÈCE ---
-        // NE PAS accepter les collisions si le shop est actif pour CE niveau
-        if (dist < 30 && !isShopActive) {
+        // Vérifier si les collisions sont bloquées par le shop
+        const isCollisionBlocked = shopManager.shouldBlockCollisions();
+        
+        if (dist < 30 && !isCollisionBlocked) {
             // En solo, on track le temps du checkpoint
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
             session.splitTimes.push(checkpointTime);
@@ -59,9 +71,11 @@ function processSoloGameLoop(soloSessions, io, {
                     console.log(`   ❌ Socket non disponible ou déconnectée pour ${playerId}`);
                 }
                 
-                // Supprimer la session solo et continuer à la session suivante
+                // Nettoyer les ressources
+                shopManager.reset();
+                delete processSoloGameLoop.shopManagers[playerId];
                 delete soloSessions[playerId];
-                continue;  // ← IMPORTANT: ne pas accéder à session après suppression
+                continue;
             } else {
                 // Générer le prochain niveau
                 const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
@@ -75,34 +89,22 @@ function processSoloGameLoop(soloSessions, io, {
                 player.checkpoint = null;  // Réinitialiser checkpoint
                 player.trail = [];          // Réinitialiser rope
                 
-                // Vérifier si un shop s'ouvre après ce niveau
-                const completedLevel = session.currentLevel - 1;
-                const isShopAfterThisLevel = isShopLevel(completedLevel) && completedLevel < maxLevel;
-                
                 // Envoyer les nouvelles données (mapData ET levelUpdate)
-                // IMPORTANT: On n'envoie PAS de transition, on enchaine directement
                 const socket = io.sockets.sockets.get(playerId);
                 if (socket && socket.connected) {
                     socket.emit('mapData', session.map);
                     socket.emit('levelUpdate', session.currentLevel);
                     
-                    if (isShopAfterThisLevel) {
-                        // ✅ CRÉER UN NOUVEAU COIN MÊME POUR LE SHOP
-                        // Sinon le joueur peut collecter le même coin pendant le shop
+                    // Vérifier si un shop s'ouvre après ce niveau complété
+                    const completedLevel = session.currentLevel - 1;
+                    if (shopManager.openShop(completedLevel)) {
+                        // ✅ ShopManager gère tout - pas besoin de gérer currentShopLevel
                         session.coin = getRandomEmptyPosition(session.map);
-                        
-                        // Marquer que le shop est actif pour LE NIVEAU ACTUEL (où le joueur joue maintenant)
-                        session.currentShopLevel = session.currentLevel;
-                        
-                        // Relancer le levelStartTime après la shop duration
                         session.levelStartTime = Date.now() + SHOP_DURATION;
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
-                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}, bloquer collisions du niveau ${session.currentLevel}`);
+                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {
-                        // Réinitialiser le shop quand on change de niveau sans shop
-                        session.currentShopLevel = null;
-                        
-                        // Relancer le levelStartTime immédiatement (pas de transition)
+                        // Pas de shop, relancer le niveau immédiatement
                         session.levelStartTime = Date.now();
                     }
                 }

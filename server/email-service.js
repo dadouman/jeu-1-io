@@ -58,9 +58,12 @@ class EmailService {
             
             // Envoyer un email de test à l'initialisation
             try {
+                console.log('📧 Envoi d\'un email de test...');
                 await this.sendTestEmail();
+                console.log('✅ Email de test envoyé avec succès!');
             } catch (testError) {
-                console.warn('⚠️  Impossible d\'envoyer l\'email de test:', testError.message);
+                console.error('❌ Erreur lors de l\'envoi de l\'email de test:', testError.message);
+                console.error('Stack:', testError.stack);
             }
             
             this.initialized = true;

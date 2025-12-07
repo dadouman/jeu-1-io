@@ -19,8 +19,12 @@ function processSoloGameLoop(soloSessions, io, {
         const player = session.player;
         const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
         
+        // Vérifier si le shop est actuellement actif (levelStartTime est dans le futur = shop)
+        const isShopActive = session.levelStartTime > Date.now();
+        
         // --- COLLISION AVEC LA PIÈCE ---
-        if (dist < 30) {
+        // NE PAS accepter les collisions si le shop est actif
+        if (dist < 30 && !isShopActive) {
             // En solo, on track le temps du checkpoint
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
             session.splitTimes.push(checkpointTime);

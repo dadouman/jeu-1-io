@@ -48,11 +48,15 @@ class EmailService {
 
             this.transporter = nodemailer.createTransport(emailConfig);
 
-            // Vérifier la connexion
-            await this.transporter.verify();
-            console.log('✅ Service d\'email initialisé avec succès');
+            // Vérifier la connexion (optionnel - on essaiera d'envoyer quand même)
+            try {
+                await this.transporter.verify();
+                console.log('✅ Service d\'email initialisé avec succès');
+            } catch (verifyError) {
+                console.warn('⚠️  Vérification SMTP échouée, mais on va essayer d\'envoyer:', verifyError.message);
+            }
+            
             this.initialized = true;
-
             return true;
         } catch (error) {
             console.error('❌ Erreur lors de l\'initialisation du service d\'email:', error.message);

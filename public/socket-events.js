@@ -171,6 +171,15 @@ socket.on('gameModSelected', (data) => {
                    : data.mode === 'infinite' ? 'MODE INFINI ∞'
                    : 'SOLO (10 niveaux) 🎯';
     console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    
+    // Charger le record personnel du localStorage au démarrage de solo
+    if (data.mode === 'solo') {
+        const savedPersonalBest = localStorage.getItem('soloPersonalBest');
+        if (savedPersonalBest) {
+            soloPersonalBestTime = parseFloat(savedPersonalBest);
+            console.log(`%c🎯 Record personnel chargé: ${soloPersonalBestTime.toFixed(2)}s`, 'color: #00FF00; font-weight: bold; font-size: 12px');
+        }
+    }
 });
 
 socket.on('gameFinished', (data) => {

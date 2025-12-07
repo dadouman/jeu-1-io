@@ -6,15 +6,15 @@
 ```
 ❌ NE PAS FAIRE:
 // Dans le code
-const EMAIL_PASSWORD = "xxoj ocvy fhfs dmfd";  // DANGER!
+const EMAIL_PASSWORD = "votre_app_password_ici";  // DANGER!
 
 ❌ NE PAS FAIRE:
 // Dans .env commité
-EMAIL_PASSWORD=xxoj ocvy fhfs dmfd  // Dans Git = PUBLIC!
+EMAIL_PASSWORD=votre_app_password_ici  // Dans Git = PUBLIC!
 
 ✅ À FAIRE:
 // .env local (jamais commité)
-EMAIL_PASSWORD=xxoj ocvy fhfs dmfd  // Seulement sur votre machine
+EMAIL_PASSWORD=votre_app_password_ici  // Seulement sur votre machine
 ```
 
 ### Pourquoi c'est dangereux
@@ -37,7 +37,7 @@ EMAIL_PASSWORD=xxoj ocvy fhfs dmfd  // Seulement sur votre machine
 **Créer:** `c:\Users\Jocelyn\Desktop\Mon jeu .io\.env`
 ```bash
 EMAIL_USER=sabatini79@gmail.com
-EMAIL_PASSWORD=xxoj ocvy fhfs dmfd
+EMAIL_PASSWORD=votre_app_password_ici
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 ```
@@ -86,7 +86,7 @@ cd jeu-1-io
 cp .env.example .env
 
 # 3. Éditer .env avec VOS credentials
-nano .env  # Ajouter EMAIL_PASSWORD=xxoj ocvy fhfs dmfd
+nano .env  # Ajouter EMAIL_PASSWORD=votre_app_password_ici
 
 # 4. Git ignore automatiquement .env
 # Vérifier:
@@ -104,18 +104,18 @@ Au lieu de `.env`, utiliser les variables d'environnement du service:
 ```
 Dashboard → Settings → Environment
 EMAIL_USER=sabatini79@gmail.com
-EMAIL_PASSWORD=xxoj ocvy fhfs dmfd
+EMAIL_PASSWORD=votre_app_password_ici
 EMAIL_HOST=smtp.gmail.com
 ```
 
 #### Heroku
 ```bash
-heroku config:set EMAIL_PASSWORD="xxoj ocvy fhfs dmfd"
+heroku config:set EMAIL_PASSWORD="votre_app_password_ici"
 ```
 
 #### Docker
 ```bash
-docker run -e EMAIL_PASSWORD="xxoj ocvy fhfs dmfd" ...
+docker run -e EMAIL_PASSWORD="votre_app_password_ici" ...
 ```
 
 ## 📋 Checklist de Sécurité
@@ -174,13 +174,13 @@ const email = process.env.EMAIL_USER;
 git add .env  # NE PAS FAIRE!
 
 # ❌ Hardcoder les secrets
-const PASSWORD = "xxoj ocvy fhfs dmfd";  // NE PAS FAIRE!
+const PASSWORD = "votre_app_password_ici";  // NE PAS FAIRE!
 
 # ❌ Logger les secrets
 console.log(process.env.EMAIL_PASSWORD);  // NE PAS FAIRE!
 
 # ❌ Mettre dans les commentaires
-// EMAIL_PASSWORD=xxoj ocvy fhfs dmfd  // NE PAS FAIRE!
+// EMAIL_PASSWORD=votre_app_password_ici  // NE PAS FAIRE!
 ```
 
 ## 🔍 Vérifier que Tout est OK

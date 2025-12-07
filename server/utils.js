@@ -71,7 +71,7 @@ function emitToLobby(mode, eventName, data, io, lobbies) {
     
     Object.keys(lobby.players).forEach(playerId => {
         const socket = io.sockets.sockets.get(playerId);
-        if (socket) {
+        if (socket && socket.connected) {
             socket.emit(eventName, data);
         }
     });

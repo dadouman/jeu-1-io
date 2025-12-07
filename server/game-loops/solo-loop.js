@@ -42,7 +42,7 @@ function processSoloGameLoop(soloSessions, io, {
                 
                 // Envoyer le résultat au client
                 const socket = io.sockets.sockets.get(playerId);
-                if (socket) {
+                if (socket && socket.connected) {
                     socket.emit('soloGameFinished', {
                         totalTime: session.totalTime,
                         splitTimes: session.splitTimes,
@@ -63,6 +63,8 @@ function processSoloGameLoop(soloSessions, io, {
                 const safePos = getRandomEmptyPosition(session.map);
                 player.x = safePos.x;
                 player.y = safePos.y;
+                player.checkpoint = null;  // Réinitialiser checkpoint
+                player.trail = [];          // Réinitialiser rope
                 
                 // Vérifier si un shop s'ouvre après ce niveau
                 const completedLevel = session.currentLevel - 1;
@@ -71,7 +73,7 @@ function processSoloGameLoop(soloSessions, io, {
                 // Envoyer les nouvelles données (mapData ET levelUpdate)
                 // IMPORTANT: On n'envoie PAS de transition, on enchaine directement
                 const socket = io.sockets.sockets.get(playerId);
-                if (socket) {
+                if (socket && socket.connected) {
                     socket.emit('mapData', session.map);
                     socket.emit('levelUpdate', session.currentLevel);
                     
@@ -88,10 +90,12 @@ function processSoloGameLoop(soloSessions, io, {
             }
         }
         
-        // Envoyer l'état du jeu au joueur (avec les gems)
-        const socket = io.sockets.sockets.get(playerId);
-        if (socket) {
-            socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
+        // Envoyer l'état du jeu au joueur (avec les gems) - SEULEMENT si la session existe toujours
+        if (soloSessions[playerId]) {
+            const socket = io.sockets.sockets.get(playerId);
+            if (socket) {
+                socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
+            }
         }
     }
 }

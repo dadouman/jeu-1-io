@@ -217,20 +217,49 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // Affichage du Temps du Niveau en haut au centre
-    ctx.fillStyle = "#FFD700"; // Or
-    ctx.font = "bold 18px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("⏱️ " + currentLevelTime.toFixed(1) + "s", canvas.width / 2, 40);
+    // (caché pour solo, visible pour classique/infini)
+    if (soloRunTotalTime === 0) {
+        ctx.fillStyle = "#FFD700"; // Or
+        ctx.font = "bold 18px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("⏱️ " + currentLevelTime.toFixed(1) + "s", canvas.width / 2, 40);
+    }
     
     // Affichage du Temps Total de la session solo (si en mode solo)
     if (soloRunTotalTime > 0) {
-        ctx.fillStyle = "#00FF00"; // Vert (temps total en plus)
+        // Format: MM:SS.mmm
+        const totalSeconds = Math.floor(soloRunTotalTime);
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const milliseconds = Math.round((soloRunTotalTime - totalSeconds) * 1000);
+        const timeFormatted = `${totalMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+        
+        ctx.fillStyle = "#00FF00"; // Vert
         ctx.font = "bold 16px Arial";
-        ctx.fillText("⏳ Total: " + soloRunTotalTime.toFixed(1) + "s", canvas.width / 2, 65);
+        ctx.textAlign = "center";
+        ctx.fillText(timeFormatted, canvas.width / 2, 40);
+        
+        // Affichage du delta (différence avec le meilleur temps)
+        const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
+        const bestTime = displayPersonal ? soloPersonalBestTime : soloLeaderboardBest;
+        
+        if (bestTime) {
+            const delta = soloRunTotalTime - bestTime;
+            const deltaSeconds = Math.floor(Math.abs(delta));
+            const deltaMinutes = Math.floor(deltaSeconds / 60);
+            const deltaSecs = deltaSeconds % 60;
+            const deltaMilliseconds = Math.round((Math.abs(delta) - deltaSeconds) * 1000);
+            const deltaFormatted = `${delta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
+            
+            const deltaColor = delta >= 0 ? '#FF6B6B' : '#00FF00'; // Rouge si plus lent, vert si plus rapide
+            ctx.fillStyle = deltaColor;
+            ctx.font = "bold 14px Arial";
+            ctx.fillText(deltaFormatted, canvas.width / 2, 60);
+        }
     }
     
     // Affichage du record personnel/mondial à droite (pendant et après la run)
-    if (currentGameMode === 'solo') {
+    if (currentGameMode === 'solo' && soloRunTotalTime > 0) {
         const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
         const bestTime = displayPersonal ? soloPersonalBestTime : soloLeaderboardBest;
         const recordLabel = displayPersonal ? '🎯' : '🌍';
@@ -240,7 +269,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.fillStyle = recordColor;
             ctx.font = "bold 14px Arial";
             ctx.textAlign = "right";
-            ctx.fillText(`${recordLabel} ${bestTime.toFixed(2)}s`, canvas.width - 20, 65);
+            ctx.fillText(`${recordLabel} ${bestTime.toFixed(2)}s`, canvas.width - 20, 40);
         }
     }
     

@@ -91,7 +91,8 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     startTime: Date.now(),
                     levelStartTime: Date.now(),
                     splitTimes: [],
-                    totalTime: 0
+                    totalTime: 0,
+                    currentShopLevel: null  // ← Pour tracker quel niveau a un shop actif
                 };
                 
                 const session = soloSessions[socket.id];

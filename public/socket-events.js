@@ -159,6 +159,7 @@ socket.on('gameFinished', (data) => {
 });
 
 socket.on('soloGameFinished', (data) => {
+    console.log(`%c🏁 SOLO TERMINÉ! Reçu soloGameFinished du serveur`, 'color: #FF00FF; font-weight: bold; font-size: 20px');
     console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime.toFixed(2)}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
     console.log(`%c📊 Split times: ${data.splitTimes.map(t => t.toFixed(1)).join(', ')}`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
     
@@ -167,6 +168,7 @@ socket.on('soloGameFinished', (data) => {
     soloSplitTimes = data.splitTimes || [];
     isSoloGameFinished = true;
     soloFinishedTime = Date.now();
+    console.log(`%c✅ isSoloGameFinished = true, vérification: ${isSoloGameFinished}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
     
     // Sauvegarder les résultats sur le serveur
     const playerSkin = currentPlayers[myPlayerId]?.skin || "❓";

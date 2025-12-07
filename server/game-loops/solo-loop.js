@@ -19,11 +19,11 @@ function processSoloGameLoop(soloSessions, io, {
         const player = session.player;
         const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
         
-        // Vérifier si le shop est actuellement actif (levelStartTime est dans le futur = shop)
-        const isShopActive = session.levelStartTime > Date.now();
+        // Vérifier si le shop est actuellement actif pour ce niveau spécifique
+        const isShopActive = session.currentShopLevel ? session.currentLevel === session.currentShopLevel : false;
         
         // --- COLLISION AVEC LA PIÈCE ---
-        // NE PAS accepter les collisions si le shop est actif
+        // NE PAS accepter les collisions si le shop est actif pour CE niveau
         if (dist < 30 && !isShopActive) {
             // En solo, on track le temps du checkpoint
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
@@ -91,11 +91,17 @@ function processSoloGameLoop(soloSessions, io, {
                         // Sinon le joueur peut collecter le même coin pendant le shop
                         session.coin = getRandomEmptyPosition(session.map);
                         
+                        // Marquer que le shop est actif pour CE niveau
+                        session.currentShopLevel = completedLevel;
+                        
                         // Relancer le levelStartTime après la shop duration
                         session.levelStartTime = Date.now() + SHOP_DURATION;
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
                         console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {
+                        // Réinitialiser le shop quand on change de niveau sans shop
+                        session.currentShopLevel = null;
+                        
                         // Relancer le levelStartTime immédiatement (pas de transition)
                         session.levelStartTime = Date.now();
                     }

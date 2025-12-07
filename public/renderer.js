@@ -641,16 +641,99 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     }
 
     // 9. Record
-    ctx.fillStyle = "#FFD700"; // Or
-    ctx.font = "bold 20px Arial";
-    ctx.textAlign = "right";
-    
-    // En solo: afficher le temps personnel record
-    if (soloRunTotalTime > 0) {
-        const personalBestText = soloPersonalBestTime ? `🎯 Personal Best: ${soloPersonalBestTime.toFixed(2)}s` : "No record yet";
-        ctx.fillText(personalBestText, canvas.width - 20, 40);
-    } else if (currentGameMode !== 'solo') {
-        // En classique/infini: afficher le score record (TOUJOURS)
+    if (soloRunTotalTime > 0 || currentGameMode === 'solo') {
+        // En solo: afficher le meilleur temps (personnel ou world record)
+        const isSoloMode = currentGameMode === 'solo';
+        
+        if (isSoloMode) {
+            // Déterminer quel record afficher
+            const displayPersonal = soloShowPersonalDelta || !soloLeaderboardBest;
+            const bestTime = displayPersonal ? soloPersonalBestTime : soloLeaderboardBest;
+            const recordLabel = displayPersonal ? '🎯 Personal Best' : '🌍 World Record';
+            const recordColor = displayPersonal ? '#00FF00' : '#FF0000';
+            
+            // Ligne 1: Meilleur temps (plus grand)
+            ctx.fillStyle = recordColor;
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "right";
+            
+            if (bestTime) {
+                ctx.fillText(`${recordLabel}: ${bestTime.toFixed(2)}s`, canvas.width - 20, 40);
+                
+                // Ligne 2: Split du niveau actuel (plus petit)
+                ctx.fillStyle = recordColor;
+                ctx.font = "14px Arial";
+                ctx.textAlign = "right";
+                
+                // Récupérer le split du niveau actuel depuis soloLeaderboard ou soloLeaderboardSplits
+                let splitText = `Level ${level}/10`;
+                
+                // Si on a les splits disponibles
+                if (displayPersonal && window.soloLeaderboard && window.soloLeaderboard.length > 0) {
+                    const personalRun = window.soloLeaderboard.find(run => 
+                        Math.abs(run.totalTime - soloPersonalBestTime) < 0.1
+                    );
+                    if (personalRun && personalRun.splitTimes && personalRun.splitTimes[level - 1]) {
+                        splitText = `L${level}: ${personalRun.splitTimes[level - 1].toFixed(1)}s`;
+                    }
+                } else if (!displayPersonal && window.soloBestSplits && window.soloBestSplits[level]) {
+                    splitText = `L${level}: ${window.soloBestSplits[level].toFixed(1)}s`;
+                }
+                
+                ctx.fillText(splitText, canvas.width - 20, 58);
+                
+                // Afficher le toggle info
+                ctx.fillStyle = "#888";
+                ctx.font = "12px Arial";
+                ctx.fillText("Press T to toggle", canvas.width - 20, 74);
+            } else {
+                ctx.fillStyle = "#FFD700";
+                ctx.font = "bold 20px Arial";
+                ctx.fillText("No record yet", canvas.width - 20, 40);
+            }
+        }
+    } else if (currentGameMode === 'classic') {
+        // En CLASSIQUE: afficher le meilleur score (personnel ou world record)
+        ctx.textAlign = "right";
+        
+        // Déterminer quel record afficher
+        const displayPersonal = classicShowPersonalDelta || !safeRecord.score;
+        const bestScore = displayPersonal ? classicPersonalBestScore : safeRecord.score;
+        const recordLabel = displayPersonal ? '🎯 Personal Best' : '🌍 World Record';
+        const recordColor = displayPersonal ? '#00FF00' : '#FF0000';
+        
+        // Ligne 1: Meilleur score (plus grand)
+        ctx.fillStyle = recordColor;
+        ctx.font = "bold 20px Arial";
+        
+        if (bestScore) {
+            ctx.fillText(`${recordLabel}: ${bestScore}💎`, canvas.width - 20, 40);
+            
+            // Ligne 2: Gems du niveau actuel (plus petit)
+            ctx.fillStyle = recordColor;
+            ctx.font = "14px Arial";
+            
+            // En classique, on gagne 1 gem par niveau
+            // Donc pour le niveau N, on a N gems au total si on en a jamais perdu
+            const gemsForCurrentLevel = 1; // 1 gem par niveau
+            const gemsText = `L${level}: ${gemsForCurrentLevel}💎`;
+            
+            ctx.fillText(gemsText, canvas.width - 20, 58);
+            
+            // Afficher le toggle info
+            ctx.fillStyle = "#888";
+            ctx.font = "12px Arial";
+            ctx.fillText("Press T to toggle", canvas.width - 20, 74);
+        } else {
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "bold 20px Arial";
+            ctx.fillText("No record yet", canvas.width - 20, 40);
+        }
+    } else if (currentGameMode === 'infinite') {
+        // En INFINI: afficher le score record (pas de toggle, juste le meilleur)
+        ctx.fillStyle = "#FFD700";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "right";
         ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
     }
 }

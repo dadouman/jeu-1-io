@@ -21,6 +21,25 @@ socket.on('mapData', (data) => {
 
 socket.on('highScoreUpdate', (data) => {
     currentHighScore = data;
+    
+    // En mode classique: sauvegarder le meilleur score personnel
+    if (currentGameMode === 'classic') {
+        classicLeaderboardBest = data.score; // Le record du lobby (qui est synchro avec MongoDB)
+        
+        // Charger le meilleur score personnel depuis localStorage
+        const savedPersonalBest = localStorage.getItem('classicPersonalBest');
+        if (savedPersonalBest) {
+            classicPersonalBestScore = parseInt(savedPersonalBest);
+        }
+        
+        // Si le joueur actuel a battu son record personnel, le sauvegarder
+        const myPlayer = currentPlayers[myPlayerId];
+        if (myPlayer && myPlayer.score > (classicPersonalBestScore || 0)) {
+            classicPersonalBestScore = myPlayer.score;
+            localStorage.setItem('classicPersonalBest', myPlayer.score.toString());
+            console.log(`%c🎯 Nouveau record personnel classique! ${myPlayer.score}💎`, 'color: #00FF00; font-weight: bold');
+        }
+    }
 });
 
 socket.on('checkpointUpdate', (data) => {

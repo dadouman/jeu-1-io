@@ -84,8 +84,13 @@ document.addEventListener('keydown', (e) => {
     
     // --- SOLO MODE : Toggle delta time (T) ---
     if(e.code === 'KeyT') {
-        soloShowPersonalDelta = !soloShowPersonalDelta;
-        console.log(`%c🔄 Delta mode: ${soloShowPersonalDelta ? '🎯 Personnel' : '🌍 Mondial'}`, 'color: #00FFFF; font-weight: bold; font-size: 14px');
+        if (currentGameMode === 'solo') {
+            soloShowPersonalDelta = !soloShowPersonalDelta;
+            console.log(`%c🔄 Solo Delta mode: ${soloShowPersonalDelta ? '🎯 Personnel' : '🌍 Mondial'}`, 'color: #00FFFF; font-weight: bold; font-size: 14px');
+        } else if (currentGameMode === 'classic') {
+            classicShowPersonalDelta = !classicShowPersonalDelta;
+            console.log(`%c🔄 Classic Record mode: ${classicShowPersonalDelta ? '🎯 Personnel' : '🌍 Mondial'}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+        }
         e.preventDefault();
     }
 });

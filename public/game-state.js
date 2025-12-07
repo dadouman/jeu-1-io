@@ -69,3 +69,8 @@ let soloShowPersonalDelta = true; // Toggle: true = delta personnel, false = del
 let soloInactiveTime = 0; // Temps total d'inactivité (shop + transition)
 let soloShopStartTime = null; // Temps de début du shop
 let soloTransitionStartTime = null; // Temps de début de la transition
+
+// --- MODE CLASSIQUE RECORDS ---
+let classicPersonalBestScore = null; // Meilleur score personnel (localStorage)
+let classicLeaderboardBest = null; // Meilleur score du leaderboard (record mondial)
+let classicShowPersonalDelta = true; // Toggle: true = personnel, false = world record

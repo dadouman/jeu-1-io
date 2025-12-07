@@ -1,2 +1,26 @@
 node_modules
 package-lock.json
+
+# ⚠️ JAMAIS commiter ces fichiers!
+.env
+.env.local
+.env.*.local
+
+# Fichiers système
+.DS_Store
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cache
+.cache/
+dist/
+build/

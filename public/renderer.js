@@ -649,8 +649,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     if (soloRunTotalTime > 0) {
         const personalBestText = soloPersonalBestTime ? `🎯 Personal Best: ${soloPersonalBestTime.toFixed(2)}s` : "No record yet";
         ctx.fillText(personalBestText, canvas.width - 20, 40);
-    } else {
-        // En classique/infini: afficher le score record
+    } else if (currentGameMode !== 'solo') {
+        // En classique/infini: afficher le score record (TOUJOURS)
         ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
     }
 }

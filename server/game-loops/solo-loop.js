@@ -28,6 +28,7 @@ function processSoloGameLoop(soloSessions, io, {
             // Ajouter les gems au joueur en solo
             const gemsEarned = calculateGemsForLevel(session.currentLevel);
             addGems(player, gemsEarned);
+            session.gems.push(gemsEarned);
             
             console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
             
@@ -46,6 +47,7 @@ function processSoloGameLoop(soloSessions, io, {
                     socket.emit('soloGameFinished', {
                         totalTime: session.totalTime,
                         checkpoints: session.checkpoints,
+                        gems: session.gems,
                         finalLevel: maxLevel,
                         mode: 'solo'
                     });

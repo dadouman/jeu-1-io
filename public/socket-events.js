@@ -165,6 +165,7 @@ socket.on('soloGameFinished', (data) => {
     // Stocker les résultats
     soloTotalTime = data.totalTime;
     soloCheckpoints = data.checkpoints;
+    soloGems = data.gems || [];
     isSoloGameFinished = true;
     soloFinishedTime = Date.now();
     
@@ -173,6 +174,7 @@ socket.on('soloGameFinished', (data) => {
     socket.emit('saveSoloResults', {
         totalTime: data.totalTime,
         checkpoints: data.checkpoints,
+        gems: data.gems || [],
         playerSkin: playerSkin,
         mode: currentGameMode || 'solo',
         finalLevel: data.finalLevel || soloMaxLevel

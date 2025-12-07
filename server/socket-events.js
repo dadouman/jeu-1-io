@@ -90,6 +90,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     startTime: Date.now(),
                     levelStartTime: Date.now(),
                     checkpoints: [],
+                    gems: [],
                     totalTime: 0
                 };
                 
@@ -128,9 +129,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;
-            const { totalTime, checkpoints, playerSkin, mode, finalLevel } = data;
+            const { totalTime, checkpoints, gems, playerSkin, mode, finalLevel } = data;
             
-            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux)`);
+            console.log(`💾 [SOLO] Sauvegarde du résultat: ${playerSkin} - Temps: ${totalTime.toFixed(2)}s (${finalLevel} niveaux) | Gems: ${gems ? gems.join(', ') : 'N/A'}`);
             
             if (mongoURI) {
                 try {
@@ -151,6 +152,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                         mode: 'solo',
                         totalTime,
                         checkpoints,
+                        gems: gems || [],
                         finalLevel,
                         personalBestTime
                     });

@@ -55,6 +55,7 @@ let voteResultTime = null;
 // --- VARIABLES SOLO MODE ---
 let soloTotalTime = 0;
 let soloCheckpoints = [];
+let soloGems = [];
 let isSoloGameFinished = false;
 let soloFinishedTime = null;
 let soloSessionStartTime = null; // Temps de démarrage de la session solo

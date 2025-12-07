@@ -31,6 +31,7 @@ const SoloRunSchema = new mongoose.Schema({
     mode: { type: String, default: 'solo' },
     totalTime: Number, // Temps total en secondes
     checkpoints: [Number], // Array des temps de chaque niveau
+    gems: [Number], // Array des gems gagnés à chaque niveau
     finalLevel: { type: Number, default: 10 }, // Solo toujours 10 niveaux
     personalBestTime: { type: Number, default: null }, // Meilleur temps personnel
     createdAt: { type: Date, default: Date.now }

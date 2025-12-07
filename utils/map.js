@@ -71,19 +71,45 @@ function getRandomEmptyPosition(map) {
     let x, y;
     let attempts = 0;
     const maxAttempts = 100;
+    let found = false;
     
+    // Tentative 1: Random (100 essais)
     do {
         x = Math.floor(Math.random() * map[0].length);
         y = Math.floor(Math.random() * map.length);
         attempts++;
-    } while ((map[y] === undefined || map[y][x] === 1) && attempts < maxAttempts);
+        
+        // Check if this position is valid
+        if (map[y] !== undefined && map[y][x] === 0) {
+            found = true;
+            break;
+        }
+    } while (attempts < maxAttempts);
     
-    // Ajouter du padding pour éviter que le joueur se retrouve collé aux murs
-    // Position au centre de la case avec 10px de padding
+    // Tentative 2: Recherche exhaustive si random a échoué
+    if (!found) {
+        for (let sy = 0; sy < map.length && !found; sy++) {
+            for (let sx = 0; sx < map[0].length && !found; sx++) {
+                if (map[sy] !== undefined && map[sy][sx] === 0) {
+                    x = sx;
+                    y = sy;
+                    found = true;
+                }
+            }
+        }
+    }
+    
+    // Sécurité: si aucune case vide trouvée (impossible mais par prudence)
+    if (!found) {
+        x = 1;
+        y = 1;
+    }
+    
+    // Position au centre de la case
     const centerOffset = TILE_SIZE / 2;
     return { 
-        x: x * TILE_SIZE + centerOffset,  // Centre horizontal de la case
-        y: y * TILE_SIZE + centerOffset   // Centre vertical de la case
+        x: x * TILE_SIZE + centerOffset,
+        y: y * TILE_SIZE + centerOffset
     };
 }
 

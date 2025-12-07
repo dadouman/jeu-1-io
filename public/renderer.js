@@ -155,12 +155,23 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         }
     }
 
-    // 6. Pièce
+    // 6. Pièce - Avec texture solide
     if (coin) {
-        ctx.font = "30px Arial";
-        ctx.textAlign = "center"; // Important pour centrer l'emoji
-        ctx.textBaseline = "middle"; // Important pour centrer l'emoji
-        // On dessine au centre de la case (+ demi-taille)
+        // Fond coloré pour la gem (texture solide)
+        ctx.fillStyle = "rgba(255, 215, 0, 0.9)"; // Or semi-opaque
+        ctx.beginPath();
+        ctx.arc(coin.x + TILE_SIZE/2, coin.y + TILE_SIZE/2, 16, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordure pour plus de définition
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Emoji gem par-dessus
+        ctx.font = "26px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
         ctx.fillText("💎", coin.x + TILE_SIZE/2, coin.y + TILE_SIZE/2);
     }
 
@@ -179,18 +190,19 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText("🚩", checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2);
     }
 
-    // 7. Joueurs
-    for (let id in players) {
-        const p = players[id];
-        
-        // Dessin du Skin
-        ctx.font = "30px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
-        
-        // Dessin du Score (petit au dessus) - UNIQUEMENT en classique/infini, PAS en solo
-        if (soloRunTotalTime === 0) {
+    // 7. Joueurs - COMMENTÉ EN SOLO pour éviter le double rendu
+    // Le joueur est redessiné en opaque après sortie du clip (voir plus bas)
+    if (soloRunTotalTime === 0) {  // Uniquement en classique/infini, pas en solo
+        for (let id in players) {
+            const p = players[id];
+            
+            // Dessin du Skin
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
+            
+            // Dessin du Score (petit au dessus)
             ctx.fillStyle = "white";
             ctx.font = "12px Arial";
             ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);

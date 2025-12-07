@@ -87,6 +87,10 @@ function processSoloGameLoop(soloSessions, io, {
                     socket.emit('levelUpdate', session.currentLevel);
                     
                     if (isShopAfterThisLevel) {
+                        // ✅ CRÉER UN NOUVEAU COIN MÊME POUR LE SHOP
+                        // Sinon le joueur peut collecter le même coin pendant le shop
+                        session.coin = getRandomEmptyPosition(session.map);
+                        
                         // Relancer le levelStartTime après la shop duration
                         session.levelStartTime = Date.now() + SHOP_DURATION;
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });

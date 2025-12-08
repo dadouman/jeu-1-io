@@ -214,6 +214,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     ctx.restore(); // Fin Caméra
 
+    // === AFFICHAGE HUD DES FEATURES (Au-dessus du brouillard) ===
+    renderFeaturesHUD(ctx, canvas, purchasedFeatures);
+
     // ASSURER que globalAlpha est à 1.0 pour l'interface
     ctx.globalAlpha = 1.0;
 
@@ -751,10 +754,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.fillText("❌ VOTE REJETÉ", canvas.width / 2, canvas.height - 20);
         }
     }
-
-    // === AFFICHAGE HUD DES FEATURES (Haut du canvas) ===
-    // Affiche les features débloquées et non débloquées
-    renderFeaturesHUD(ctx, canvas, purchasedFeatures);
 
     // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)
     // Toute la logique reste intacte pour restauration future

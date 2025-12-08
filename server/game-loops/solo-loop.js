@@ -59,7 +59,7 @@ function processSoloGameLoop(soloSessions, io, {
             // ⚠️ IMPORTANT: levelStartTime ne doit PAS être null à ce stade (sinon NaN)
             if (!session.levelStartTime) {
                 console.error(`❌ [SOLO] ERREUR: levelStartTime est null pour le joueur ${playerId} au niveau ${session.currentLevel}`);
-                return; // Éviter le NaN
+                continue; // Sauter cet itération (pas fermer la fonction!)
             }
             
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;

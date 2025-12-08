@@ -8,6 +8,11 @@ socket.on('state', (gameState) => {
         currentPlayers = gameState.players;
     }
 
+    // Récupérer la position de la pièce (gems)
+    if (gameState.coin) {
+        coin = gameState.coin;
+    }
+
     // Récupérer les traces de tous les joueurs
     if (gameState.players) {
         for (let playerId in gameState.players) {

@@ -8,6 +8,7 @@ const socket = io({
 
 // --- VARIABLES DU JEU ---
 let map = [];
+let coin = null; // Position de la pièce (gems)
 let inputs = { up: false, down: false, left: false, right: false };
 let inputsMomentum = { up: 0, down: 0, left: 0, right: 0 }; // Inertie pour les touches
 const MOMENTUM_DECAY = 0.85; // 85% de l'inertie persiste par frame

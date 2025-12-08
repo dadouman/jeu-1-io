@@ -59,10 +59,13 @@ class EmailService {
      */
     async sendTestEmail() {
         const adminEmail = process.env.EMAIL_USER || 'admin@example.com';
+        // IMPORTANT: SendGrid requiert que l'adresse "from" soit vérifiée
+        // On utilise EMAIL_USER comme expéditeur (Single Sender Verification)
+        const senderEmail = process.env.EMAIL_USER || 'noreply@example.com';
         
         const msg = {
             to: adminEmail,
-            from: 'noreply@jeu.io',
+            from: senderEmail,  // ← Utiliser l'email vérifié dans SendGrid
             subject: '✅ Service d\'email SendGrid initialisé - Jeu .io',
             html: `
                 <h2>🎉 Service d'email SendGrid fonctionnel!</h2>
@@ -134,12 +137,14 @@ ${bugReport.logs.map(log =>
                 </p>
             `;
 
+            const senderEmail = process.env.EMAIL_USER || 'noreply@example.com';
+            
             const msg = {
                 to: process.env.EMAIL_USER || 'admin@example.com',
-                from: 'noreply@jeu.io',
+                from: senderEmail,  // ← Utiliser l'email vérifié dans SendGrid
                 subject: `🚨 Nouveau Bug Reporté - ${bugReport.description.substring(0, 50)}...`,
                 html: htmlContent,
-                replyTo: bugReport.email || 'noreply@jeu.io'
+                replyTo: bugReport.email || senderEmail
             };
 
             // Envoyer l'email avec timeout
@@ -166,9 +171,11 @@ ${bugReport.logs.map(log =>
         if (!this.initialized || !userEmail) return false;
 
         try {
+            const senderEmail = process.env.EMAIL_USER || 'noreply@example.com';
+            
             const msg = {
                 to: userEmail,
-                from: 'noreply@jeu.io',
+                from: senderEmail,  // ← Utiliser l'email vérifié dans SendGrid
                 subject: '✅ Merci pour votre rapport de bug',
                 html: `
                     <h2>Merci pour votre aide!</h2>

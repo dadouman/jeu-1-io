@@ -36,10 +36,8 @@ EMAIL_PASSWORD=votre_app_password_ici  // Seulement sur votre machine
 
 **Créer:** `c:\Users\Jocelyn\Desktop\Mon jeu .io\.env`
 ```bash
-EMAIL_USER=sabatini79@gmail.com
-EMAIL_PASSWORD=votre_app_password_ici
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
+EMAIL_USER=admin@example.com
+SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
 
 ### 2. Fichier `.gitignore`
@@ -103,14 +101,13 @@ Au lieu de `.env`, utiliser les variables d'environnement du service:
 #### Render
 ```
 Dashboard → Settings → Environment
-EMAIL_USER=sabatini79@gmail.com
-EMAIL_PASSWORD=votre_app_password_ici
-EMAIL_HOST=smtp.gmail.com
+EMAIL_USER=admin@example.com
+SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
 
 #### Heroku
 ```bash
-heroku config:set EMAIL_PASSWORD="votre_app_password_ici"
+heroku config:set SENDGRID_API_KEY="SG.votre_api_key_ici"
 ```
 
 #### Docker

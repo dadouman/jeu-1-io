@@ -24,7 +24,7 @@
 - Vous verrez les variables actuelles:
   ```
   MONGODB_URI=mongodb+srv://...
-  EMAIL_USER=sabatini79@gmail.com
+  EMAIL_USER=admin@example.com
   EMAIL_PASSWORD=...
   EMAIL_HOST=smtp.gmail.com
   EMAIL_PORT=587
@@ -40,7 +40,7 @@
 Il vous restera:
 ```
 MONGODB_URI=mongodb+srv://...
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 ```
 
 ### 5️⃣ Ajoutez la variable SendGrid
@@ -53,7 +53,7 @@ EMAIL_USER=sabatini79@gmail.com
 Vous devez avoir exactement:
 ```
 MONGODB_URI=mongodb+srv://...
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 SENDGRID_API_KEY=SG.votre_cle_sendgrid_ici
 ```
 
@@ -69,7 +69,7 @@ SENDGRID_API_KEY=SG.votre_cle_sendgrid_ici
 2. Cliquez **Logs** (en bas)
 3. Cherchez les messages:
    ```
-   📧 Email Config: user=sabatini79@gmail.com, hasApiKey=true
+   📧 Email Config: user=admin@example.com, hasApiKey=true
    🔧 Configuration de SendGrid...
    ✅ SendGrid configuré
    📧 Envoi d'un email de test...
@@ -77,7 +77,7 @@ SENDGRID_API_KEY=SG.votre_cle_sendgrid_ici
    ```
 
 ### Vérifiez votre email
-- Ouvrez: **sabatini79@gmail.com**
+- Ouvrez: **admin@example.com**
 - Cherchez un email avec le sujet: `✅ Service d'email SendGrid initialisé - Jeu .io`
 - ✅ Si vous le voyez, **c'est que tout fonctionne!**
 

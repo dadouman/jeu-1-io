@@ -20,7 +20,7 @@ Remplacer Gmail SMTP (qui est bloqué par Render) par l'API SendGrid pour envoye
 2. **Cliquez sur "Environment"**
    - Vous verrez les variables actuelles:
      - `MONGODB_URI`
-     - `EMAIL_USER` ← Gardez celle-ci (sabatini79@gmail.com)
+     - `EMAIL_USER` ← Gardez celle-ci (admin@example.com)
      - ❌ Supprimez: `EMAIL_PASSWORD`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`
 
 3. **Ajoutez la nouvelle variable:**
@@ -33,7 +33,7 @@ Remplacer Gmail SMTP (qui est bloqué par Render) par l'API SendGrid pour envoye
 ### Variables finales attendues:
 ```
 MONGODB_URI=mongodb+srv://...
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 SENDGRID_API_KEY=SG.your_actual_sendgrid_api_key
 ```
 
@@ -60,7 +60,7 @@ Après redémarrage sur Render:
 1. Allez sur votre app: https://jeu-1-io.onrender.com/
 2. Consultez les logs Render (Dashboard > Logs)
    - Vous devriez voir: `✅ Email de test SendGrid envoyé`
-3. Vérifiez que l'email de test est arrivé dans sabatini79@gmail.com
+3. Vérifiez que l'email de test est arrivé dans admin@example.com
 4. Testez le système en envoyant un bug report via le jeu
 
 ## 🚀 Déploiement

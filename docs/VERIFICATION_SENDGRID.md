@@ -86,7 +86,7 @@ sgMail.send(msg);
    - Tester bug report complet
 
 3. **Email de Confirmation:**
-   - Chercher dans `sabatini79@gmail.com`
+   - Chercher dans `admin@example.com`
    - Subject: `✅ Service d'email SendGrid initialisé - Jeu .io`
 
 ## ✅ Checklist Complète

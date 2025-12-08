@@ -213,7 +213,7 @@ app.use('/api/bugs', bugRoutes);
 ### Email Admin
 ```
 From: [Automatique]
-To: sabatini79@gmail.com
+To: admin@example.com
 Subject: 🚨 Nouveau Bug Reporté - La gem ne s'affiche pas...
 
 ┌─────────────────────────────────────────┐
@@ -306,7 +306,7 @@ Côté Serveur
 - Envoyer
 
 ### Pour Admin
-- Email: sabatini79@gmail.com
+- Email: admin@example.com
 - API: GET /api/bugs
 - API: GET /api/bugs/[ID]
 - API: PATCH /api/bugs/[ID]

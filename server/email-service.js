@@ -20,7 +20,7 @@ class EmailService {
         try {
             // Configuration SendGrid
             const apiKey = (process.env.SENDGRID_API_KEY || '').trim();
-            const emailUser = process.env.EMAIL_USER || 'sabatini79@gmail.com';
+            const emailUser = process.env.EMAIL_USER || 'admin@example.com';
             
             // DEBUG: Afficher les variables (sans l'API key!)
             console.log(`📧 Email Config: user=${emailUser}, hasApiKey=${!!apiKey}`);
@@ -58,7 +58,7 @@ class EmailService {
      * @returns {Promise<void>}
      */
     async sendTestEmail() {
-        const adminEmail = process.env.EMAIL_USER || 'sabatini79@gmail.com';
+        const adminEmail = process.env.EMAIL_USER || 'admin@example.com';
         
         const msg = {
             to: adminEmail,
@@ -135,7 +135,7 @@ ${bugReport.logs.map(log =>
             `;
 
             const msg = {
-                to: 'sabatini79@gmail.com',
+                to: process.env.EMAIL_USER || 'admin@example.com',
                 from: 'noreply@jeu.io',
                 subject: `🚨 Nouveau Bug Reporté - ${bugReport.description.substring(0, 50)}...`,
                 html: htmlContent,

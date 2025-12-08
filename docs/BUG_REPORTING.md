@@ -42,7 +42,7 @@ npm install @sendgrid/mail
 3. Configurer les variables d'environnement:
 
 ```bash
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
 
@@ -50,7 +50,7 @@ SENDGRID_API_KEY=SG.votre_api_key_ici
 
 ```bash
 # Email avec SendGrid
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 SENDGRID_API_KEY=SG.votre_api_key_ici
 
 # Admin Panel (optionnel)
@@ -120,7 +120,7 @@ BugReport (MongoDB)
 ### Pour l'Admin
 
 #### Recevoir les Notifications
-- Email automatique à `sabatini79@gmail.com` via SendGrid
+- Email automatique à `admin@example.com` via SendGrid
 - Contient la description, logs, URL, navigateur, etc.
 - Lien direct vers le dashboard
 

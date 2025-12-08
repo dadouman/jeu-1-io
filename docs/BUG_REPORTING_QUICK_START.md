@@ -13,7 +13,7 @@ Un système **complet et professionnel** permettant aux joueurs de signaler des 
   ↓
 📸 Screenshot auto + 📋 Logs console
   ↓
-✉️ Envoi direct via SendGrid à sabatini79@gmail.com
+✉️ Envoi direct via SendGrid à admin@example.com
   ↓
 💾 Stocké en base de données
 ```
@@ -51,7 +51,7 @@ npm install
 3. Créer `.env` à la racine du projet:
 
 ```bash
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=admin@example.com
 SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
 
@@ -193,7 +193,7 @@ EMAIL_USER=mon-nouveau@email.com
 
 ### Admin Reçoit la Notification
 ```
-1. Email à sabatini79@gmail.com reçu
+1. Email à admin@example.com reçu
 2. Subject: "🚨 Nouveau Bug Reporté - La gem ne s'affiche pas..."
 3. Contient:
    - Description complète

@@ -272,6 +272,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
  * Pour la vitesse, affiche le nombre de fois débloquées si > 0
  */
 function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
+    // Sécurité: si purchasedFeatures est undefined, on le crée
+    if (!purchasedFeatures) {
+        purchasedFeatures = {};
+    }
+
     const FEATURES = [
         { id: 'dash', emoji: '⚡', label: 'Dash', color: '#FF6B6B' },
         { id: 'checkpoint', emoji: '🚩', label: 'Check', color: '#00D4FF' },
@@ -307,14 +312,25 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
         const x = CENTER_X + (index * BOX_SPACING);
         const y = TOP_Y;
 
-        const isUnlocked = feature.id === 'speedBoost' 
-            ? purchasedFeatures[feature.id] > 0 
-            : purchasedFeatures[feature.id] === true;
+        // Déterminer si la feature est déverrouillée
+        let isUnlocked = false;
+        if (feature.id === 'speedBoost') {
+            isUnlocked = purchasedFeatures[feature.id] && purchasedFeatures[feature.id] > 0;
+        } else {
+            isUnlocked = purchasedFeatures[feature.id] === true;
+        }
 
         // === BOÎTE DE FOND ===
         if (isUnlocked) {
             // Unlocked: fond semi-opaque coloré
-            ctx.fillStyle = feature.color + '33'; // Couleur avec transparence
+            // Convertir hex en rgba avec transparence
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+            ctx.fillStyle = hexToRgba(feature.color, 0.2);
             ctx.strokeStyle = feature.color;
             ctx.lineWidth = 2;
         } else {

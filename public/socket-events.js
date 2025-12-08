@@ -16,6 +16,8 @@ socket.on('mapData', (data) => {
     if (soloSessionStartTime === null && data && data.length > 0) {
         // Heuristique: si c'est une nouvelle session (level=1), initialiser le chrono
         soloSessionStartTime = Date.now();
+        // Demander les meilleurs splits mondiaux pour afficher le delta pendant la run
+        socket.emit('getSoloBestSplits');
     }
 });
 
@@ -269,7 +271,7 @@ socket.on('soloLeaderboard', (data) => {
 
 socket.on('soloBestSplits', (data) => {
     console.log(`%c🏁 Meilleurs splits reçus:`, 'color: #00FF00; font-weight: bold');
-    soloBestSplits = data.splits;
+    soloBestSplits = data.splits || {};
     for (let level in data.splits) {
         console.log(`%c  Niveau ${level}: ${data.splits[level].toFixed(2)}s`, 'color: #00FF00; font-size: 12px');
     }

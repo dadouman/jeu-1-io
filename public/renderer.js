@@ -235,26 +235,22 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.fillText(timeFormatted, canvas.width / 2, canvas.height / 2 + 220);
             
             // === LIGNE 2: Delta du split actuel (niveau en cours) ===
-            // Déterminer quelle source de comparaison utiliser
-            const displayPersonal = soloShowPersonalDelta || !soloBestSplits || Object.keys(soloBestSplits).length === 0;
-            
-            // CAS 1 : Run terminée (splits finalisés disponibles)
-            if (isSoloGameFinished && soloSplitTimes && soloSplitTimes.length > 0) {
-                // Les splits finalisés sont disponibles
-                let bestSplitTime = null;
+            // CAS 1 : Run terminée (splits finalisés disponibles dans soloSplitTimes)
+            if (isSoloGameFinished && soloSplitTimes && soloSplitTimes.length >= level) {
+                // Les splits finalisés sont disponibles - afficher le split avec delta
+                const currentSplitTime = soloSplitTimes[level - 1];
                 
-                // Chercher le split de référence pour ce niveau
-                if (displayPersonal && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
+                // Chercher le meilleur split de ce niveau (personal ou global)
+                let bestSplitTime = null;
+                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
                     bestSplitTime = soloPersonalBestSplits[level];
                 } else if (soloBestSplits && soloBestSplits[level]) {
                     bestSplitTime = soloBestSplits[level];
                 }
                 
-                // Afficher le delta si on a des splits et une référence
-                if (bestSplitTime && soloSplitTimes[level - 1]) {
-                    const currentSplitTime = soloSplitTimes[level - 1];
+                // Afficher avec delta si on a une référence
+                if (bestSplitTime) {
                     const splitDelta = currentSplitTime - bestSplitTime;
-                    
                     const splitDeltaSeconds = Math.floor(Math.abs(splitDelta));
                     const splitDeltaMinutes = Math.floor(splitDeltaSeconds / 60);
                     const splitDeltaSecs = splitDeltaSeconds % 60;
@@ -265,9 +261,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.fillStyle = splitDeltaColor;
                     ctx.font = "bold 24px Arial";
                     ctx.fillText(splitDeltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
-                } else if (soloSplitTimes[level - 1]) {
-                    // Afficher le split sans comparaison
-                    const currentSplitTime = soloSplitTimes[level - 1];
+                } else {
+                    // Pas de meilleur temps, afficher le split sans delta
                     const splitSeconds = Math.floor(currentSplitTime);
                     const splitMinutes = Math.floor(splitSeconds / 60);
                     const splitSecs = splitSeconds % 60;
@@ -279,30 +274,19 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.fillText(splitFormatted, canvas.width / 2, canvas.height / 2 + 260);
                 }
             }
-            // CAS 2 : Run en cours (calculer le temps du niveau actuel en temps réel)
-            else if (currentLevelTime > 0) {
-                // Pendant une run, afficher le temps du niveau actuel seulement
-                // (pas cumulatif, juste le temps depuis le début du niveau actuel)
-                
-                // Récupérer le meilleur temps pour le niveau actuel (pas cumulatif, juste ce niveau)
+            // CAS 2 : Run en cours - afficher le temps du niveau actuel avec delta
+            else if (currentLevelTime > 0 && level > 1) {
+                // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
                 let bestLevelTime = null;
                 
-                if (displayPersonal && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
-                    // Calculer le temps de ce niveau seulement (delta avec le niveau précédent)
-                    const currentSplitTime = soloPersonalBestSplits[level];
-                    const previousSplitTime = level > 1 && soloPersonalBestSplits[level - 1] ? soloPersonalBestSplits[level - 1] : 0;
-                    bestLevelTime = currentSplitTime - previousSplitTime;
-                } else if (soloBestSplits && soloBestSplits[level]) {
-                    // Même calcul pour les splits mondiaux
-                    const currentSplitTime = soloBestSplits[level];
-                    const previousSplitTime = level > 1 && soloBestSplits[level - 1] ? soloBestSplits[level - 1] : 0;
-                    bestLevelTime = currentSplitTime - previousSplitTime;
+                if (soloBestSplits && soloBestSplits[level] && soloBestSplits[level - 1]) {
+                    // Temps du niveau actuel = split[level] - split[level-1]
+                    bestLevelTime = soloBestSplits[level] - soloBestSplits[level - 1];
                 }
                 
-                // Afficher le delta du niveau actuel
-                if (bestLevelTime) {
+                // Afficher le delta du niveau actuel si on a une référence
+                if (bestLevelTime && bestLevelTime > 0) {
                     const levelDelta = currentLevelTime - bestLevelTime;
-                    
                     const deltaSeconds = Math.floor(Math.abs(levelDelta));
                     const deltaMinutes = Math.floor(deltaSeconds / 60);
                     const deltaSecs = deltaSeconds % 60;
@@ -325,6 +309,19 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.font = "bold 24px Arial";
                     ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
                 }
+            }
+            // CAS 3 : Premier niveau - pas de delta possible
+            else if (currentLevelTime > 0) {
+                // Afficher juste le temps du premier niveau
+                const levelSeconds = Math.floor(currentLevelTime);
+                const levelMinutes = Math.floor(levelSeconds / 60);
+                const levelSecs = levelSeconds % 60;
+                const levelMilliseconds = Math.round((currentLevelTime - levelSeconds) * 1000);
+                const levelFormatted = `${levelMinutes.toString().padStart(2, '0')}:${levelSecs.toString().padStart(2, '0')}.${levelMilliseconds.toString().padStart(3, '0')}`;
+                
+                ctx.fillStyle = "#CCCCCC";
+                ctx.font = "bold 24px Arial";
+                ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
             }
             
             // === LIGNE 3: Niveau actuel en or ===

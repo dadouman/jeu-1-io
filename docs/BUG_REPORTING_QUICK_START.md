@@ -13,7 +13,7 @@ Un système **complet et professionnel** permettant aux joueurs de signaler des 
   ↓
 📸 Screenshot auto + 📋 Logs console
   ↓
-✉️ Envoi direct à sabatini79@gmail.com
+✉️ Envoi direct via SendGrid à sabatini79@gmail.com
   ↓
 💾 Stocké en base de données
 ```
@@ -41,32 +41,26 @@ Un système **complet et professionnel** permettant aux joueurs de signaler des 
 ### 1️⃣ Installer
 ```bash
 npm install
-# nodemailer est déjà dans package.json ✅
+# SendGrid est déjà dans package.json ✅
 ```
 
-### 2️⃣ Configurer Email Gmail
+### 2️⃣ Configurer Email avec SendGrid
 
-Vous avez 2 options:
-
-#### Option A: App Password Gmail (Recommandé)
-1. Aller sur: https://myaccount.google.com/apppasswords
-2. Générer une "App Password" pour "Mail/Windows"
-3. Copier le mot de passe (16 caractères)
-4. Créer `.env` à la racine du projet:
+1. Créer un compte SendGrid (gratuit): https://sendgrid.com
+2. Générer une clé API: https://app.sendgrid.com/settings/api_keys
+3. Créer `.env` à la racine du projet:
 
 ```bash
 EMAIL_USER=sabatini79@gmail.com
-EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_SECURE=false
+SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
 
-#### Option B: Service SMTP Alternatif
-- SendGrid
-- Mailgun
-- AWS SES
-- Etc.
+**Pourquoi SendGrid et pas Gmail?**
+- ✅ Fonctionne sur tous les serveurs (Render, Heroku, etc.)
+- ✅ Pas de blocage de ports SMTP
+- ✅ 100 emails/jour gratuit (suffisant pour bugs)
+- ✅ Logs et monitoring intégrés
+- ✅ Plus fiable et scalable
 
 ### 3️⃣ Démarrer le Serveur
 ```bash
@@ -78,7 +72,7 @@ npm start
 - Ouvrir http://localhost:3000
 - Cliquer sur le flag 🚩
 - Envoyer un test
-- Vérifier l'email à `sabatini79@gmail.com`
+- Vérifier l'email de test reçu
 
 ## 📊 Consulter les Bugs
 

@@ -31,39 +31,27 @@ Système complet permettant aux utilisateurs de signaler des bugs directement de
 ### 1. Installer les dépendances
 
 ```bash
-npm install nodemailer
+npm install @sendgrid/mail
 ```
 
 ### 2. Configurer l'Email
 
-#### Avec Gmail:
-1. Aller sur [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-2. Générer une "App Password" (16 caractères)
+#### Avec SendGrid (Recommandé):
+1. Créer un compte [SendGrid](https://sendgrid.com) (gratuit)
+2. Générer une clé API: [app.sendgrid.com/settings/api_keys](https://app.sendgrid.com/settings/api_keys)
 3. Configurer les variables d'environnement:
 
 ```bash
-EMAIL_USER=xxx9@gmail.com
-EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_SECURE=false
+EMAIL_USER=sabatini79@gmail.com
+SENDGRID_API_KEY=SG.votre_api_key_ici
 ```
-
-#### Alternative: Service SMTP tiers
-- SendGrid
-- Mailgun
-- AWS SES
-- Etc.
 
 ### 3. Variables d'Environnement
 
 ```bash
-# Email
-EMAIL_USER=votre@email.com
-EMAIL_PASSWORD=votre_app_password_ou_token
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_SECURE=false
+# Email avec SendGrid
+EMAIL_USER=sabatini79@gmail.com
+SENDGRID_API_KEY=SG.votre_api_key_ici
 
 # Admin Panel (optionnel)
 ADMIN_DASHBOARD_URL=https://votre-admin-panel.com
@@ -132,7 +120,7 @@ BugReport (MongoDB)
 ### Pour l'Admin
 
 #### Recevoir les Notifications
-- Email automatique à `sabatini79@gmail.com`
+- Email automatique à `sabatini79@gmail.com` via SendGrid
 - Contient la description, logs, URL, navigateur, etc.
 - Lien direct vers le dashboard
 
@@ -269,10 +257,10 @@ if (this.consoleLogs.length > 1000) {  // Au lieu de 500
 ## 📞 Troubleshooting
 
 ### Email ne s'envoie pas
-1. Vérifier `EMAIL_USER` et `EMAIL_PASSWORD`
-2. Vérifier que Gmail autorise les "App Passwords"
+1. Vérifier `EMAIL_USER` et `SENDGRID_API_KEY`
+2. Vérifier que la clé SendGrid est valide
 3. Vérifier les logs: `console.log` du serveur
-4. Essayer un service SMTP tiers (SendGrid, etc.)
+4. Consulter SendGrid Activity Log pour les erreurs
 
 ### Screenshot est blanc
 1. html2canvas peut avoir des problèmes CORS
@@ -299,7 +287,7 @@ server/
 utils/
 └── BugReport.js             # Modèle MongoDB
 
-package.json                 # nodemailer dépendance
+package.json                 # @sendgrid/mail dépendance
 ```
 
 ## 🚀 Prochaines Étapes

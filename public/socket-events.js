@@ -59,6 +59,12 @@ socket.on('levelUpdate', (newLevel) => {
         levelUpTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
         levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
         
+        // En mode solo, enregistrer le temps pour afficher le delta pendant 1-2s
+        if (currentGameMode === 'solo') {
+            soloLastGemTime = Date.now();
+            soloLastGemLevel = lastLevel;
+        }
+        
         // Log de jeu
         const playerData = currentPlayers[myPlayerId];
         if (playerData) {

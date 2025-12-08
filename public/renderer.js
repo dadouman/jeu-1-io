@@ -329,6 +329,51 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.font = "bold 20px Arial";
             ctx.fillText(`Niveau ${level} / ${soloMaxLevel}`, canvas.width / 2, canvas.height / 2 + 295);
         }
+        
+        // === AFFICHAGE TEMPORAIRE DU DELTA APRÈS AVOIR PRIS UNE GEM (1-2s) ===
+        if (currentGameMode === 'solo' && soloLastGemTime && soloLastGemLevel) {
+            const timeSinceGem = Date.now() - soloLastGemTime;
+            const DISPLAY_DURATION = 1500; // 1.5 secondes
+            
+            if (timeSinceGem < DISPLAY_DURATION) {
+                // Calculer le delta du niveau complété
+                const completedLevel = soloLastGemLevel;
+                let bestLevelTime = null;
+                
+                // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
+                if (soloBestSplits && soloBestSplits[completedLevel] && soloBestSplits[completedLevel - 1]) {
+                    bestLevelTime = soloBestSplits[completedLevel] - soloBestSplits[completedLevel - 1];
+                }
+                
+                // Si on a un meilleur temps de référence, afficher le delta
+                if (bestLevelTime && bestLevelTime > 0) {
+                    // Le temps était enregistré au moment de la gem (levelUpTime)
+                    const playerLevelTime = levelUpTime || 0;
+                    const levelDelta = playerLevelTime - bestLevelTime;
+                    
+                    const deltaSeconds = Math.floor(Math.abs(levelDelta));
+                    const deltaMinutes = Math.floor(deltaSeconds / 60);
+                    const deltaSecs = deltaSeconds % 60;
+                    const deltaMilliseconds = Math.round((Math.abs(levelDelta) - deltaSeconds) * 1000);
+                    const deltaFormatted = `${levelDelta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
+                    
+                    // Affichage avec animation de fade-out
+                    const fadeAlpha = 1.0 - (timeSinceGem / DISPLAY_DURATION); // Fade from 1 to 0
+                    const deltaColor = levelDelta >= 0 ? '#FF6B6B' : '#00FF00';
+                    
+                    ctx.globalAlpha = fadeAlpha;
+                    ctx.fillStyle = deltaColor;
+                    ctx.font = "bold 48px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 - 100);
+                    ctx.globalAlpha = 1.0; // Réinitialiser alpha
+                }
+            } else {
+                // Réinitialiser après la durée d'affichage
+                soloLastGemTime = null;
+                soloLastGemLevel = null;
+            }
+
     }
     
     ctx.textAlign = "left";

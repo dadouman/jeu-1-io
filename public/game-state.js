@@ -70,6 +70,8 @@ let soloShowPersonalDelta = true; // Toggle: true = delta personnel, false = del
 let soloInactiveTime = 0; // Temps total d'inactivité (shop + transition)
 let soloShopStartTime = null; // Temps de début du shop
 let soloTransitionStartTime = null; // Temps de début de la transition
+let soloLastGemTime = null; // Temps quand la gem a été prise (pour afficher delta 1-2s)
+let soloLastGemLevel = null; // Niveau quand la gem a été prise
 
 // --- MODE CLASSIQUE RECORDS ---
 let classicPersonalBestScore = null; // Meilleur score personnel (localStorage)

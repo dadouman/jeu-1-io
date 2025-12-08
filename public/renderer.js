@@ -111,9 +111,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // 7. Players rendering
     renderPlayers(ctx, players, currentGameMode);
 
-    ctx.restore(); // Fin Caméra
+    ctx.restore(); // Fin Caméra + Fin clipping
 
     // === AFFICHAGE HUD DES FEATURES (Au-dessus du brouillard) ===
+    // Doit être APRÈS ctx.restore() pour éviter le clipping
     renderFeaturesHUD(ctx, canvas, purchasedFeatures);
 
     // ASSURER que globalAlpha est à 1.0 pour l'interface

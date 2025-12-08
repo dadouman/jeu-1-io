@@ -366,15 +366,16 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                     ctx.font = "bold 48px Arial";
                     ctx.textAlign = "center";
                     ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 - 100);
-                    ctx.globalAlpha = 1.0; // Réinitialiser alpha
                 }
             } else {
                 // Réinitialiser après la durée d'affichage
                 soloLastGemTime = null;
                 soloLastGemLevel = null;
             }
-
-    }
+        }
+        
+        // TOUJOURS réinitialiser globalAlpha à 1.0 après l'affichage du delta
+        ctx.globalAlpha = 1.0;
     
     ctx.textAlign = "left";
     

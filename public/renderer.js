@@ -238,22 +238,15 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             // CAS 1 : Run terminée (splits finalisés disponibles dans soloSplitTimes)
             if (isSoloGameFinished && soloSplitTimes && soloSplitTimes.length >= level) {
                 // Les splits finalisés sont disponibles - afficher le temps du niveau avec delta
-                // Temps du niveau actuel = split[level] - split[level-1]
-                let currentLevelTime = 0;
-                if (level > 1 && soloSplitTimes.length >= level) {
-                    currentLevelTime = soloSplitTimes[level - 1] - soloSplitTimes[level - 2];
-                } else if (level === 1) {
-                    currentLevelTime = soloSplitTimes[0];
-                }
+                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
+                const currentLevelTime = soloSplitTimes[level - 1];
                 
-                // Chercher le meilleur temps du NIVEAU (pas le split cumulé)
+                // Chercher le meilleur temps du NIVEAU
                 let bestLevelTime = null;
-                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level] && soloPersonalBestSplits[level - 1]) {
-                    bestLevelTime = soloPersonalBestSplits[level] - soloPersonalBestSplits[level - 1];
-                } else if (level > 1 && soloBestSplits && soloBestSplits[level] && soloBestSplits[level - 1]) {
-                    bestLevelTime = soloBestSplits[level] - soloBestSplits[level - 1];
-                } else if (level === 1 && soloBestSplits && soloBestSplits[1]) {
-                    bestLevelTime = soloBestSplits[1];
+                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
+                    bestLevelTime = soloPersonalBestSplits[level];
+                } else if (soloBestSplits && soloBestSplits[level]) {
+                    bestLevelTime = soloBestSplits[level];
                 }
                 
                 // Afficher avec delta si on a une référence
@@ -285,11 +278,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             // CAS 2 : Run en cours - afficher le temps du niveau actuel avec delta
             else if (currentLevelTime > 0 && level > 1) {
                 // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
+                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
                 let bestLevelTime = null;
                 
-                if (soloBestSplits && soloBestSplits[level] && soloBestSplits[level - 1]) {
-                    // Temps du niveau actuel = split[level] - split[level-1]
-                    bestLevelTime = soloBestSplits[level] - soloBestSplits[level - 1];
+                if (soloBestSplits && soloBestSplits[level]) {
+                    bestLevelTime = soloBestSplits[level];
                 }
                 
                 // Afficher le delta du niveau actuel si on a une référence
@@ -349,8 +342,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 let bestLevelTime = null;
                 
                 // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
-                if (soloBestSplits && soloBestSplits[completedLevel] && soloBestSplits[completedLevel - 1]) {
-                    bestLevelTime = soloBestSplits[completedLevel] - soloBestSplits[completedLevel - 1];
+                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
+                if (soloBestSplits && soloBestSplits[completedLevel]) {
+                    bestLevelTime = soloBestSplits[completedLevel];
                 }
                 
                 // Si on a un meilleur temps de référence, afficher le delta

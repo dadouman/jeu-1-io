@@ -35,6 +35,7 @@ class EmailService {
                 throw new Error('EMAIL_PASSWORD ou EMAIL_APP_PASSWORD manquant!');
             }
             
+            console.log('🔧 Création du transporter nodemailer...');
             const emailConfig = {
                 // Option 1: Gmail avec App Password
                 host: emailHost,
@@ -47,11 +48,13 @@ class EmailService {
             };
 
             this.transporter = nodemailer.createTransport(emailConfig);
+            console.log('✅ Transporter créé');
 
             // Vérifier la connexion (optionnel - on essaiera d'envoyer quand même)
             try {
+                console.log('🔍 Vérification de la connexion SMTP...');
                 await this.transporter.verify();
-                console.log('✅ Service d\'email initialisé avec succès');
+                console.log('✅ Vérification SMTP réussie');
             } catch (verifyError) {
                 console.warn('⚠️  Vérification SMTP échouée, mais on va essayer d\'envoyer:', verifyError.message);
             }

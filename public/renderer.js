@@ -376,6 +376,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         
         // TOUJOURS réinitialiser globalAlpha à 1.0 après l'affichage du delta
         ctx.globalAlpha = 1.0;
+    }
     
     ctx.textAlign = "left";
     

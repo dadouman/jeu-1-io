@@ -49,6 +49,11 @@ function renderSoloResults(ctx, canvas, soloTotalTime, soloPersonalBestTime, sol
  * Affiche les temps de split pour chaque niveau
  */
 function renderSoloSplitTimes(ctx, canvas, soloSplitTimes) {
+    // Sécurité: vérifier soloSplitTimes
+    if (!soloSplitTimes || !Array.isArray(soloSplitTimes) || soloSplitTimes.length === 0) {
+        return;
+    }
+    
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 18px Arial";
     ctx.textAlign = "left";
@@ -66,11 +71,14 @@ function renderSoloSplitTimes(ctx, canvas, soloSplitTimes) {
         
         // Récupérer le meilleur checkpoint personnel
         let personalBestCheckpoint = null;
-        if (window.soloLeaderboard && window.soloLeaderboard.length > 0) {
+        if (window.soloLeaderboard && 
+            Array.isArray(window.soloLeaderboard) && 
+            window.soloLeaderboard.length > 0 && 
+            window.soloPersonalBestTime) {
             const personalBestEntry = window.soloLeaderboard.find(entry => 
-                Math.abs(entry.totalTime - window.soloPersonalBestTime) < 0.1
+                entry && entry.totalTime && Math.abs(entry.totalTime - window.soloPersonalBestTime) < 0.1
             );
-            if (personalBestEntry?.splitTimes?.[i]) {
+            if (personalBestEntry && personalBestEntry.splitTimes && personalBestEntry.splitTimes[i]) {
                 personalBestCheckpoint = personalBestEntry.splitTimes[i];
             }
         }
@@ -97,6 +105,11 @@ function renderSoloSplitTimes(ctx, canvas, soloSplitTimes) {
  * Affiche le leaderboard top 5
  */
 function renderSoloLeaderboard(ctx, canvas) {
+    // Sécurité: vérifier window.soloLeaderboard
+    if (!window.soloLeaderboard || !Array.isArray(window.soloLeaderboard) || window.soloLeaderboard.length === 0) {
+        return;
+    }
+    
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 18px Arial";
     ctx.textAlign = "left";
@@ -108,10 +121,14 @@ function renderSoloLeaderboard(ctx, canvas) {
     const leaderboardStart = 250;
     const leaderboardSpacing = 20;
     
-    if (!window.soloLeaderboard?.length) return;
-    
     for (let i = 0; i < Math.min(5, window.soloLeaderboard.length); i++) {
         const entry = window.soloLeaderboard[i];
+        
+        // Sécurité: vérifier que entry existe et a totalTime
+        if (!entry || typeof entry.totalTime !== 'number') {
+            continue;
+        }
+        
         const medal = ['🥇', '🥈', '🥉'][i] || (i + 1);
         const text = `${medal} ${entry.totalTime.toFixed(2)}s`;
         

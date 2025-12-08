@@ -14,8 +14,18 @@ const TILE_SIZE = 40;
 function renderPlayers(ctx, players, currentGameMode) {
     if (currentGameMode === 'solo') return; // Solo players rendus différemment
     
+    // Sécurité: vérifier players
+    if (!players || typeof players !== 'object') {
+        return;
+    }
+    
     for (let id in players) {
         const p = players[id];
+        
+        // Sécurité: vérifier player et propriétés essentielles
+        if (!p || typeof p.x !== 'number' || typeof p.y !== 'number' || !p.skin) {
+            continue;
+        }
         
         // Dessin du Skin
         ctx.font = "30px Arial";
@@ -26,7 +36,7 @@ function renderPlayers(ctx, players, currentGameMode) {
         // Dessin du Score (petit au dessus)
         ctx.fillStyle = "white";
         ctx.font = "12px Arial";
-        ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
+        ctx.fillText(p.score || 0, p.x + TILE_SIZE/2, p.y - 10);
     }
 }
 

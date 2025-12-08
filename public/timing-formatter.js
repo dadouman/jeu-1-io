@@ -49,11 +49,16 @@ function getDeltaColor(deltaTime) {
  * @returns {number|null} Meilleur temps ou null
  */
 function getBestLevelTime(level, preferences) {
-    if (preferences.showPersonal && preferences.personalBestSplits && preferences.personalBestSplits[level]) {
+    // Sécurité: vérifier preferences
+    if (!preferences || typeof preferences !== 'object') {
+        return null;
+    }
+    
+    if (preferences.showPersonal && preferences.personalBestSplits && typeof preferences.personalBestSplits === 'object' && preferences.personalBestSplits[level]) {
         return preferences.personalBestSplits[level];
     }
     
-    if (preferences.bestSplits && preferences.bestSplits[level]) {
+    if (preferences.bestSplits && typeof preferences.bestSplits === 'object' && preferences.bestSplits[level]) {
         return preferences.bestSplits[level];
     }
     

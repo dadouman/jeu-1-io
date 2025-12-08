@@ -539,6 +539,12 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
     const BOX_SPACING = 70;
     const START_X = 20;
 
+    // Positionner en bas du canvas, juste au-dessus de la zone du brouillard
+    // Centré pour symétrie avec le HUD du temps au-dessus du brouillard
+    const TOTAL_WIDTH = (FEATURES.length * BOX_SPACING) - BOX_SPACING + BOX_SIZE;
+    const CENTER_X = (canvas.width - TOTAL_WIDTH) / 2;
+    const BOTTOM_Y = canvas.height / 2 + 240; // Juste en dessous du brouillard
+
     // Helper: Dessiner un rectangle arrondi
     const drawRoundRect = (x, y, width, height, radius) => {
         ctx.beginPath();
@@ -556,8 +562,8 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
 
     // Iterate through each feature
     FEATURES.forEach((feature, index) => {
-        const x = START_X + (index * BOX_SPACING);
-        const y = HUD_TOP;
+        const x = CENTER_X + (index * BOX_SPACING);
+        const y = BOTTOM_Y;
 
         const isUnlocked = feature.id === 'speedBoost' 
             ? purchasedFeatures[feature.id] > 0 

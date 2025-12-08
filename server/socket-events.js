@@ -211,6 +211,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             // Fermer le shop immédiatement
             shopManager.closeShop();
             session.levelStartTime = Date.now();
+            session.shopEndTime = null;  // ← Nettoyer pour éviter de réinitialiser à nouveau
             
             console.log(`✅ [SOLO] Joueur ${playerId} a validé et quitté le shop après le niveau ${session.currentLevel - 1}`);
             

@@ -20,8 +20,9 @@ function processSoloGameLoop(soloSessions, io, {
         processSoloGameLoop.shopManagers = {};
     }
 
-    for (const playerId in soloSessions) {
+    for (const playerId of Object.keys(soloSessions)) {
         const session = soloSessions[playerId];
+        if (!session) continue; // La session a peut-être été supprimée
         const player = session.player;
         
         // Vérifier si le shop est terminé et réinitialiser levelStartTime
@@ -46,6 +47,12 @@ function processSoloGameLoop(soloSessions, io, {
         
         if (dist < 30 && !isCollisionBlocked) {
             // En solo, on track le temps du checkpoint
+            // ⚠️ IMPORTANT: levelStartTime ne doit PAS être null à ce stade (sinon NaN)
+            if (!session.levelStartTime) {
+                console.error(`❌ [SOLO] ERREUR: levelStartTime est null pour le joueur ${playerId} au niveau ${session.currentLevel}`);
+                return; // Éviter le NaN
+            }
+            
             const checkpointTime = (Date.now() - session.levelStartTime) / 1000;
             session.splitTimes.push(checkpointTime);
             
@@ -110,6 +117,7 @@ function processSoloGameLoop(soloSessions, io, {
                         session.coin = getRandomEmptyPosition(session.map);
                         // Mémoriser le temps de fin du shop pour réinitialiser levelStartTime après
                         session.shopEndTime = Date.now() + SHOP_DURATION;
+                        // ⚠️ NE PAS RÉINITIALISER levelStartTime ici - il sera réinitialisé quand le shop ferme
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
                         console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {

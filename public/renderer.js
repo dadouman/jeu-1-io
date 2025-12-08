@@ -150,9 +150,23 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     
     ctx.textAlign = "left";
     
+    // === ASSURER globalAlpha = 1.0 AVANT de redessiner le joueur ===
+    ctx.globalAlpha = 1.0;
+    
     // Redessiner le joueur EN DEHORS du brouillard pour qu'il soit opaque
-    if (typeof renderSoloPlayer === 'function') {
-        renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
+    // En solo: affichage spécial au centre
+    if (currentGameMode === 'solo') {
+        if (typeof renderSoloPlayer === 'function') {
+            renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
+        }
+    } else {
+        // En classique/infini: affichage du joueur à son vrai endroit mais OPAQUE
+        if (myPlayer && myPlayer.skin) {
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+        }
     }
     
     // --- AFFICHAGE DU SHOP ---

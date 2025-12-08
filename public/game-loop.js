@@ -132,6 +132,20 @@ function continuousRender() {
             soloRunTotalTime = soloTotalTime; // Utiliser le temps sauvegardé
         }
         
+        // Calculer le delta time (différence avec le record)
+        let soloDeltaTime = null;
+        let soloDeltaReference = null; // 'personal' ou 'global'
+        
+        if (soloRunTotalTime > 0) {
+            if (soloShowPersonalDelta && soloPersonalBestTime) {
+                soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
+                soloDeltaReference = 'personal';
+            } else if (soloLeaderboardBest) {
+                soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
+                soloDeltaReference = 'global';
+            }
+        }
+        
         const zoomLevel = typeof calculateZoomForMode === 'function' ? calculateZoomForMode(level) : Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         

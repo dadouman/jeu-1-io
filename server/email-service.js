@@ -100,11 +100,16 @@ class EmailService {
         };
 
         try {
-            const info = await this.transporter.sendMail(mailOptions);
+            // Ajouter un timeout pour ne pas bloquer indéfiniment
+            const sendPromise = this.transporter.sendMail(mailOptions);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout d\'envoi')), 10000)
+            );
+            const info = await Promise.race([sendPromise, timeoutPromise]);
             console.log('✅ Email de test envoyé:', info.response);
         } catch (error) {
             console.error('❌ Erreur lors de l\'envoi de l\'email de test:', error.message);
-            throw error;
+            // Ne pas throw - laisser le serveur continuer même si le mail échoue
         }
     }
 
@@ -163,13 +168,17 @@ ${bugReport.logs.map(log =>
                 replyTo: bugReport.email || 'noreply@jeu.io'
             };
 
-            // Envoyer l'email
-            const info = await this.transporter.sendMail(mailOptions);
+            // Envoyer l'email avec timeout
+            const sendPromise = this.transporter.sendMail(mailOptions);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout d\'envoi email')), 10000)
+            );
+            const info = await Promise.race([sendPromise, timeoutPromise]);
             console.log(`✅ Email de notification envoyé: ${info.messageId}`);
             
             return true;
         } catch (error) {
-            console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
+            console.error('❌ Erreur lors de l\'envoi de l\'email:', error.message);
             return false;
         }
     }

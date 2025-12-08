@@ -1,15 +1,15 @@
-// server/email-service.js - Service pour envoyer les notifications par email
+// server/email-service.js - Service pour envoyer les notifications par email via SendGrid
 
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 /**
  * Service d'email pour les rapports de bugs
- * Configure le transport email et envoie les notifications
+ * Utilise SendGrid API pour envoyer les notifications
  */
 class EmailService {
     constructor() {
         this.initialized = false;
-        this.transporter = null;
+        this.apiKey = null;
     }
 
     /**
@@ -18,47 +18,22 @@ class EmailService {
      */
     async initialize() {
         try {
-            // Configuration pour Gmail (ou utiliser un service SMTP)
-            // Note: Vous devez configurer une "App Password" dans Gmail
-            // ou utiliser un service comme SendGrid, Mailgun, etc.
-            
+            // Configuration SendGrid
+            const apiKey = (process.env.SENDGRID_API_KEY || '').trim();
             const emailUser = process.env.EMAIL_USER || 'sabatini79@gmail.com';
-            const emailPass = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || '').trim();
             
-            // DEBUG: Afficher les variables (sans le password!)
-            console.log(`📧 Email Config: user=${emailUser}, hasPassword=${!!emailPass}`);
+            // DEBUG: Afficher les variables (sans l'API key!)
+            console.log(`📧 Email Config: user=${emailUser}, hasApiKey=${!!apiKey}`);
             
-            if (!emailPass) {
-                throw new Error('EMAIL_PASSWORD ou EMAIL_APP_PASSWORD manquant!');
+            if (!apiKey) {
+                throw new Error('SENDGRID_API_KEY manquant!');
             }
             
-            console.log('🔧 Création du transporter nodemailer...');
-            const emailConfig = {
-                // Configuration Gmail optimisée
-                service: 'gmail',  // ← Utiliser 'service' au lieu de host/port
-                auth: {
-                    user: emailUser,
-                    pass: emailPass
-                }
-            };
+            console.log('🔧 Configuration de SendGrid...');
+            sgMail.setApiKey(apiKey);
+            this.apiKey = apiKey;
+            console.log('✅ SendGrid configuré');
 
-            this.transporter = nodemailer.createTransport(emailConfig);
-            console.log('✅ Transporter créé');
-
-            // Vérifier la connexion (optionnel - on essaiera d'envoyer quand même)
-            try {
-                console.log('🔍 Vérification de la connexion SMTP...');
-                // Ajouter un timeout pour ne pas bloquer indéfiniment
-                const verifyPromise = this.transporter.verify();
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Timeout de vérification')), 5000)
-                );
-                await Promise.race([verifyPromise, timeoutPromise]);
-                console.log('✅ Vérification SMTP réussie');
-            } catch (verifyError) {
-                console.warn('⚠️  Vérification SMTP échouée:', verifyError.message, '(mais on continue)');
-            }
-            
             // Envoyer un email de test à l'initialisation
             try {
                 console.log('📧 Envoi d\'un email de test...');
@@ -66,7 +41,6 @@ class EmailService {
                 console.log('✅ Email de test envoyé avec succès!');
             } catch (testError) {
                 console.error('❌ Erreur lors de l\'envoi de l\'email de test:', testError.message);
-                console.error('Stack:', testError.stack);
             }
             
             this.initialized = true;
@@ -86,27 +60,27 @@ class EmailService {
     async sendTestEmail() {
         const adminEmail = process.env.EMAIL_USER || 'sabatini79@gmail.com';
         
-        const mailOptions = {
-            from: adminEmail,
+        const msg = {
             to: adminEmail,
-            subject: '✅ Service d\'email initialisé - Jeu .io',
+            from: 'noreply@jeu.io',
+            subject: '✅ Service d\'email SendGrid initialisé - Jeu .io',
             html: `
-                <h2>🎉 Service d'email fonctionnel!</h2>
+                <h2>🎉 Service d'email SendGrid fonctionnel!</h2>
                 <p><strong>Serveur redémarré:</strong> ${new Date().toLocaleString('fr-FR')}</p>
-                <p>Le système de report de bugs est opérationnel.</p>
+                <p>Le système de report de bugs est opérationnel et peut envoyer des notifications.</p>
                 <hr>
-                <p><small>Cet email a été envoyé automatiquement pour vérifier la connectivité SMTP.</small></p>
+                <p><small>Cet email a été envoyé automatiquement pour vérifier que SendGrid est configuré correctement.</small></p>
             `
         };
 
         try {
             // Ajouter un timeout pour ne pas bloquer indéfiniment
-            const sendPromise = this.transporter.sendMail(mailOptions);
+            const sendPromise = sgMail.send(msg);
             const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Timeout d\'envoi')), 10000)
             );
             const info = await Promise.race([sendPromise, timeoutPromise]);
-            console.log('✅ Email de test envoyé:', info.response);
+            console.log('✅ Email de test SendGrid envoyé');
         } catch (error) {
             console.error('❌ Erreur lors de l\'envoi de l\'email de test:', error.message);
             // Ne pas throw - laisser le serveur continuer même si le mail échoue
@@ -160,21 +134,21 @@ ${bugReport.logs.map(log =>
                 </p>
             `;
 
-            const mailOptions = {
-                from: process.env.EMAIL_USER || 'sabatini79@gmail.com',
+            const msg = {
                 to: 'sabatini79@gmail.com',
+                from: 'noreply@jeu.io',
                 subject: `🚨 Nouveau Bug Reporté - ${bugReport.description.substring(0, 50)}...`,
                 html: htmlContent,
                 replyTo: bugReport.email || 'noreply@jeu.io'
             };
 
             // Envoyer l'email avec timeout
-            const sendPromise = this.transporter.sendMail(mailOptions);
+            const sendPromise = sgMail.send(msg);
             const timeoutPromise = new Promise((_, reject) => 
                 setTimeout(() => reject(new Error('Timeout d\'envoi email')), 10000)
             );
-            const info = await Promise.race([sendPromise, timeoutPromise]);
-            console.log(`✅ Email de notification envoyé: ${info.messageId}`);
+            await Promise.race([sendPromise, timeoutPromise]);
+            console.log(`✅ Email de notification SendGrid envoyé pour le bug ${bugReport._id}`);
             
             return true;
         } catch (error) {
@@ -192,9 +166,9 @@ ${bugReport.logs.map(log =>
         if (!this.initialized || !userEmail) return false;
 
         try {
-            const mailOptions = {
-                from: process.env.EMAIL_USER || 'sabatini79@gmail.com',
+            const msg = {
                 to: userEmail,
+                from: 'noreply@jeu.io',
                 subject: '✅ Merci pour votre rapport de bug',
                 html: `
                     <h2>Merci pour votre aide!</h2>
@@ -208,11 +182,11 @@ ${bugReport.logs.map(log =>
                 `
             };
 
-            await this.transporter.sendMail(mailOptions);
-            console.log(`✅ Email de confirmation envoyé à ${userEmail}`);
+            await sgMail.send(msg);
+            console.log(`✅ Email de confirmation SendGrid envoyé à ${userEmail}`);
             return true;
         } catch (error) {
-            console.error('❌ Erreur lors de l\'envoi du email de confirmation:', error);
+            console.error('❌ Erreur lors de l\'envoi du email de confirmation:', error.message);
             return false;
         }
     }

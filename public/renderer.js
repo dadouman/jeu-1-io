@@ -1,7 +1,5 @@
 // public/renderer.js
 
-const TILE_SIZE = 40;
-
 /**
  * Retourne les zones cliquables des items du shop
  * @param {number} canvasWidth 
@@ -98,119 +96,20 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.scale(zoomLevel, zoomLevel);
     ctx.translate(-myPlayer.x, -myPlayer.y);
 
-    // 5. Map - Rendu optimisé avec murs continus sans séparations visuelles
-    for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[0].length; x++) {
-            if (map[y][x] === 1) {
-                // Mur - couleur principale
-                ctx.fillStyle = "#3a3a3a";
-                ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                
-                // Ombres subtiles pour créer une profondeur sans bordures
-                // Vérifier les voisins pour déterminer où ajouter les ombres
-                const hasTopWall = y > 0 && map[y - 1][x] === 1;
-                const hasLeftWall = x > 0 && map[y][x - 1] === 1;
-                const hasBottomWall = y < map.length - 1 && map[y + 1][x] === 1;
-                const hasRightWall = x < map[0].length - 1 && map[y][x + 1] === 1;
-                
-                // Ombre en haut-gauche (bord exposé)
-                if (!hasTopWall || !hasLeftWall) {
-                    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
-                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, 2);
-                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, 2, TILE_SIZE);
-                }
-                
-                // Highlight en bas-droite (bord intérieur)
-                if (!hasBottomWall || !hasRightWall) {
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE + TILE_SIZE - 2, TILE_SIZE, 2);
-                    ctx.fillRect(x * TILE_SIZE + TILE_SIZE - 2, y * TILE_SIZE, 2, TILE_SIZE);
-                }
-            }
-        }
-    }
+    // 5. Map rendering
+    renderMap(ctx, map);
 
-    // 5.5 Traces des joueurs (les corder qui suivent leur parcours)
-    if (trails && Object.keys(trails).length > 0) {
-        for (let playerId in trails) {
-            const trail = trails[playerId];
-            if (trail.positions && trail.positions.length > 1) {
-                const savedGlobalAlpha = ctx.globalAlpha;
-                ctx.strokeStyle = trail.color;
-                ctx.globalAlpha = 0.5; // Semi-transparent
-                ctx.lineWidth = 3;
-                ctx.lineCap = "round";
-                ctx.lineJoin = "round";
-                
-                // Dessiner une ligne qui relie tous les points de la trace
-                ctx.beginPath();
-                ctx.moveTo(trail.positions[0].x + TILE_SIZE/2, trail.positions[0].y + TILE_SIZE/2);
-                for (let i = 1; i < trail.positions.length; i++) {
-                    ctx.lineTo(trail.positions[i].x + TILE_SIZE/2, trail.positions[i].y + TILE_SIZE/2);
-                }
-                ctx.stroke();
-                // Restaurer globalAlpha IMMÉDIATEMENT après chaque trail
-                ctx.globalAlpha = savedGlobalAlpha;
-            }
-        }
-    }
+    // 5.5 Trails rendering
+    renderTrails(ctx, trails);
 
-    // 6. Pièce - Avec texture solide
-    if (coin) {
-        // Fond coloré pour la gem (texture solide)
-        ctx.fillStyle = "rgba(255, 215, 0, 0.9)"; // Or semi-opaque
-        ctx.beginPath();
-        ctx.arc(coin.x + TILE_SIZE/2, coin.y + TILE_SIZE/2, 16, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Bordure pour plus de définition
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // Emoji gem par-dessus
-        ctx.font = "26px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("💎", coin.x + TILE_SIZE/2, coin.y + TILE_SIZE/2);
-    }
+    // 6. Coin (Gem) rendering
+    renderCoin(ctx, coin);
 
-    // 6.5 Checkpoint (s'il existe)
-    if (checkpoint) {
-        // Aura d'animation autour du checkpoint
-        ctx.fillStyle = "rgba(255, 100, 200, 0.3)";
-        ctx.beginPath();
-        ctx.arc(checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2, 25, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Dessin du checkpoint
-        ctx.font = "30px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("🚩", checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2);
-    }
+    // 6.5 Checkpoint rendering
+    renderCheckpoint(ctx, checkpoint);
 
-    // 7. Joueurs - Afficher les joueurs selon le mode
-    if (currentGameMode === 'solo') {
-        // En solo: afficher le joueur au centre (après le brouillard)
-        // (sera dessiné plus bas pour éviter le double rendu)
-    } else {
-        // En classique/infini: afficher tous les joueurs
-        for (let id in players) {
-            const p = players[id];
-            
-            // Dessin du Skin
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(p.skin, p.x + TILE_SIZE/2, p.y + TILE_SIZE/2);
-            
-            // Dessin du Score (petit au dessus)
-            ctx.fillStyle = "white";
-            ctx.font = "12px Arial";
-            ctx.fillText(p.score, p.x + TILE_SIZE/2, p.y - 10);
-        }
-    }
+    // 7. Players rendering
+    renderPlayers(ctx, players, currentGameMode);
 
     ctx.restore(); // Fin Caméra
 
@@ -222,177 +121,22 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     // --- UI MINIMALISTE EN SOLO MODE ---
     if (currentGameMode === 'solo') {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
+        const preferences = {
+            showPersonal: soloShowPersonalDelta,
+            personalBestSplits: soloPersonalBestSplits,
+            bestSplits: soloBestSplits
+        };
         
-        if (soloRunTotalTime >= 0) {
-            // === LIGNE 1: Temps Total en couleur neutre (blanc/gris) ===
-            const totalSeconds = Math.floor(soloRunTotalTime);
-            const totalMinutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            const milliseconds = Math.round((soloRunTotalTime - totalSeconds) * 1000);
-            const timeFormatted = `${totalMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
-            
-            ctx.fillStyle = "#CCCCCC"; // Couleur neutre (gris clair)
-            ctx.font = "bold 32px Arial";
-            ctx.fillText(timeFormatted, canvas.width / 2, canvas.height / 2 + 220);
-            
-            // === LIGNE 2: Delta du split actuel (niveau en cours) ===
-            // CAS 1 : Run terminée (splits finalisés disponibles dans soloSplitTimes)
-            if (isSoloGameFinished && soloSplitTimes && soloSplitTimes.length >= level) {
-                // Les splits finalisés sont disponibles - afficher le temps du niveau avec delta
-                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
-                const currentLevelTime = soloSplitTimes[level - 1];
-                
-                // Chercher le meilleur temps du NIVEAU
-                let bestLevelTime = null;
-                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
-                    bestLevelTime = soloPersonalBestSplits[level];
-                } else if (soloBestSplits && soloBestSplits[level]) {
-                    bestLevelTime = soloBestSplits[level];
-                }
-                
-                // Afficher avec delta si on a une référence
-                if (bestLevelTime && bestLevelTime > 0) {
-                    const levelDelta = currentLevelTime - bestLevelTime;
-                    const deltaSeconds = Math.floor(Math.abs(levelDelta));
-                    const deltaMinutes = Math.floor(deltaSeconds / 60);
-                    const deltaSecs = deltaSeconds % 60;
-                    const deltaMilliseconds = Math.round((Math.abs(levelDelta) - deltaSeconds) * 1000);
-                    const deltaFormatted = `${levelDelta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
-                    
-                    const deltaColor = levelDelta >= 0 ? '#FF6B6B' : '#00FF00';
-                    ctx.fillStyle = deltaColor;
-                    ctx.font = "bold 24px Arial";
-                    ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
-                } else {
-                    // Pas de meilleur temps, afficher le temps du niveau sans delta
-                    const levelSeconds = Math.floor(currentLevelTime);
-                    const levelMinutes = Math.floor(levelSeconds / 60);
-                    const levelSecs = levelSeconds % 60;
-                    const levelMilliseconds = Math.round((currentLevelTime - levelSeconds) * 1000);
-                    const levelFormatted = `${levelMinutes.toString().padStart(2, '0')}:${levelSecs.toString().padStart(2, '0')}.${levelMilliseconds.toString().padStart(3, '0')}`;
-                    
-                    ctx.fillStyle = "#CCCCCC";
-                    ctx.font = "bold 24px Arial";
-                    ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
-                }
-            }
-            // CAS 2 : Run en cours - afficher le temps du niveau actuel avec delta
-            else if (currentLevelTime > 0 && level > 1) {
-                // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
-                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
-                let bestLevelTime = null;
-                
-                if (soloBestSplits && soloBestSplits[level]) {
-                    bestLevelTime = soloBestSplits[level];
-                }
-                
-                // Afficher le delta du niveau actuel si on a une référence
-                if (bestLevelTime && bestLevelTime > 0) {
-                    const levelDelta = currentLevelTime - bestLevelTime;
-                    const deltaSeconds = Math.floor(Math.abs(levelDelta));
-                    const deltaMinutes = Math.floor(deltaSeconds / 60);
-                    const deltaSecs = deltaSeconds % 60;
-                    const deltaMilliseconds = Math.round((Math.abs(levelDelta) - deltaSeconds) * 1000);
-                    const deltaFormatted = `${levelDelta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
-                    
-                    const deltaColor = levelDelta >= 0 ? '#FF6B6B' : '#00FF00';
-                    ctx.fillStyle = deltaColor;
-                    ctx.font = "bold 24px Arial";
-                    ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
-                } else {
-                    // Pas de référence, afficher juste le temps du niveau actuel
-                    const levelSeconds = Math.floor(currentLevelTime);
-                    const levelMinutes = Math.floor(levelSeconds / 60);
-                    const levelSecs = levelSeconds % 60;
-                    const levelMilliseconds = Math.round((currentLevelTime - levelSeconds) * 1000);
-                    const levelFormatted = `${levelMinutes.toString().padStart(2, '0')}:${levelSecs.toString().padStart(2, '0')}.${levelMilliseconds.toString().padStart(3, '0')}`;
-                    
-                    ctx.fillStyle = "#CCCCCC";
-                    ctx.font = "bold 24px Arial";
-                    ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
-                }
-            }
-            // CAS 3 : Premier niveau - pas de delta possible
-            else if (currentLevelTime > 0) {
-                // Afficher juste le temps du premier niveau
-                const levelSeconds = Math.floor(currentLevelTime);
-                const levelMinutes = Math.floor(levelSeconds / 60);
-                const levelSecs = levelSeconds % 60;
-                const levelMilliseconds = Math.round((currentLevelTime - levelSeconds) * 1000);
-                const levelFormatted = `${levelMinutes.toString().padStart(2, '0')}:${levelSecs.toString().padStart(2, '0')}.${levelMilliseconds.toString().padStart(3, '0')}`;
-                
-                ctx.fillStyle = "#CCCCCC";
-                ctx.font = "bold 24px Arial";
-                ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
-            }
-            
-            // === LIGNE 3: Niveau actuel en or ===
-            ctx.fillStyle = "#FFD700"; // Or
-            ctx.font = "bold 20px Arial";
-            ctx.fillText(`Niveau ${level} / ${soloMaxLevel}`, canvas.width / 2, canvas.height / 2 + 295);
-        }
+        renderSoloHUD(ctx, canvas, soloRunTotalTime, level, currentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel);
+        renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
         
-        // === AFFICHAGE TEMPORAIRE DU DELTA APRÈS AVOIR PRIS UNE GEM (1-2s) ===
-        if (currentGameMode === 'solo' && soloLastGemTime && soloLastGemLevel) {
-            const timeSinceGem = Date.now() - soloLastGemTime;
-            const DISPLAY_DURATION = 1500; // 1.5 secondes
-            
-            if (timeSinceGem < DISPLAY_DURATION) {
-                // Calculer le delta du niveau complété
-                const completedLevel = soloLastGemLevel;
-                let bestLevelTime = null;
-                
-                // Chercher le meilleur temps pour ce niveau dans les splits mondiaux
-                // Les splits sont les temps INDIVIDUELS de chaque niveau (pas cumulatifs)
-                if (soloBestSplits && soloBestSplits[completedLevel]) {
-                    bestLevelTime = soloBestSplits[completedLevel];
-                }
-                
-                // Si on a un meilleur temps de référence, afficher le delta
-                if (bestLevelTime && bestLevelTime > 0) {
-                    // Le temps était enregistré au moment de la gem (levelUpTime)
-                    const playerLevelTime = levelUpTime || 0;
-                    const levelDelta = playerLevelTime - bestLevelTime;
-                    
-                    const deltaSeconds = Math.floor(Math.abs(levelDelta));
-                    const deltaMinutes = Math.floor(deltaSeconds / 60);
-                    const deltaSecs = deltaSeconds % 60;
-                    const deltaMilliseconds = Math.round((Math.abs(levelDelta) - deltaSeconds) * 1000);
-                    const deltaFormatted = `${levelDelta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
-                    
-                    // Affichage avec animation de fade-out
-                    const fadeAlpha = 1.0 - (timeSinceGem / DISPLAY_DURATION); // Fade from 1 to 0
-                    const deltaColor = levelDelta >= 0 ? '#FF6B6B' : '#00FF00';
-                    
-                    ctx.globalAlpha = fadeAlpha;
-                    ctx.fillStyle = deltaColor;
-                    ctx.font = "bold 48px Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 - 100);
-                }
-            } else {
-                // Réinitialiser après la durée d'affichage
-                soloLastGemTime = null;
-                soloLastGemLevel = null;
-            }
-        }
-        
-        // TOUJOURS réinitialiser globalAlpha à 1.0 après l'affichage du delta
         ctx.globalAlpha = 1.0;
     }
     
     ctx.textAlign = "left";
     
     // Redessiner le joueur EN DEHORS du brouillard pour qu'il soit opaque
-    if (currentGameMode === 'solo' && myPlayer) {
-        ctx.font = "30px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        // Position du joueur au centre de l'écran
-        ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
-    }
+    renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
     
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen) {

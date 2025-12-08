@@ -931,10 +931,12 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
 
         // === INDICATEUR DE DÉVERROUILLAGE ===
         if (!isUnlocked) {
-            // Afficher "🔒" en mini
-            ctx.font = "10px Arial";
+            // Afficher le cadenas aussi gros que l'emoji, au-dessus du cercle
+            ctx.font = "28px Arial";
             ctx.fillStyle = '#FF6B6B';
-            ctx.fillText('🔒', x + BOX_SIZE / 2, y + 10);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText('🔒', x + BOX_SIZE / 2, y + BOX_SIZE / 2 - 12);
         } else if (feature.isStackable && purchasedFeatures[feature.id] > 0) {
             // Pour la vitesse: afficher le nombre de fois débloquées
             ctx.font = "bold 12px Arial";

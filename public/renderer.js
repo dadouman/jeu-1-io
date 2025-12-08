@@ -97,19 +97,29 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.translate(-myPlayer.x, -myPlayer.y);
 
     // 5. Map rendering
-    renderMap(ctx, map);
+    if (typeof renderMap === 'function') {
+        renderMap(ctx, map);
+    }
 
     // 5.5 Trails rendering
-    renderTrails(ctx, trails);
+    if (typeof renderTrails === 'function') {
+        renderTrails(ctx, trails);
+    }
 
     // 6. Coin (Gem) rendering
-    renderCoin(ctx, coin);
+    if (typeof renderCoin === 'function') {
+        renderCoin(ctx, coin);
+    }
 
     // 6.5 Checkpoint rendering
-    renderCheckpoint(ctx, checkpoint);
+    if (typeof renderCheckpoint === 'function') {
+        renderCheckpoint(ctx, checkpoint);
+    }
 
     // 7. Players rendering
-    renderPlayers(ctx, players, currentGameMode);
+    if (typeof renderPlayers === 'function') {
+        renderPlayers(ctx, players, currentGameMode);
+    }
 
     ctx.restore(); // Fin Caméra + Fin clipping
 
@@ -128,8 +138,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             bestSplits: soloBestSplits
         };
         
-        renderSoloHUD(ctx, canvas, soloRunTotalTime, level, currentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel);
-        renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
+        if (typeof renderSoloHUD === 'function') {
+            renderSoloHUD(ctx, canvas, soloRunTotalTime, level, currentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel);
+        }
+        if (typeof renderSoloGemDelta === 'function') {
+            renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
+        }
         
         ctx.globalAlpha = 1.0;
     }
@@ -137,31 +151,33 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.textAlign = "left";
     
     // Redessiner le joueur EN DEHORS du brouillard pour qu'il soit opaque
-    renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
+    if (typeof renderSoloPlayer === 'function') {
+        renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
+    }
     
     // --- AFFICHAGE DU SHOP ---
-    if (isShopOpen) {
+    if (isShopOpen && typeof renderShop === 'function') {
         renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---
-    if (isSoloGameFinished) {
+    if (isSoloGameFinished && typeof renderSoloResults === 'function') {
         renderSoloResults(ctx, canvas, soloTotalTime, soloPersonalBestTime, soloSplitTimes);
         return; // Ne pas afficher le reste du jeu
     }
 
     // --- ÉCRAN DE TRANSITION ---
-    if (isInTransition && transitionProgress < 1.0 && soloRunTotalTime === 0) {
+    if (isInTransition && transitionProgress < 1.0 && soloRunTotalTime === 0 && typeof renderTransition === 'function') {
         renderTransition(ctx, canvas, level, isFirstLevel, playerCountStart, levelUpPlayerSkin, levelUpTime, players, myId, transitionProgress);
     }
 
     // --- AFFICHAGE DU VOTE EN BAS ---
-    if (isVoteActive) {
+    if (isVoteActive && typeof renderVoting === 'function') {
         renderVoting(ctx, canvas, voteTimeRemaining);
     }
 
     // --- AFFICHAGE DU RÉSULTAT DU VOTE ---
-    if (voteResult) {
+    if (voteResult && typeof renderVoteResult === 'function') {
         renderVoteResult(ctx, canvas, voteResult);
     }
 

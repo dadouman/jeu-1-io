@@ -232,10 +232,19 @@ socket.on('soloLeaderboard', (data) => {
         soloPersonalBestTime = parseFloat(savedPersonalBest);
     }
     
+    // Charger les meilleurs splits personnels depuis localStorage
+    const savedPersonalSplits = localStorage.getItem('soloPersonalBestSplits');
+    if (savedPersonalSplits) {
+        soloPersonalBestSplits = JSON.parse(savedPersonalSplits);
+    }
+    
     // Si ce temps est meilleur que le précédent, le sauvegarder
     if (!soloPersonalBestTime || soloTotalTime < soloPersonalBestTime) {
         soloPersonalBestTime = soloTotalTime;
+        soloPersonalBestSplits = soloSplitTimes && soloSplitTimes.length > 0 ? 
+            soloSplitTimes.reduce((acc, split, idx) => { acc[idx + 1] = split; return acc; }, {}) : {};
         localStorage.setItem('soloPersonalBest', soloTotalTime.toString());
+        localStorage.setItem('soloPersonalBestSplits', JSON.stringify(soloPersonalBestSplits));
     }
     
     // Calculer le rang du joueur actuel

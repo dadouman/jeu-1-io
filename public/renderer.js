@@ -190,9 +190,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText("🚩", checkpoint.x + TILE_SIZE/2, checkpoint.y + TILE_SIZE/2);
     }
 
-    // 7. Joueurs - COMMENTÉ EN SOLO pour éviter le double rendu
-    // Le joueur est redessiné en opaque après sortie du clip (voir plus bas)
-    if (soloRunTotalTime === 0) {  // Uniquement en classique/infini, pas en solo
+    // 7. Joueurs - Afficher les joueurs selon le mode
+    if (currentGameMode === 'solo') {
+        // En solo: afficher le joueur au centre (après le brouillard)
+        // (sera dessiné plus bas pour éviter le double rendu)
+    } else {
+        // En classique/infini: afficher tous les joueurs
         for (let id in players) {
             const p = players[id];
             

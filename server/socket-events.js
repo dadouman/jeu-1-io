@@ -208,17 +208,15 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 return;
             }
             
-            // Récupérer le shopManager pour cette session
-            const shopManager = processSoloGameLoop.shopManagers[playerId];
-            if (!shopManager || !shopManager.isShopCurrentlyActive) {
+            // Vérifier si un shop est actuellement actif (shopEndTime existe et n'est pas passé)
+            if (!session.shopEndTime || Date.now() > session.shopEndTime) {
                 console.log(`⚠️ [SOLO] Joueur ${playerId} a essayé de quitter un shop qui n'était pas actif`);
                 return;
             }
             
             // Fermer le shop immédiatement
-            shopManager.closeShop();
             session.levelStartTime = Date.now();
-            session.shopEndTime = null;  // ← Nettoyer pour éviter de réinitialiser à nouveau
+            session.shopEndTime = null;  // Nettoyer le flag du shop
             
             console.log(`✅ [SOLO] Joueur ${playerId} a validé et quitté le shop après le niveau ${session.currentLevel - 1}`);
             

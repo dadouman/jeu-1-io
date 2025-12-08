@@ -16,9 +16,12 @@ socket.on('mapData', (data) => {
     if (soloSessionStartTime === null && data && data.length > 0) {
         // Heuristique: si c'est une nouvelle session (level=1), initialiser le chrono
         soloSessionStartTime = Date.now();
-        // Demander les meilleurs splits mondiaux pour afficher le delta pendant la run
-        socket.emit('getSoloBestSplits');
     }
+});
+
+socket.on('requestSoloBestSplits', () => {
+    // Le serveur demande qu'on lui demande les meilleurs splits
+    socket.emit('getSoloBestSplits');
 });
 
 socket.on('highScoreUpdate', (data) => {

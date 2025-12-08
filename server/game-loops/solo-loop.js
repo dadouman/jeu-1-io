@@ -23,6 +23,14 @@ function processSoloGameLoop(soloSessions, io, {
     for (const playerId in soloSessions) {
         const session = soloSessions[playerId];
         const player = session.player;
+        
+        // Vérifier si le shop est terminé et réinitialiser levelStartTime
+        if (session.shopEndTime && Date.now() >= session.shopEndTime) {
+            session.levelStartTime = Date.now();
+            session.shopEndTime = null;
+            console.log(`✅ [SOLO] Shop fermé pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
+        }
+        
         const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
         
         // Créer un ShopManager pour cette session s'il n'existe pas
@@ -100,12 +108,14 @@ function processSoloGameLoop(soloSessions, io, {
                     if (shopManager.openShop(completedLevel)) {
                         // ✅ ShopManager gère tout - pas besoin de gérer currentShopLevel
                         session.coin = getRandomEmptyPosition(session.map);
-                        session.levelStartTime = Date.now() + SHOP_DURATION;
+                        // Mémoriser le temps de fin du shop pour réinitialiser levelStartTime après
+                        session.shopEndTime = Date.now() + SHOP_DURATION;
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
                         console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {
                         // Pas de shop, relancer le niveau immédiatement
                         session.levelStartTime = Date.now();
+                        session.shopEndTime = null;
                     }
                 }
             }

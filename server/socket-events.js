@@ -100,6 +100,10 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 socket.emit('levelUpdate', session.currentLevel);
                 socket.emit('gameModSelected', { mode: 'solo' });
                 
+                // Demander les meilleurs splits immédiatement pour le delta pendant la run
+                // Au lieu d'attendre le mapData côté client
+                socket.emit('requestSoloBestSplits');
+                
                 console.log(`   Session SOLO (10 niveaux) créée pour joueur ${socket.id}`);
             } else {
                 if (!lobbies[mode]) {
@@ -187,8 +191,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
-        // --- OBTENIR LES MEILLEURS SPLITS PAR NIVEAU ---
-        socket.on('getSoloBestSplits', async () => {
+        // --- OBTENIR LES MEILLEURS SPLITS PAR NIVEAU (requête côté CLIENT) ---
+        socket.on('getSoloBestSplits', requestSoloBestSplits);
+        socket.on('requestSoloBestSplits', requestSoloBestSplits);
+        
+        async function requestSoloBestSplits() {
             console.log(`📊 Demande des meilleurs splits solo`);
             
             if (mongoURI && SoloBestSplitsModel) {
@@ -211,7 +218,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             } else {
                 socket.emit('soloBestSplits', { splits: {} });
             }
-        });
+        }
 
         // --- OBTENIR LE LEADERBOARD SOLO ---
         socket.on('getSoloLeaderboard', async () => {

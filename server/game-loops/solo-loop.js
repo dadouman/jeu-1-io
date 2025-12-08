@@ -25,21 +25,30 @@ function processSoloGameLoop(soloSessions, io, {
         if (!session) continue; // La session a peut-être été supprimée
         const player = session.player;
         
-        // Vérifier si le shop est terminé et réinitialiser levelStartTime
-        if (session.shopEndTime && Date.now() >= session.shopEndTime) {
-            session.levelStartTime = Date.now();
-            session.shopEndTime = null;
-            console.log(`✅ [SOLO] Shop fermé pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
-        }
-        
-        const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
-        
         // Créer un ShopManager pour cette session s'il n'existe pas
         if (!processSoloGameLoop.shopManagers[playerId]) {
             const gameMode = new GameMode('solo');
             processSoloGameLoop.shopManagers[playerId] = new ShopManager(gameMode);
         }
         const shopManager = processSoloGameLoop.shopManagers[playerId];
+        
+        // Vérifier si le shop est terminé et réinitialiser levelStartTime
+        if (session.shopEndTime && Date.now() >= session.shopEndTime) {
+            session.levelStartTime = Date.now();
+            session.shopEndTime = null;
+            shopManager.closeShop();  // ← Synchroniser le ShopManager
+            console.log(`✅ [SOLO] Shop fermé pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
+        }
+        
+        // ⚠️ Si shopEndTime est null mais ShopManager croit qu'il est ouvert, c'est qu'on a quitté via validateShop
+        // Synchroniser dans ce cas aussi
+        if (!session.shopEndTime && shopManager.isShopCurrentlyActive) {
+            shopManager.closeShop();
+            session.levelStartTime = Date.now();
+            console.log(`✅ [SOLO] Shop fermé (validation client) pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
+        }
+        
+        const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
 
         // --- COLLISION AVEC LA PIÈCE ---
         // Vérifier si les collisions sont bloquées par le shop

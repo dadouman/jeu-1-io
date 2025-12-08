@@ -237,41 +237,49 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             // === LIGNE 2: Delta du split actuel (niveau en cours) ===
             // CAS 1 : Run terminée (splits finalisés disponibles dans soloSplitTimes)
             if (isSoloGameFinished && soloSplitTimes && soloSplitTimes.length >= level) {
-                // Les splits finalisés sont disponibles - afficher le split avec delta
-                const currentSplitTime = soloSplitTimes[level - 1];
+                // Les splits finalisés sont disponibles - afficher le temps du niveau avec delta
+                // Temps du niveau actuel = split[level] - split[level-1]
+                let currentLevelTime = 0;
+                if (level > 1 && soloSplitTimes.length >= level) {
+                    currentLevelTime = soloSplitTimes[level - 1] - soloSplitTimes[level - 2];
+                } else if (level === 1) {
+                    currentLevelTime = soloSplitTimes[0];
+                }
                 
-                // Chercher le meilleur split de ce niveau (personal ou global)
-                let bestSplitTime = null;
-                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level]) {
-                    bestSplitTime = soloPersonalBestSplits[level];
-                } else if (soloBestSplits && soloBestSplits[level]) {
-                    bestSplitTime = soloBestSplits[level];
+                // Chercher le meilleur temps du NIVEAU (pas le split cumulé)
+                let bestLevelTime = null;
+                if (soloShowPersonalDelta && soloPersonalBestSplits && soloPersonalBestSplits[level] && soloPersonalBestSplits[level - 1]) {
+                    bestLevelTime = soloPersonalBestSplits[level] - soloPersonalBestSplits[level - 1];
+                } else if (level > 1 && soloBestSplits && soloBestSplits[level] && soloBestSplits[level - 1]) {
+                    bestLevelTime = soloBestSplits[level] - soloBestSplits[level - 1];
+                } else if (level === 1 && soloBestSplits && soloBestSplits[1]) {
+                    bestLevelTime = soloBestSplits[1];
                 }
                 
                 // Afficher avec delta si on a une référence
-                if (bestSplitTime) {
-                    const splitDelta = currentSplitTime - bestSplitTime;
-                    const splitDeltaSeconds = Math.floor(Math.abs(splitDelta));
-                    const splitDeltaMinutes = Math.floor(splitDeltaSeconds / 60);
-                    const splitDeltaSecs = splitDeltaSeconds % 60;
-                    const splitDeltaMilliseconds = Math.round((Math.abs(splitDelta) - splitDeltaSeconds) * 1000);
-                    const splitDeltaFormatted = `${splitDelta >= 0 ? '+' : '-'}${splitDeltaMinutes.toString().padStart(2, '0')}:${splitDeltaSecs.toString().padStart(2, '0')}.${splitDeltaMilliseconds.toString().padStart(3, '0')}`;
+                if (bestLevelTime && bestLevelTime > 0) {
+                    const levelDelta = currentLevelTime - bestLevelTime;
+                    const deltaSeconds = Math.floor(Math.abs(levelDelta));
+                    const deltaMinutes = Math.floor(deltaSeconds / 60);
+                    const deltaSecs = deltaSeconds % 60;
+                    const deltaMilliseconds = Math.round((Math.abs(levelDelta) - deltaSeconds) * 1000);
+                    const deltaFormatted = `${levelDelta >= 0 ? '+' : '-'}${deltaMinutes.toString().padStart(2, '0')}:${deltaSecs.toString().padStart(2, '0')}.${deltaMilliseconds.toString().padStart(3, '0')}`;
                     
-                    const splitDeltaColor = splitDelta >= 0 ? '#FF6B6B' : '#00FF00';
-                    ctx.fillStyle = splitDeltaColor;
+                    const deltaColor = levelDelta >= 0 ? '#FF6B6B' : '#00FF00';
+                    ctx.fillStyle = deltaColor;
                     ctx.font = "bold 24px Arial";
-                    ctx.fillText(splitDeltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
+                    ctx.fillText(deltaFormatted, canvas.width / 2, canvas.height / 2 + 260);
                 } else {
-                    // Pas de meilleur temps, afficher le split sans delta
-                    const splitSeconds = Math.floor(currentSplitTime);
-                    const splitMinutes = Math.floor(splitSeconds / 60);
-                    const splitSecs = splitSeconds % 60;
-                    const splitMilliseconds = Math.round((currentSplitTime - splitSeconds) * 1000);
-                    const splitFormatted = `${splitMinutes.toString().padStart(2, '0')}:${splitSecs.toString().padStart(2, '0')}.${splitMilliseconds.toString().padStart(3, '0')}`;
+                    // Pas de meilleur temps, afficher le temps du niveau sans delta
+                    const levelSeconds = Math.floor(currentLevelTime);
+                    const levelMinutes = Math.floor(levelSeconds / 60);
+                    const levelSecs = levelSeconds % 60;
+                    const levelMilliseconds = Math.round((currentLevelTime - levelSeconds) * 1000);
+                    const levelFormatted = `${levelMinutes.toString().padStart(2, '0')}:${levelSecs.toString().padStart(2, '0')}.${levelMilliseconds.toString().padStart(3, '0')}`;
                     
                     ctx.fillStyle = "#CCCCCC";
                     ctx.font = "bold 24px Arial";
-                    ctx.fillText(splitFormatted, canvas.width / 2, canvas.height / 2 + 260);
+                    ctx.fillText(levelFormatted, canvas.width / 2, canvas.height / 2 + 260);
                 }
             }
             // CAS 2 : Run en cours - afficher le temps du niveau actuel avec delta

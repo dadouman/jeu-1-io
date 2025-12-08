@@ -752,6 +752,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         }
     }
 
+    // === AFFICHAGE HUD DES FEATURES (Haut du canvas) ===
+    // Affiche les features débloquées et non débloquées
+    renderFeaturesHUD(ctx, canvas, purchasedFeatures);
+
     // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)
     // Toute la logique reste intacte pour restauration future
     /*
@@ -851,4 +855,93 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
     }
     */
+}
+
+/**
+ * Affiche le HUD des features en haut du canvas
+ * Montre toutes les features disponibles avec un indicateur de déverrouillage
+ * Pour la vitesse, affiche le nombre de fois débloquées si > 0
+ */
+function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
+    const FEATURES = [
+        { id: 'dash', emoji: '⚡', label: 'Dash', color: '#FF6B6B' },
+        { id: 'checkpoint', emoji: '🚩', label: 'Check', color: '#00D4FF' },
+        { id: 'rope', emoji: '🪢', label: 'Rope', color: '#9B59B6' },
+        { id: 'speedBoost', emoji: '💨', label: 'Speed', color: '#FFD700', isStackable: true }
+    ];
+
+    const HUD_TOP = 15;
+    const BOX_SIZE = 50;
+    const BOX_SPACING = 70;
+    const START_X = 20;
+
+    // Helper: Dessiner un rectangle arrondi
+    const drawRoundRect = (x, y, width, height, radius) => {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    };
+
+    // Iterate through each feature
+    FEATURES.forEach((feature, index) => {
+        const x = START_X + (index * BOX_SPACING);
+        const y = HUD_TOP;
+
+        const isUnlocked = feature.id === 'speedBoost' 
+            ? purchasedFeatures[feature.id] > 0 
+            : purchasedFeatures[feature.id] === true;
+
+        // === BOÎTE DE FOND ===
+        if (isUnlocked) {
+            // Unlocked: fond semi-opaque coloré
+            ctx.fillStyle = feature.color + '33'; // Couleur avec transparence
+            ctx.strokeStyle = feature.color;
+            ctx.lineWidth = 2;
+        } else {
+            // Locked: fond gris et bordure grise
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+            ctx.strokeStyle = '#888888';
+            ctx.lineWidth = 1;
+        }
+
+        // Dessiner la boîte arrondie
+        drawRoundRect(x, y, BOX_SIZE, BOX_SIZE, 5);
+        ctx.fill();
+        ctx.stroke();
+
+        // === EMOJI DE LA FEATURE ===
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = isUnlocked ? feature.color : '#666666';
+        ctx.fillText(feature.emoji, x + BOX_SIZE / 2, y + BOX_SIZE / 2 - 5);
+
+        // === TEXTE EN BAS DE LA BOÎTE ===
+        ctx.font = "bold 10px Arial";
+        ctx.fillStyle = isUnlocked ? feature.color : '#888888';
+        ctx.fillText(feature.label, x + BOX_SIZE / 2, y + BOX_SIZE - 8);
+
+        // === INDICATEUR DE DÉVERROUILLAGE ===
+        if (!isUnlocked) {
+            // Afficher "🔒" en mini
+            ctx.font = "10px Arial";
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillText('🔒', x + BOX_SIZE / 2, y + 10);
+        } else if (feature.isStackable && purchasedFeatures[feature.id] > 0) {
+            // Pour la vitesse: afficher le nombre de fois débloquées
+            ctx.font = "bold 12px Arial";
+            ctx.fillStyle = feature.color;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`x${purchasedFeatures[feature.id]}`, x + BOX_SIZE / 2, y + BOX_SIZE - 22);
+        }
+    });
 }

@@ -170,6 +170,13 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                             const level = i + 1;
                             const splitTime = splitTimes[i];
                             
+                            // ⚠️ VALIDATION: Rejeter les splits anormalement bas (< 0.5s)
+                            // Ces values indiquent une corruption de données ou un bug
+                            if (splitTime < 0.5) {
+                                console.warn(`⚠️ [SOLO] Split suspect pour le niveau ${level}: ${splitTime.toFixed(3)}s (< 0.5s). Ignoré.`);
+                                continue; // Ignorer ce split corrompu
+                            }
+                            
                             // Chercher le meilleur split pour ce niveau
                             const existingSplit = await SoloBestSplitsModel.findOne({ level });
                             

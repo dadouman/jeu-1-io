@@ -24,12 +24,9 @@ class EmailService {
             
             const emailUser = process.env.EMAIL_USER || 'sabatini79@gmail.com';
             const emailPass = (process.env.EMAIL_PASSWORD || process.env.EMAIL_APP_PASSWORD || '').trim();
-            const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-            const emailPort = parseInt(process.env.EMAIL_PORT || '465');
-            const emailSecure = process.env.EMAIL_SECURE === 'true';
             
             // DEBUG: Afficher les variables (sans le password!)
-            console.log(`📧 Email Config: user=${emailUser}, host=${emailHost}, port=${emailPort}, secure=${emailSecure}, hasPassword=${!!emailPass}`);
+            console.log(`📧 Email Config: user=${emailUser}, hasPassword=${!!emailPass}`);
             
             if (!emailPass) {
                 throw new Error('EMAIL_PASSWORD ou EMAIL_APP_PASSWORD manquant!');
@@ -37,10 +34,8 @@ class EmailService {
             
             console.log('🔧 Création du transporter nodemailer...');
             const emailConfig = {
-                // Option 1: Gmail avec App Password
-                host: emailHost,
-                port: emailPort,
-                secure: emailSecure,
+                // Configuration Gmail optimisée
+                service: 'gmail',  // ← Utiliser 'service' au lieu de host/port
                 auth: {
                     user: emailUser,
                     pass: emailPass
@@ -53,10 +48,15 @@ class EmailService {
             // Vérifier la connexion (optionnel - on essaiera d'envoyer quand même)
             try {
                 console.log('🔍 Vérification de la connexion SMTP...');
-                await this.transporter.verify();
+                // Ajouter un timeout pour ne pas bloquer indéfiniment
+                const verifyPromise = this.transporter.verify();
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout de vérification')), 5000)
+                );
+                await Promise.race([verifyPromise, timeoutPromise]);
                 console.log('✅ Vérification SMTP réussie');
             } catch (verifyError) {
-                console.warn('⚠️  Vérification SMTP échouée, mais on va essayer d\'envoyer:', verifyError.message);
+                console.warn('⚠️  Vérification SMTP échouée:', verifyError.message, '(mais on continue)');
             }
             
             // Envoyer un email de test à l'initialisation

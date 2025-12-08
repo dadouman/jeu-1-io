@@ -42,7 +42,7 @@ npm install nodemailer
 3. Configurer les variables d'environnement:
 
 ```bash
-EMAIL_USER=sabatini79@gmail.com
+EMAIL_USER=xxx9@gmail.com
 EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587

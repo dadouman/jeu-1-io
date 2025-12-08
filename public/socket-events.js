@@ -117,6 +117,15 @@ socket.on('shopPurchaseFailed', (data) => {
     console.log(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
 });
 
+socket.on('shopClosed', (data) => {
+    isShopOpen = false;
+    shopItems = {};
+    console.log(`%c🏪 SHOP FERMÉ | Retour au niveau`, 'color: #FFD700; font-weight: bold');
+    // Réinitialiser le timer du niveau après la fermeture du shop
+    // Le serveur envoie le vrai temps de démarrage du niveau suivant
+    levelStartTime = Date.now();
+});
+
 // --- ÉVÉNEMENTS VOTE ---
 socket.on('restartVoteStarted', (data) => {
     isVoteActive = true;

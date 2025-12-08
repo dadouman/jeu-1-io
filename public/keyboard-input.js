@@ -87,6 +87,12 @@ document.addEventListener('keydown', (e) => {
         }
     }
     
+    // --- SHOP : Quitter le shop avec Entrée ---
+    if (isShopOpen && e.code === 'Enter') {
+        socket.emit('validateShop');
+        e.preventDefault();
+    }
+    
     // --- SOLO MODE : Toggle delta time (T) ---
     if(e.code === 'KeyT') {
         if (currentGameMode === 'solo') {

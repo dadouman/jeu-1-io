@@ -191,6 +191,33 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
+        // --- VALIDER ET QUITTER LE SHOP AVANT LA FIN ---
+        socket.on('validateShop', () => {
+            const playerId = socket.id;
+            const session = soloSessions[playerId];
+            
+            if (!session) {
+                console.log(`❌ Aucune session solo trouvée pour ${playerId}`);
+                return;
+            }
+            
+            // Récupérer le shopManager pour cette session
+            const shopManager = processSoloGameLoop.shopManagers[playerId];
+            if (!shopManager || !shopManager.isShopCurrentlyActive) {
+                console.log(`⚠️ [SOLO] Joueur ${playerId} a essayé de quitter un shop qui n'était pas actif`);
+                return;
+            }
+            
+            // Fermer le shop immédiatement
+            shopManager.closeShop();
+            session.levelStartTime = Date.now();
+            
+            console.log(`✅ [SOLO] Joueur ${playerId} a validé et quitté le shop après le niveau ${session.currentLevel - 1}`);
+            
+            // Notifier le client que le shop est fermé
+            socket.emit('shopClosed', { level: session.currentLevel - 1 });
+        });
+
         // --- OBTENIR LES MEILLEURS SPLITS PAR NIVEAU (requête côté CLIENT) ---
         socket.on('getSoloBestSplits', requestSoloBestSplits);
         socket.on('requestSoloBestSplits', requestSoloBestSplits);

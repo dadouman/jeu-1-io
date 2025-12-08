@@ -75,6 +75,20 @@ class ShopManager {
     }
 
     /**
+     * Récupère le temps écoulé du shop (en ms)
+     * @returns {number} - Millisecondes écoulées depuis l'ouverture
+     */
+    getShopTimeElapsed() {
+        if (!this.isShopCurrentlyActive || !this.shopEndTime) {
+            return 0;
+        }
+
+        const shopDuration = this.gameMode.getShopDuration();
+        const elapsed = shopDuration - this.getShopTimeRemaining();
+        return Math.max(0, elapsed);
+    }
+
+    /**
      * Récupère le temps restant du shop (en ms)
      * @returns {number} - Millisecondes restantes, ou 0 si fermé
      */

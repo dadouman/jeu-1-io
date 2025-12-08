@@ -451,7 +451,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillStyle = "#888";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Appuyez sur 1, 2, 3 ou 4 OU cliquez sur un item pour acheter", canvas.width / 2, shopY + shopHeight - 30);
+        ctx.fillText("Appuyez sur 1, 2, 3 ou 4 OU cliquez sur un item pour acheter", canvas.width / 2, shopY + shopHeight - 50);
+        ctx.fillText("Appuyez sur Entrée pour quitter le shop", canvas.width / 2, shopY + shopHeight - 25);
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

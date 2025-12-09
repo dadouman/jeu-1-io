@@ -108,7 +108,11 @@ socket.on('shopOpen', (data) => {
 });
 
 socket.on('shopPurchaseSuccess', (data) => {
-    purchasedFeatures[data.itemId] = true;
+    if (data.itemId === 'speedBoost') {
+        purchasedFeatures[data.itemId] = (purchasedFeatures[data.itemId] || 0) + 1;
+    } else {
+        purchasedFeatures[data.itemId] = true;
+    }
     playerGems = data.gemsLeft;
     console.log(`%c✅ ${data.item.name} acheté! | ${data.gemsLeft}💎 restants`, 'color: #00FF00; font-weight: bold');
 });

@@ -7,8 +7,8 @@
  * @returns {Array} Array de {id, rect: {x, y, width, height}}
  */
 function getShopClickAreas(canvasWidth, canvasHeight) {
-    const shopWidth = 500;
-    const shopHeight = 350;
+    const shopWidth = 600;
+    const shopHeight = 400;
     const shopX = (canvasWidth - shopWidth) / 2;
     const shopY = (canvasHeight - shopHeight) / 2;
     
@@ -19,15 +19,22 @@ function getShopClickAreas(canvasWidth, canvasHeight) {
         { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
     ];
     
+    const BOX_SIZE = 90;
+    const BOX_SPACING = 130;
+    const ITEMS_Y = shopY + 130;
+    const TOTAL_WIDTH = (itemList.length * BOX_SPACING) - BOX_SPACING + BOX_SIZE;
+    const CENTER_X = shopX + (shopWidth - TOTAL_WIDTH) / 2;
+    
     return itemList.map((item, index) => {
-        const yPos = shopY + 100 + (index * 45);
+        const x = CENTER_X + (index * BOX_SPACING);
+        const y = ITEMS_Y;
         return {
             id: item.id,
             rect: {
-                x: shopX + 30,
-                y: yPos - 20,
-                width: 440,
-                height: 40
+                x: x,
+                y: y,
+                width: BOX_SIZE,
+                height: BOX_SIZE
             }
         };
     });
@@ -381,18 +388,20 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillStyle = isUnlocked ? feature.color : '#666666';
+        ctx.globalAlpha = isUnlocked ? 1.0 : 0.5; // Emoji semi-transparent si verrouillé
         ctx.fillText(feature.emoji, x + BOX_SIZE / 2, y + BOX_SIZE / 2 - 5);
+        ctx.globalAlpha = 1.0; // Reset avant le texte
 
         // === TEXTE EN BAS DE LA BOÎTE ===
         ctx.font = "bold 10px Arial";
         ctx.fillStyle = isUnlocked ? feature.color : '#888888';
         ctx.fillText(feature.label, x + BOX_SIZE / 2, y + BOX_SIZE - 8);
 
-        // === INDICATEUR DE DÉVERROUILLAGE ===
+        // === INDICATEUR DE DÉVERROUILLAGE (CADENAS DEVANT) ===
         if (!isUnlocked) {
-            // Afficher le cadenas au centre du carré avec transparence
+            // Afficher le cadenas devant l'emoji avec transparence
             ctx.save();
-            ctx.globalAlpha = 0.6; // Transparence pour le cadenas
+            ctx.globalAlpha = 0.7; // Transparence pour le cadenas
             ctx.font = "32px Arial";
             ctx.fillStyle = '#FF6B6B';
             ctx.textAlign = "center";

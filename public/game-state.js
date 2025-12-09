@@ -33,6 +33,7 @@ let shopItems = {};
 let playerGems = 0;
 let purchasedFeatures = {};
 let shopTimerStart = null;
+let shopAnimations = { hoveredItemId: null, purchaseAnimations: {} }; // Animations du shop
 const SHOP_DURATION = 15000; // 15 secondes
 
 // --- VARIABLES TRANSITION ---

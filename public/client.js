@@ -29,10 +29,42 @@ canvas.addEventListener('click', (event) => {
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (shopItems[area.id]) {
                 socket.emit('shopPurchase', { itemId: area.id });
+                // Déclencher l'animation d'achat
+                shopAnimations.purchaseAnimations[area.id] = {
+                    startTime: Date.now()
+                };
             }
             break;
         }
     }
+});
+
+// --- GESTION DU HOVER POUR LE SHOP ---
+canvas.addEventListener('mousemove', (event) => {
+    if (!isShopOpen) {
+        shopAnimations.hoveredItemId = null;
+        return;
+    }
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    const clickAreas = getShopClickAreas(canvas.width, canvas.height);
+    
+    shopAnimations.hoveredItemId = null;
+    for (const area of clickAreas) {
+        const { x, y, width, height } = area.rect;
+        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+            shopAnimations.hoveredItemId = area.id;
+            break;
+        }
+    }
+});
+
+// --- RÉINITIALISER LE HOVER QUAND LA SOURIS QUITTE LE CANVAS ---
+canvas.addEventListener('mouseleave', () => {
+    shopAnimations.hoveredItemId = null;
 });
 
 // Les modules sont chargés dans l'ordre suivant via les balises <script> dans index.html:

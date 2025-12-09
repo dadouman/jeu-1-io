@@ -25,6 +25,16 @@ function processSoloGameLoop(soloSessions, io, {
         if (!session) continue; // La session a peut-être été supprimée
         const player = session.player;
         
+        // === GESTION DU COUNTDOWN (3 secondes) ===
+        if (session.countdownActive && session.countdownStartTime) {
+            const countdownElapsed = Date.now() - session.countdownStartTime;
+            if (countdownElapsed >= 3000) {
+                session.countdownActive = false;
+                session.levelStartTime = Date.now(); // Démarrer le vrai timer APRÈS countdown
+                console.log(`✅ [SOLO] Countdown terminé pour joueur ${playerId}, timer démarre`);
+            }
+        }
+        
         // Créer un ShopManager pour cette session s'il n'existe pas
         if (!processSoloGameLoop.shopManagers[playerId]) {
             const gameMode = new GameMode('solo');

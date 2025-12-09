@@ -92,7 +92,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     levelStartTime: Date.now(),
                     splitTimes: [],
                     totalTime: 0,
-                    currentShopLevel: null  // ← Pour tracker quel niveau a un shop actif
+                    currentShopLevel: null,  // ← Pour tracker quel niveau a un shop actif
+                    countdownActive: true,   // ← Countdown actif au démarrage
+                    countdownStartTime: Date.now()  // ← Timestamp du début du countdown
                 };
                 
                 const session = soloSessions[socket.id];
@@ -304,6 +306,14 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             if (mode === 'solo') {
                 const session = soloSessions[socket.id];
                 if (!session) return;
+                
+                // BLOQUER LES MOUVEMENTS EN MODE SOLO SI LE COUNTDOWN EST ACTIF
+                // Le countdown dure 3 secondes après le démarrage de la session
+                if (session.countdownActive !== false) {
+                    // Pas de mouvement pendant le countdown
+                    return;
+                }
+                
                 player = session.player;
                 map = session.map;
             } else {

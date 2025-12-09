@@ -82,13 +82,8 @@ document.addEventListener('keydown', (e) => {
         const itemOrder = ['dash', 'checkpoint', 'rope', 'speedBoost'];
         const itemId = itemOrder[parseInt(e.key) - 1];
         if (itemId && shopItems[itemId]) {
-            // Vérifier si on peut acheter (ne pas acheter 2x sauf speedBoost)
-            const isAlreadyPurchased = itemId !== 'speedBoost' && purchasedFeatures[itemId] === true;
-            
-            if (!isAlreadyPurchased) {
-                socket.emit('shopPurchase', { itemId });
-                e.preventDefault();
-            }
+            socket.emit('shopPurchase', { itemId });
+            e.preventDefault();
         }
     }
     

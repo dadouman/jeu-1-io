@@ -203,6 +203,16 @@ socket.on('gameModSelected', (data) => {
             soloPersonalBestTime = parseFloat(savedPersonalBest);
             console.log(`%c🎯 Record personnel chargé: ${soloPersonalBestTime.toFixed(2)}s`, 'color: #00FF00; font-weight: bold; font-size: 12px');
         }
+        
+        // Charger les splits personnels du localStorage
+        const savedPersonalSplits = localStorage.getItem('soloPersonalBestSplits');
+        if (savedPersonalSplits) {
+            soloPersonalBestSplits = JSON.parse(savedPersonalSplits);
+            console.log(`%c📊 Splits personnels chargés pour ${Object.keys(soloPersonalBestSplits).length} niveaux`, 'color: #00FF00; font-weight: bold; font-size: 12px');
+        }
+        
+        // Charger les meilleurs splits mondiaux au démarrage
+        socket.emit('getSoloBestSplits');
     }
 });
 

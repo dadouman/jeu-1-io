@@ -73,6 +73,8 @@ let soloShopStartTime = null; // Temps de début du shop
 let soloTransitionStartTime = null; // Temps de début de la transition
 let soloLastGemTime = null; // Temps quand la gem a été prise (pour afficher delta 1-2s)
 let soloLastGemLevel = null; // Niveau quand la gem a été prise
+let soloCountdownStartTime = null; // Temps du début du countdown (3...2...1...)
+let soloCountdownActive = false; // True si le countdown est en cours
 
 // --- MODE CLASSIQUE RECORDS ---
 let classicPersonalBestScore = null; // Meilleur score personnel (localStorage)

@@ -60,6 +60,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
     
+    if (currentGameMode === 'solo') {
+        console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);
+    }
+    
     // 1. Fond noir
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -153,17 +157,22 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen && typeof renderShop === 'function') {
-        renderShop(ctx, canvas, level, playerGems, shopTimeRemaining, purchasedFeatures);
+        renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
     }
 
     // --- AFFICHAGE DU HUD SOLO (temps total, delta, niveau) ---
     if (currentGameMode === 'solo' && typeof renderSoloHUD === 'function' && !isShopOpen && !isSoloGameFinished) {
         const preferences = {
             showPersonal: soloShowPersonalDelta || false,
-            personalBestSplits: soloPersonalBestSplits || {},
+            personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
             bestSplits: soloBestSplits || {}
         };
         renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
+    }
+    
+    // --- AFFICHAGE DU COUNTDOWN EN MODE SOLO ---
+    if (currentGameMode === 'solo' && typeof renderCountdown === 'function') {
+        renderCountdown(ctx, canvas, soloCountdownStartTime, soloCountdownActive);
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

@@ -164,7 +164,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     if (currentGameMode === 'solo' && typeof renderSoloHUD === 'function' && !isShopOpen && !isSoloGameFinished) {
         const preferences = {
             showPersonal: soloShowPersonalDelta || false,
-            personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
+            personalBestSplits: soloPersonalBestSplits || {},
             bestSplits: soloBestSplits || {}
         };
         console.log(`[DEBUG] Affichage HUD Solo - soloRunTotalTime=${soloRunTotalTime}, level=${level}, soloCurrentLevelTime=${soloCurrentLevelTime}`);

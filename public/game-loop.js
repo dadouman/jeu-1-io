@@ -98,6 +98,9 @@ socket.on('state', (gameState) => {
             soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
         }
         
+        // Stocker le temps du niveau actuel en mode solo
+        soloCurrentLevelTime = currentLevelTime;
+        
         // Calculer le delta time (différence avec le record)
         let soloDeltaTime = null;
         let soloDeltaReference = null; // 'personal' ou 'global'
@@ -136,6 +139,9 @@ function continuousRender() {
         } else if (isSoloGameFinished) {
             soloRunTotalTime = soloTotalTime; // Utiliser le temps sauvegardé
         }
+        
+        // Stocker le temps du niveau actuel en mode solo
+        soloCurrentLevelTime = currentLevelTime;
         
         // Calculer le delta time (différence avec le record)
         let soloDeltaTime = null;

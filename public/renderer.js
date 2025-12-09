@@ -156,6 +156,16 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
     }
 
+    // --- AFFICHAGE DU HUD SOLO (temps total, delta, niveau) ---
+    if (currentGameMode === 'solo' && typeof renderSoloHUD === 'function' && !isShopOpen && !isSoloGameFinished) {
+        const preferences = {
+            showPersonal: soloShowPersonalDelta || false,
+            personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
+            bestSplits: soloLeaderboardSplits || {}
+        };
+        renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
+    }
+
     // --- ÉCRAN DE RÉSULTATS SOLO ---
     if (isSoloGameFinished && typeof renderSoloResults === 'function') {
         renderSoloResults(ctx, canvas, soloTotalTime, soloPersonalBestTime, soloSplitTimes);
@@ -385,11 +395,12 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
             ctx.restore();
         } else if (feature.isStackable && purchasedFeatures[feature.id] && typeof purchasedFeatures[feature.id] === 'number' && purchasedFeatures[feature.id] > 0) {
             // Pour la vitesse: afficher le nombre de fois débloquées (doit être un nombre > 0)
-            ctx.font = "bold 12px Arial";
+            // Affichage très visible et grand
+            ctx.font = "bold 16px Arial";
             ctx.fillStyle = feature.color;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(`x${Math.floor(purchasedFeatures[feature.id])}`, x + BOX_SIZE / 2, y + BOX_SIZE - 22);
+            ctx.fillText(`x${Math.floor(purchasedFeatures[feature.id])}`, x + BOX_SIZE / 2, y + BOX_SIZE - 18);
         }
     });
 }

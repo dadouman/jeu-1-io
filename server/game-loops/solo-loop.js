@@ -152,7 +152,13 @@ function processSoloGameLoop(soloSessions, io, {
         if (soloSessions[playerId]) {
             const socket = io.sockets.sockets.get(playerId);
             if (socket && socket.connected) {
-                socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
+                socket.emit('state', { 
+                    players: { [playerId]: player }, 
+                    coin: session.coin, 
+                    playerGems: player.gems,
+                    levelStartTime: session.levelStartTime,
+                    countdownActive: session.countdownActive
+                });
             }
         }
     }

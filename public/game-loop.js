@@ -46,6 +46,11 @@ socket.on('state', (gameState) => {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
+    // === SYNCHRONISER levelStartTime DEPUIS LE SERVEUR (pour le mode solo) ===
+    if (gameState.levelStartTime !== undefined && currentGameMode === 'solo') {
+        levelStartTime = gameState.levelStartTime;
+    }
+
     // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES ---
     if (isShopOpen && shopTimerStart) {
         const elapsed = Date.now() - shopTimerStart;

@@ -81,7 +81,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // Sécurité pour le record (si Mongo est lent)
     let safeRecord = highScore || { score: 0, skin: "❓" };
 
-    ctx.save(); // Sauvegarde Caméra
+    ctx.save(); // Sauvegarde Caméra + Clipping
 
     // 2. Brouillard (Masque rond)
     ctx.beginPath();
@@ -130,58 +130,26 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     ctx.restore(); // Fin Caméra + Fin clipping
 
+    // === AFFICHAGE DU JOUEUR OPAQUE AU CENTRE ===
+    ctx.save();
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = "white";
+    ctx.font = "40px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    if (myPlayer && myPlayer.skin) {
+        ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+    } else {
+        // Fallback si pas de skin
+        ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
+    }
+    
+    ctx.restore();
+
     // === AFFICHAGE HUD DES FEATURES (Au-dessus du brouillard) ===
     // Doit être APRÈS ctx.restore() pour éviter le clipping
     renderFeaturesHUD(ctx, canvas, purchasedFeatures);
-
-    // ASSURER que globalAlpha est à 1.0 pour l'interface
-    ctx.globalAlpha = 1.0;
-
-    // --- UI MINIMALISTE EN SOLO MODE ---
-    if (currentGameMode === 'solo') {
-        const preferences = {
-            showPersonal: soloShowPersonalDelta,
-            personalBestSplits: soloPersonalBestSplits,
-            bestSplits: soloBestSplits
-        };
-        
-        if (typeof renderSoloHUD === 'function') {
-            renderSoloHUD(ctx, canvas, soloRunTotalTime, level, currentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel);
-        }
-        if (typeof renderSoloGemDelta === 'function') {
-            renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
-        }
-        
-        ctx.globalAlpha = 1.0;
-    }
-    
-    ctx.textAlign = "left";
-    
-    // === ASSURER globalAlpha = 1.0 AVANT de redessiner le joueur ===
-    ctx.globalAlpha = 1.0;
-    
-    // Redessiner le joueur EN DEHORS du brouillard pour qu'il soit opaque
-    // En solo: affichage spécial au centre
-    if (currentGameMode === 'solo') {
-        if (typeof renderSoloPlayer === 'function') {
-            renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
-        }
-    } else {
-        // En classique/infini: affichage du joueur au centre de l'écran
-        if (myPlayer && myPlayer.skin) {
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
-        } else {
-            // Fallback si le joueur n'a pas de skin
-            ctx.font = "30px Arial";
-            ctx.textAlign = "center";
-            ctx.textBaseline = "middle";
-            ctx.fillStyle = "white";
-            ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
-        }
-    }
     
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen && typeof renderShop === 'function') {

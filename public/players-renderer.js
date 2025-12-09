@@ -3,8 +3,6 @@
  * Handles rendering of player skins and scores
  */
 
-const TILE_SIZE = 40;
-
 /**
  * Rend tous les joueurs (sauf en solo)
  * @param {CanvasRenderingContext2D} ctx 

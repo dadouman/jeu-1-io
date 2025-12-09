@@ -60,6 +60,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
     
+    if (currentGameMode === 'solo') {
+        console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);
+    }
+    
     // 1. Fond noir
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -163,7 +167,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
             bestSplits: soloLeaderboardSplits || {}
         };
+        console.log(`[DEBUG] Affichage HUD Solo - soloRunTotalTime=${soloRunTotalTime}, level=${level}, soloCurrentLevelTime=${soloCurrentLevelTime}`);
         renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
+    } else if (currentGameMode === 'solo') {
+        console.log(`[DEBUG] HUD Solo NON affiché - renderSoloHUD=${typeof renderSoloHUD}, isShopOpen=${isShopOpen}, isSoloGameFinished=${isSoloGameFinished}`);
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

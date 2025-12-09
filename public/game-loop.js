@@ -56,12 +56,6 @@ socket.on('state', (gameState) => {
             }
             isShopOpen = false;
             shopTimerStart = null;
-            
-            // Démarrer le countdown en mode solo APRÈS le shop
-            if (currentGameMode === 'solo' && !soloCountdownActive) {
-                soloCountdownStartTime = Date.now();
-                soloCountdownActive = true;
-            }
         }
     }
 
@@ -77,12 +71,6 @@ socket.on('state', (gameState) => {
             isFirstLevel = false;
             transitionStartTime = null;
             voteResult = null;
-            
-            // Démarrer le countdown en mode solo APRÈS la transition
-            if (currentGameMode === 'solo' && !soloCountdownActive) {
-                soloCountdownStartTime = Date.now();
-                soloCountdownActive = true;
-            }
         }
     }
 
@@ -92,16 +80,6 @@ socket.on('state', (gameState) => {
         if (resultElapsed >= 2000) {
             voteResult = null;
             voteResultTime = null;
-        }
-    }
-
-    // --- GESTION DU COUNTDOWN EN MODE SOLO ---
-    // Après 3 secondes de countdown, démarrer le timer du niveau
-    if (soloCountdownActive && soloCountdownStartTime) {
-        const countdownElapsed = Date.now() - soloCountdownStartTime;
-        if (countdownElapsed >= 3000) { // 3 secondes de countdown
-            soloCountdownActive = false;
-            levelStartTime = Date.now(); // Démarrer le vrai timer ICI
         }
     }
 

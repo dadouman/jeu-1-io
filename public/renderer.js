@@ -166,12 +166,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
     }
 
-    // --- AFFICHAGE DU COUNTDOWN EN MODE SOLO (masque tout le reste) ---
-    if (currentGameMode === 'solo' && soloCountdownActive && typeof renderCountdown === 'function') {
-        renderCountdown(ctx, canvas, soloCountdownStartTime, soloCountdownActive);
-        return; // Arrêter le rendu ici, ne pas afficher le HUD
-    }
-
     // --- AFFICHAGE DU HUD SOLO (temps total, delta, niveau) ---
     if (currentGameMode === 'solo' && typeof renderSoloHUD === 'function' && !isShopOpen && !isSoloGameFinished) {
         const preferences = {

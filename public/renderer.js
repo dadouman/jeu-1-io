@@ -316,7 +316,8 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
 
     const BOX_SIZE = 50;
     const BOX_SPACING = 70;
-    const TOP_Y = 15; // Au-dessus du cercle de visibilité
+    const FOG_RADIUS = 180;
+    const TOP_Y = (canvas.height / 2) - FOG_RADIUS - BOX_SIZE - 10; // Juste au-dessus du cercle de brouillard
 
     // Centré horizontalement
     const TOTAL_WIDTH = (FEATURES.length * BOX_SPACING) - BOX_SPACING + BOX_SIZE;
@@ -389,12 +390,15 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
 
         // === INDICATEUR DE DÉVERROUILLAGE ===
         if (!isUnlocked) {
-            // Afficher le cadenas aussi gros que l'emoji, au-dessus du cercle
-            ctx.font = "28px Arial";
+            // Afficher le cadenas au centre du carré avec transparence
+            ctx.save();
+            ctx.globalAlpha = 0.6; // Transparence pour le cadenas
+            ctx.font = "32px Arial";
             ctx.fillStyle = '#FF6B6B';
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText('🔒', x + BOX_SIZE / 2, y + BOX_SIZE / 2 - 12);
+            ctx.fillText('🔒', x + BOX_SIZE / 2, y + BOX_SIZE / 2);
+            ctx.restore();
         } else if (feature.isStackable && purchasedFeatures[feature.id] > 0) {
             // Pour la vitesse: afficher le nombre de fois débloquées
             ctx.font = "bold 12px Arial";

@@ -314,7 +314,13 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 map = lobby.map;
             }
 
-            const speed = 3 + (player.purchasedFeatures?.speedBoost ? 1 : 0);
+            // Calculer la vitesse : vitesse de base + (speedBoost * incrément par achat)
+            // speedBoost est un nombre (0, 1, 2, 3, ...) représentant le nombre d'achats
+            const baseSpeed = 3;
+            const speedBoostIncrement = 1; // +1 par achat de speedBoost
+            const speedBoostLevel = Math.max(0, player.purchasedFeatures?.speedBoost || 0); // Assurer que c'est un nombre
+            const speed = baseSpeed + (speedBoostLevel * speedBoostIncrement);
+            
             let nextX = player.x;
             let nextY = player.y;
 

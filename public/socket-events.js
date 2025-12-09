@@ -195,7 +195,6 @@ socket.on('gameModSelected', (data) => {
                    : data.mode === 'infinite' ? 'MODE INFINI ∞'
                    : 'SOLO (10 niveaux) 🎯';
     console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
-    console.log(`[DEBUG] currentGameMode défini à: "${currentGameMode}"`);
     
     // Charger le record personnel du localStorage au démarrage de solo
     if (data.mode === 'solo') {

@@ -28,11 +28,16 @@ canvas.addEventListener('click', (event) => {
         const { x, y, width, height } = area.rect;
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (shopItems[area.id]) {
-                socket.emit('shopPurchase', { itemId: area.id });
-                // Déclencher l'animation d'achat
-                shopAnimations.purchaseAnimations[area.id] = {
-                    startTime: Date.now()
-                };
+                // Vérifier si on peut acheter (ne pas acheter 2x sauf speedBoost)
+                const isAlreadyPurchased = area.id !== 'speedBoost' && purchasedFeatures[area.id] === true;
+                
+                if (!isAlreadyPurchased) {
+                    socket.emit('shopPurchase', { itemId: area.id });
+                    // Déclencher l'animation d'achat
+                    shopAnimations.purchaseAnimations[area.id] = {
+                        startTime: Date.now()
+                    };
+                }
             }
             break;
         }

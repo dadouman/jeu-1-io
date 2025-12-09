@@ -20,6 +20,10 @@ let level = 1;
 let levelStartTime = null;
 let lastLevel = 0;
 
+// --- VARIABLES COUNTDOWN (Solo Mode Only) ---
+let soloStartCountdownActive = false; // Countdown UNIQUEMENT au démarrage de solo
+let soloStartCountdownStartTime = null; // Timestamp du démarrage du countdown
+
 // --- VARIABLES CHECKPOINT ---
 let checkpoint = null;
 let actions = { setCheckpoint: false, teleportCheckpoint: false, dash: false };

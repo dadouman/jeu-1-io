@@ -30,6 +30,11 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+    // ⚠️ IGNORER LES TOUCHES SI LE COUNTDOWN DE DÉMARRAGE SOLO EST ACTIF
+    if (soloStartCountdownActive) {
+        return; // Bloquer tous les inputs pendant le countdown de démarrage
+    }
+
     // ⚠️ IGNORER LES TOUCHES SI LA MODAL DE BUG EST OUVERTE
     if (window.bugReporter && window.bugReporter.isOpen) {
         return; // Laisser la modal avoir tous les inputs

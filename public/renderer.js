@@ -55,10 +55,16 @@ function getRanking(players) {
     return playersList.sort((a, b) => b.score - a.score);
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0) {
     
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
+    
+    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (Uniquement au démarrage) ===
+    if (soloStartCountdownActive && typeof renderAcademyLeader === 'function') {
+        renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
+        return; // Arrêter le rendu ici, ne pas afficher le jeu
+    }
     
     if (currentGameMode === 'solo') {
         console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);

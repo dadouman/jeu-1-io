@@ -21,6 +21,13 @@ function selectMode(mode) {
         if (modeSelector) {
             modeSelector.style.display = 'none';
         }
+
+        // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
+        if (mode === 'solo') {
+            soloStartCountdownActive = true;
+            soloStartCountdownStartTime = Date.now();
+            console.log('%c🎬 Academy Leader countdown lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+        }
         
         // Émettre l'événement au serveur
         if (socket) {

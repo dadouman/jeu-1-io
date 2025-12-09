@@ -167,12 +167,19 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             renderSoloPlayer(ctx, canvas, myPlayer, currentGameMode);
         }
     } else {
-        // En classique/infini: affichage du joueur à son vrai endroit mais OPAQUE
+        // En classique/infini: affichage du joueur au centre de l'écran
         if (myPlayer && myPlayer.skin) {
             ctx.font = "30px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+        } else {
+            // Fallback si le joueur n'a pas de skin
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "white";
+            ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
         }
     }
     
@@ -408,13 +415,13 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
             ctx.textBaseline = "middle";
             ctx.fillText('🔒', x + BOX_SIZE / 2, y + BOX_SIZE / 2);
             ctx.restore();
-        } else if (feature.isStackable && purchasedFeatures[feature.id] > 0) {
-            // Pour la vitesse: afficher le nombre de fois débloquées
+        } else if (feature.isStackable && purchasedFeatures[feature.id] && typeof purchasedFeatures[feature.id] === 'number' && purchasedFeatures[feature.id] > 0) {
+            // Pour la vitesse: afficher le nombre de fois débloquées (doit être un nombre > 0)
             ctx.font = "bold 12px Arial";
             ctx.fillStyle = feature.color;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText(`x${purchasedFeatures[feature.id]}`, x + BOX_SIZE / 2, y + BOX_SIZE - 22);
+            ctx.fillText(`x${Math.floor(purchasedFeatures[feature.id])}`, x + BOX_SIZE / 2, y + BOX_SIZE - 22);
         }
     });
 }

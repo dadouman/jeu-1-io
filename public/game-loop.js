@@ -22,6 +22,11 @@ socket.on('state', (gameState) => {
             if (playerId === finalId) {
                 playerGems = player.gems || 0;
                 purchasedFeatures = player.purchasedFeatures || {};
+                
+                // Normaliser les données: speedBoost doit être un nombre, pas un booléen
+                if (typeof purchasedFeatures.speedBoost !== 'number') {
+                    purchasedFeatures.speedBoost = purchasedFeatures.speedBoost ? 1 : 0;
+                }
             }
             
             // Afficher la trace SEULEMENT si la feature "rope" est achetée

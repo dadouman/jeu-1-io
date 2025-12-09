@@ -1,12 +1,6 @@
 // Public/shop-renderer.js
 // Rendu du système de shop
 
-// État global des animations du shop
-let shopAnimations = {
-    hoveredItemId: null,
-    purchaseAnimations: {} // { itemId: { startTime, progress } }
-};
-
 /**
  * Affiche l'interface du shop
  */

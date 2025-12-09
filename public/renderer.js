@@ -165,7 +165,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         const preferences = {
             showPersonal: soloShowPersonalDelta || false,
             personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
-            bestSplits: soloLeaderboardSplits || {}
+            bestSplits: soloBestSplits || {}
         };
         console.log(`[DEBUG] Affichage HUD Solo - soloRunTotalTime=${soloRunTotalTime}, level=${level}, soloCurrentLevelTime=${soloCurrentLevelTime}`);
         renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);

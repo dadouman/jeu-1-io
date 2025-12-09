@@ -18,27 +18,29 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     }
 
     // === BACKGROUND ===
-    ctx.fillStyle = '#1a1a1a'; // Dark gray/black
+    ctx.fillStyle = '#0a0a0a'; // Very dark background
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // === GEOMETRY ===
+    // === GEOMETRY - Properly sized for cinema ===
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const outerRadius = 150;
-    const innerRadius = 80;
+    const maxRadius = Math.min(canvas.width, canvas.height) * 0.25; // Fits on screen
+    const outerRadius = maxRadius;
+    const middleRadius = maxRadius * 0.65;
+    const innerRadius = maxRadius * 0.35;
 
     // === CONCENTRIC CIRCLES ===
-    drawConcentricCircles(ctx, centerX, centerY, outerRadius, innerRadius);
+    drawConcentricCircles(ctx, centerX, centerY, outerRadius, middleRadius, innerRadius);
 
     // === CROSSHAIR ===
-    drawCrosshair(ctx, canvas, centerX, centerY);
+    drawCrosshair(ctx, canvas, centerX, centerY, outerRadius);
 
     // === RADAR SWEEP ===
     drawRadarSweep(ctx, centerX, centerY, outerRadius, elapsedMs);
 
-    // === COUNTDOWN NUMBER ===
+    // === COUNTDOWN NUMBER (LARGE, PROMINENT) ===
     const displayNumber = getCountdownNumber(elapsedMs);
-    drawCountdownNumber(ctx, centerX, centerY, displayNumber);
+    drawCountdownNumber(ctx, centerX, centerY, displayNumber, outerRadius);
 
     // === VINTAGE FILM EFFECTS ===
     applyFilmGrain(ctx, canvas);
@@ -49,46 +51,53 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
 }
 
 /**
- * Draw concentric circles (target/bullseye)
+ * Draw concentric circles (authentic cinema target)
+ * 3 circles: outer, middle, inner
  */
-function drawConcentricCircles(ctx, centerX, centerY, outerRadius, innerRadius) {
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 4;
-
-    // Outer circle
+function drawConcentricCircles(ctx, centerX, centerY, outerRadius, middleRadius, innerRadius) {
+    // Outer circle - thick white
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.lineWidth = 5;
     ctx.beginPath();
     ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Inner circle
+    // Middle circle - medium white
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, middleRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner circle - thin white
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(centerX, centerY, innerRadius, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Center dot
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    // Center dot - solid white
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
     ctx.fill();
 }
 
 /**
- * Draw crosshair (+ shape through center)
+ * Draw crosshair (+ shape through center, cinema style)
  */
-function drawCrosshair(ctx, canvas, centerX, centerY) {
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+function drawCrosshair(ctx, canvas, centerX, centerY, maxRadius) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.lineWidth = 2;
 
-    // Vertical line
+    // Vertical line (extends beyond circles)
     ctx.beginPath();
-    ctx.moveTo(centerX, 0);
-    ctx.lineTo(centerX, canvas.height);
+    ctx.moveTo(centerX, centerY - maxRadius * 1.3);
+    ctx.lineTo(centerX, centerY + maxRadius * 1.3);
     ctx.stroke();
 
-    // Horizontal line
+    // Horizontal line (extends beyond circles)
     ctx.beginPath();
-    ctx.moveTo(0, centerY);
-    ctx.lineTo(canvas.width, centerY);
+    ctx.moveTo(centerX - maxRadius * 1.3, centerY);
+    ctx.lineTo(centerX + maxRadius * 1.3, centerY);
     ctx.stroke();
 }
 
@@ -144,27 +153,33 @@ function getCountdownNumber(elapsedMs) {
 }
 
 /**
- * Draw the large countdown number/text
+ * Draw the large countdown number/text - Cinema style
+ * Number positioned BELOW the circles for maximum visibility
  */
-function drawCountdownNumber(ctx, centerX, centerY, number) {
-    // Large monospace font
-    const fontSize = 200;
-    ctx.font = `bold ${fontSize}px 'Courier New', monospace`;
+function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
+    // Position number below the circles
+    const numberY = centerY + maxRadius * 1.5;
+
+    // ===== SHADOW LAYER =====
+    ctx.font = `bold 180px 'Courier New', monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillText(number, centerX + 4, numberY + 4);
 
-    // Shadow effect
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillText(number, centerX + 3, centerY + 3);
+    // ===== MAIN TEXT - BRIGHT WHITE =====
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+    ctx.fillText(number, centerX, numberY);
 
-    // Main text (white)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    ctx.fillText(number, centerX, centerY);
+    // ===== OUTLINE FOR CRISP EDGES =====
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.lineWidth = 2;
+    ctx.strokeText(number, centerX, numberY);
 
-    // Outline for better visibility
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.lineWidth = 3;
-    ctx.strokeText(number, centerX, centerY);
+    // ===== GLOW EFFECT (subtle) =====
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.font = `bold 200px 'Courier New', monospace`;
+    ctx.fillText(number, centerX, numberY);
 }
 
 /**

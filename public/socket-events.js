@@ -12,6 +12,11 @@ socket.on('connect', () => {
 // --- ÉVÉNEMENTS JEU ---
 socket.on('mapData', (data) => {
     map = data;
+    // Si on n'a pas encore de session solo start time et on a une map, initialiser le chrono
+    if (soloSessionStartTime === null && data && data.length > 0) {
+        // Heuristique: si c'est une nouvelle session (level=1), initialiser le chrono
+        soloSessionStartTime = Date.now();
+    }
 });
 
 socket.on('requestSoloBestSplits', () => {

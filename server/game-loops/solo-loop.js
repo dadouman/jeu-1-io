@@ -30,10 +30,7 @@ function processSoloGameLoop(soloSessions, io, {
             const countdownElapsed = Date.now() - session.countdownStartTime;
             if (countdownElapsed >= 3000) {
                 session.countdownActive = false;
-                session.levelStartTime = Date.now(); // ⚠️ Timer de niveau démarre au GO
-                if (!session.startTime) {
-                    session.startTime = Date.now(); // ⚠️ Temps total de session démarre AUSSI au GO
-                }
+                session.levelStartTime = Date.now(); // Démarrer le vrai timer APRÈS countdown
                 console.log(`✅ [SOLO] Countdown terminé pour joueur ${playerId}, timer démarre`);
             }
         }
@@ -155,13 +152,7 @@ function processSoloGameLoop(soloSessions, io, {
         if (soloSessions[playerId]) {
             const socket = io.sockets.sockets.get(playerId);
             if (socket && socket.connected) {
-                socket.emit('state', { 
-                    players: { [playerId]: player }, 
-                    coin: session.coin, 
-                    playerGems: player.gems,
-                    levelStartTime: session.levelStartTime,
-                    countdownActive: session.countdownActive
-                });
+                socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
             }
         }
     }

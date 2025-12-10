@@ -6,15 +6,15 @@
 
 /**
  * Renders the Academy Leader countdown sequence
- * Features: Fills vision circle exactly, reveals game underneath with transparency
+ * Features: Fills vision circle exactly, reveals game underneath with stepped transparency
  * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
  * @param {HTMLCanvasElement} canvas - Canvas element
  * @param {number} elapsedMs - Milliseconds elapsed since countdown start
  * @param {boolean} countdownActive - Is countdown currently active
  */
 function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
-    if (!countdownActive || elapsedMs >= 4000) {
-        return; // Countdown finished
+    if (!countdownActive || elapsedMs >= 3500) {
+        return; // Countdown finished at 3500ms
     }
 
     // === VISION CIRCLE (same as game vision: 180px radius) ===
@@ -22,29 +22,24 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     const centerY = canvas.height / 2;
     const visionRadius = 180; // Match game vision radius exactly
     
-    // === CALCULATE TRANSPARENCY PROGRESSION (STEPPED with countdown number) ===
-    // Transparency changes when countdown number changes: 3 → 2 → 1 → GO
-    // Shows: 3 (1.0) → 2 (0.8) → 1 (0.6) → GO (0.4)
-    // Stays at same alpha until next number change
+    // === CALCULATE ALPHA (STEPPED based on countdown number, NOT time) ===
+    // 0-1s (3): alpha=1.0 (game 0% visible, countdown opaque)
+    // 1-2s (2): alpha=0.8 (game 20% visible)
+    // 2-3s (1): alpha=0.6 (game 40% visible)
+    // 3-3.5s (GO): alpha=0.4 (game 60% visible)
     
     const secondsPassed = Math.floor(elapsedMs / 1000);
+    let alphaOverlay;
     
-    let alphaDecay;
-    if (secondsPassed === 0) {
-        // 0-1s: Showing "3"
-        alphaDecay = 1.0;
-    } else if (secondsPassed === 1) {
-        // 1-2s: Showing "2"
-        alphaDecay = 0.8;
-    } else if (secondsPassed === 2) {
-        // 2-3s: Showing "1"
-        alphaDecay = 0.6;
-    } else {
-        // 3-4s: Showing "GO"
-        alphaDecay = 0.4;
+    switch(secondsPassed) {
+        case 0: alphaOverlay = 1.0; break;  // "3" phase
+        case 1: alphaOverlay = 0.8; break;  // "2" phase
+        case 2: alphaOverlay = 0.6; break;  // "1" phase
+        case 3: alphaOverlay = 0.4; break;  // "GO" phase
+        default: alphaOverlay = 0.0;
     }
     
-    // === SAVE CONTEXT ===
+    // === SAVE CONTEXT FOR CLIPPING ===
     ctx.save();
     
     // === CLIP TO VISION CIRCLE ===
@@ -52,18 +47,22 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     ctx.arc(centerX, centerY, visionRadius, 0, Math.PI * 2);
     ctx.clip();
     
-    // === COUNTDOWN BACKGROUND (with decreasing opacity) ===
-    ctx.fillStyle = `rgba(10, 10, 10, ${alphaDecay})`; // Very dark, fading
+    // === DRAW OVERLAY: Dark overlay with stepped alpha ===
+    // This is what blocks the game, allowing it to show through progressively
+    ctx.fillStyle = `rgba(10, 10, 10, ${alphaOverlay})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // === GEOMETRY FOR COUNTDOWN GRAPHICS ===
+    // === GEOMETRY FOR COUNTDOWN GRAPHICS (all use same alpha) ===
     const maxRadius = visionRadius * 0.85; // Fit inside vision circle
     const outerRadius = maxRadius;
     const middleRadius = maxRadius * 0.65;
     const innerRadius = maxRadius * 0.35;
 
-    // === CONCENTRIC CIRCLES (with decreasing opacity) ===
-    ctx.globalAlpha = alphaDecay;
+    // === SAVE GRAPHICS STATE ===
+    ctx.save();
+    ctx.globalAlpha = alphaOverlay;
+    
+    // === CONCENTRIC CIRCLES ===
     drawConcentricCircles(ctx, centerX, centerY, outerRadius, middleRadius, innerRadius);
 
     // === CROSSHAIR ===
@@ -72,18 +71,20 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     // === RADAR SWEEP ===
     drawRadarSweep(ctx, centerX, centerY, outerRadius, elapsedMs);
 
-    // === COUNTDOWN NUMBER (LARGE, PROMINENT) ===
+    // === COUNTDOWN NUMBER (LARGE, PROMINENT, centered) ===
     const displayNumber = getCountdownNumber(elapsedMs);
     drawCountdownNumber(ctx, centerX, centerY, displayNumber, outerRadius);
 
-    // === VINTAGE FILM EFFECTS (with decreasing opacity) ===
-    applyFilmGrain(ctx, canvas);
-    applyScratches(ctx, canvas);
-    applyDust(ctx, canvas);
-    applyJitter(ctx, canvas);
-    applyFlicker(ctx, canvas, elapsedMs);
+    // === RESTORE GRAPHICS STATE ===
+    ctx.restore();
     
-    // === RESTORE CONTEXT ===
+    // === MINIMAL FILM EFFECTS (subtle, not distracting) ===
+    // Only apply occasionally to avoid jitter
+    if (Math.random() > 0.85) {
+        applyFilmGrain(ctx, canvas, alphaOverlay);
+    }
+    
+    // === RESTORE CONTEXT (remove clipping) ===
     ctx.restore();
 }
 
@@ -191,22 +192,18 @@ function getCountdownNumber(elapsedMs) {
 
 /**
  * Draw the large countdown number/text - Cinema style
- * Number positioned at the CENTER of the countdown circle
+ * Number positioned BELOW the circles for maximum visibility
  */
 function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
-    // Position number at center of the countdown circle
-    const numberY = centerY;
-    
-    // Enable smooth rendering
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    // Position number below the circles
+    const numberY = centerY + maxRadius * 1.5;
 
     // ===== SHADOW LAYER =====
-    ctx.font = `bold 240px 'Courier New', monospace`;
+    ctx.font = `bold 180px 'Courier New', monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillText(number, centerX + 5, numberY + 5);
+    ctx.fillText(number, centerX + 4, numberY + 4);
 
     // ===== MAIN TEXT - BRIGHT WHITE =====
     ctx.fillStyle = 'rgba(255, 255, 255, 1)';
@@ -214,12 +211,12 @@ function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
 
     // ===== OUTLINE FOR CRISP EDGES =====
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
     ctx.strokeText(number, centerX, numberY);
 
     // ===== GLOW EFFECT (subtle) =====
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.font = `bold 260px 'Courier New', monospace`;
+    ctx.font = `bold 200px 'Courier New', monospace`;
     ctx.fillText(number, centerX, numberY);
 }
 
@@ -227,13 +224,10 @@ function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
  * Apply film grain (noise overlay)
  */
 function applyFilmGrain(ctx, canvas) {
-    // Réduit: appliquer le grain seulement 20% du temps pour éviter les saccades
-    if (Math.random() > 0.2) return;
-    
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
-    const grainIntensity = 15;
-    const grainAlpha = 0.05;
+    const grainIntensity = 25;
+    const grainAlpha = 0.08;
 
     for (let i = 0; i < data.length; i += 4) {
         const noise = Math.random() * grainIntensity;
@@ -244,7 +238,7 @@ function applyFilmGrain(ctx, canvas) {
     }
 
     // Only apply to small patches (performance optimization)
-    if (Math.random() > 0.8) {
+    if (Math.random() > 0.7) {
         const patchX = Math.random() * canvas.width;
         const patchY = Math.random() * canvas.height;
         const patchW = 100;

@@ -26,6 +26,7 @@ function selectMode(mode) {
         if (mode === 'solo') {
             soloStartCountdownActive = true;
             soloStartCountdownStartTime = Date.now();
+            inputsBlocked = true; // Bloquer les inputs jusqu'à 3000ms
             console.log('%c🎬 Academy Leader countdown lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
         }
         

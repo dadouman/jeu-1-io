@@ -46,11 +46,6 @@ socket.on('state', (gameState) => {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
-    // === SYNCHRONISER levelStartTime DEPUIS LE SERVEUR (pour le mode solo) ===
-    if (gameState.levelStartTime !== undefined && currentGameMode === 'solo') {
-        levelStartTime = gameState.levelStartTime;
-    }
-
     // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES ---
     if (isShopOpen && shopTimerStart) {
         const elapsed = Date.now() - shopTimerStart;
@@ -61,6 +56,12 @@ socket.on('state', (gameState) => {
             }
             isShopOpen = false;
             shopTimerStart = null;
+            
+            // Démarrer le countdown en mode solo APRÈS le shop
+            if (currentGameMode === 'solo' && !soloCountdownActive) {
+                soloCountdownStartTime = Date.now();
+                soloCountdownActive = true;
+            }
         }
     }
 
@@ -76,6 +77,12 @@ socket.on('state', (gameState) => {
             isFirstLevel = false;
             transitionStartTime = null;
             voteResult = null;
+            
+            // Démarrer le countdown en mode solo APRÈS la transition
+            if (currentGameMode === 'solo' && !soloCountdownActive) {
+                soloCountdownStartTime = Date.now();
+                soloCountdownActive = true;
+            }
         }
     }
 
@@ -92,14 +99,14 @@ socket.on('state', (gameState) => {
     if (soloStartCountdownActive && soloStartCountdownStartTime) {
         const countdownElapsed = Date.now() - soloStartCountdownStartTime;
         
-        // À 3 secondes: affichage du GO et DÉMARRAGE du timer réel
-        if (countdownElapsed >= 3000 && !levelStartTime) {
-            levelStartTime = Date.now(); // ⚠️ Timer démarre ICI quand GO apparaît
-            soloSessionStartTime = Date.now(); // ⚠️ Temps total de session démarre AUSSI ici
+        // À 3000ms (phase "GO"): Démarrer le timer et débloquer les inputs
+        if (countdownElapsed >= 3000 && levelStartTime === null) {
+            levelStartTime = Date.now();
+            inputsBlocked = false;
         }
         
-        // À 4 secondes: fin du countdown, continuer le jeu
-        if (countdownElapsed >= 4000) {
+        // À 3500ms: Démarrer le countdown
+        if (countdownElapsed >= 3500) {
             soloStartCountdownActive = false;
         }
     }

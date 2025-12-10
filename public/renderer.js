@@ -60,12 +60,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
     
-    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (avant vérification de sécurité) ===
-    // Si le countdown est actif, afficher ET continuer le rendu du jeu
-    const countdownRendered = soloStartCountdownActive && typeof renderAcademyLeader === 'function';
-    if (countdownRendered) {
-        // Le countdown s'affichera à la fin, mais on continue le rendu du jeu
-    }
+    // === AFFICHER LE JEU EN ARRIÈRE-PLAN (même pendant le countdown) ===
+    // Le jeu s'affiche TOUJOURS, le countdown est overlayé par-dessus
     
     if (currentGameMode === 'solo') {
         console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);
@@ -83,11 +79,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Chargement du jeu...", canvas.width / 2, canvas.height / 2);
-        
-        // === AFFICHER LE COUNTDOWN MÊME PENDANT LE CHARGEMENT ===
-        if (countdownRendered) {
-            renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
-        }
         return; // On arrête là et on attend la prochaine frame
     }
     // ----------------------------------------
@@ -302,11 +293,6 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
     }
     */
-    
-    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (par-dessus le jeu avec transparence décroissante) ===
-    if (soloStartCountdownActive && typeof renderAcademyLeader === 'function') {
-        renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
-    }
 }
 
 /**
@@ -424,4 +410,9 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
             ctx.fillText(`x${Math.floor(purchasedFeatures[feature.id])}`, x + BOX_SIZE / 2, y + BOX_SIZE - 18);
         }
     });
+    
+    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO PAR-DESSUS (en dernier) ===
+    if (soloStartCountdownActive && typeof renderAcademyLeader === 'function') {
+        renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
+    }
 }

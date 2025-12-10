@@ -81,6 +81,9 @@ function processSoloGameLoop(soloSessions, io, {
             
             console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
             
+            // Réinitialiser le timer pour le prochain niveau
+            session.levelStartTime = Date.now();
+            
             // Augmenter le niveau
             session.currentLevel++;
             

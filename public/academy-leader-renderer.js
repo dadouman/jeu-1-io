@@ -23,9 +23,9 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     const visionRadius = 180; // Match game vision radius exactly
     
     // === CALCULATE TRANSPARENCY PROGRESSION ===
-    // Start: opaque (1.0), End: transparent (0.0)
-    // Alpha decreases: 3s (100%) -> 2s (66%) -> 1s (33%) -> 0s (0%)
-    const alphaDecay = 1.0 - (elapsedMs / 4000); // Linear decay from 1.0 to 0
+    // Start: opaque (1.0), End: semi-opaque (0.5 minimum)
+    // Alpha decreases: 3s (100%) -> 2s (83%) -> 1s (66%) -> 0s (50%)
+    const alphaDecay = Math.max(0.5, 1.0 - (elapsedMs / 4000)); // Linear decay from 1.0 to 0.5
     
     // === SAVE CONTEXT ===
     ctx.save();
@@ -179,13 +179,17 @@ function getCountdownNumber(elapsedMs) {
 function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
     // Position number below the circles
     const numberY = centerY + maxRadius * 1.5;
+    
+    // Enable smooth rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // ===== SHADOW LAYER =====
-    ctx.font = `bold 180px 'Courier New', monospace`;
+    ctx.font = `bold 240px 'Courier New', monospace`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillText(number, centerX + 4, numberY + 4);
+    ctx.fillText(number, centerX + 5, numberY + 5);
 
     // ===== MAIN TEXT - BRIGHT WHITE =====
     ctx.fillStyle = 'rgba(255, 255, 255, 1)';
@@ -193,12 +197,12 @@ function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
 
     // ===== OUTLINE FOR CRISP EDGES =====
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeText(number, centerX, numberY);
 
     // ===== GLOW EFFECT (subtle) =====
     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-    ctx.font = `bold 200px 'Courier New', monospace`;
+    ctx.font = `bold 260px 'Courier New', monospace`;
     ctx.fillText(number, centerX, numberY);
 }
 
@@ -206,10 +210,13 @@ function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
  * Apply film grain (noise overlay)
  */
 function applyFilmGrain(ctx, canvas) {
+    // Réduit: appliquer le grain seulement 20% du temps pour éviter les saccades
+    if (Math.random() > 0.2) return;
+    
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
-    const grainIntensity = 25;
-    const grainAlpha = 0.08;
+    const grainIntensity = 15;
+    const grainAlpha = 0.05;
 
     for (let i = 0; i < data.length; i += 4) {
         const noise = Math.random() * grainIntensity;
@@ -220,7 +227,7 @@ function applyFilmGrain(ctx, canvas) {
     }
 
     // Only apply to small patches (performance optimization)
-    if (Math.random() > 0.7) {
+    if (Math.random() > 0.8) {
         const patchX = Math.random() * canvas.width;
         const patchY = Math.random() * canvas.height;
         const patchW = 100;

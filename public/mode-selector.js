@@ -23,7 +23,7 @@ function selectMode(mode) {
         }
 
         // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
-        if (mode === 'solo') {
+        if (mode === 'solo' && !soloStartCountdownActive) { // ← Ne déclencher qu'une fois
             soloStartCountdownActive = true;
             soloStartCountdownStartTime = Date.now();
             soloSessionStartTime = Date.now(); // Initialiser le chrono AVANT le countdown (comme côté serveur)

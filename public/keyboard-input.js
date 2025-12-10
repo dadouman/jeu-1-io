@@ -11,7 +11,10 @@ document.addEventListener('click', (e) => {
             isSoloGameFinished = false;
             soloTotalTime = 0;
             soloSplitTimes = [];
-            socket.emit('selectGameMode', { mode: 'solo' });
+            soloInactiveTime = 0;
+            soloStartCountdownActive = false; // Réinitialiser le flag countdown
+            // Déclencher le countdown (sélectionner le mode)
+            selectMode('solo');
             window.replayButtonRect = null;
             return;
         }

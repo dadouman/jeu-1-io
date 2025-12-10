@@ -60,16 +60,15 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
     
-    // === AFFICHER LE JEU EN ARRIÈRE-PLAN (même pendant le countdown) ===
-    // Le jeu s'affiche TOUJOURS, le countdown est overlayé par-dessus
-    
-    if (currentGameMode === 'solo') {
-        console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);
-    }
-    
     // 1. Fond noir
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (AVANT tout le reste) ===
+    if (soloStartCountdownActive && typeof renderAcademyLeader === 'function') {
+        renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
+        return; // Arrêter ici pendant le countdown, ne pas afficher le jeu
+    }
 
     // --- SÉCURITÉ (Sans les logs moches) ---
     // Si il manque des données, on affiche juste un texte de chargement propre
@@ -410,9 +409,4 @@ function renderFeaturesHUD(ctx, canvas, purchasedFeatures) {
             ctx.fillText(`x${Math.floor(purchasedFeatures[feature.id])}`, x + BOX_SIZE / 2, y + BOX_SIZE - 18);
         }
     });
-    
-    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO PAR-DESSUS (en dernier) ===
-    if (soloStartCountdownActive && typeof renderAcademyLeader === 'function') {
-        renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
-    }
 }

@@ -174,11 +174,11 @@ function getCountdownNumber(elapsedMs) {
 
 /**
  * Draw the large countdown number/text - Cinema style
- * Number positioned BELOW the circles for maximum visibility
+ * Number positioned at the CENTER of the countdown circle
  */
 function drawCountdownNumber(ctx, centerX, centerY, number, maxRadius) {
-    // Position number below the circles
-    const numberY = centerY + maxRadius * 1.5;
+    // Position number at center of the countdown circle
+    const numberY = centerY;
     
     // Enable smooth rendering
     ctx.imageSmoothingEnabled = true;

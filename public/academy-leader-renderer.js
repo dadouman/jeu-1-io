@@ -22,10 +22,25 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     const centerY = canvas.height / 2;
     const visionRadius = 180; // Match game vision radius exactly
     
-    // === CALCULATE TRANSPARENCY PROGRESSION ===
-    // Start: opaque (1.0), End: semi-opaque (0.5 minimum)
-    // Alpha decreases: 3s (100%) -> 2s (83%) -> 1s (66%) -> 0s (50%)
-    const alphaDecay = Math.max(0.5, 1.0 - (elapsedMs / 4000)); // Linear decay from 1.0 to 0.5
+    // === CALCULATE TRANSPARENCY PROGRESSION (STEPPED with radar sweep) ===
+    // Transparency changes when radar needle completes each quadrant (90° increments)
+    // 0-1s (0-90°): alpha = 1.0
+    // 1-2s (90-180°): alpha = 0.8
+    // 2-3s (180-270°): alpha = 0.6
+    // 3-4s (270-360°): alpha = 0.4
+    
+    const totalAngle = (elapsedMs / 1000) * 360; // 360° per second
+    const normalizedAngle = totalAngle % 360;
+    const quadrant = Math.floor(normalizedAngle / 90); // 0, 1, 2, or 3
+    
+    let alphaDecay;
+    switch(quadrant) {
+        case 0: alphaDecay = 1.0; break;
+        case 1: alphaDecay = 0.8; break;
+        case 2: alphaDecay = 0.6; break;
+        case 3: alphaDecay = 0.4; break;
+        default: alphaDecay = 0.4;
+    }
     
     // === SAVE CONTEXT ===
     ctx.save();

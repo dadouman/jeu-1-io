@@ -6,7 +6,7 @@
 
 /**
  * Renders the Academy Leader countdown sequence
- * Features: Radar sweep, concentric circles, crosshair, vintage film effects
+ * Features: Fills vision circle exactly, reveals game underneath with transparency
  * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
  * @param {HTMLCanvasElement} canvas - Canvas element
  * @param {number} elapsedMs - Milliseconds elapsed since countdown start
@@ -17,19 +17,36 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
         return; // Countdown finished
     }
 
-    // === BACKGROUND ===
-    ctx.fillStyle = '#0a0a0a'; // Very dark background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // === GEOMETRY - Properly sized for cinema ===
+    // === VISION CIRCLE (same as game vision: 180px radius) ===
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const maxRadius = Math.min(canvas.width, canvas.height) * 0.25; // Fits on screen
+    const visionRadius = 180; // Match game vision radius exactly
+    
+    // === CALCULATE TRANSPARENCY PROGRESSION ===
+    // Start: opaque (1.0), End: transparent (0.0)
+    // Alpha decreases: 3s (100%) -> 2s (66%) -> 1s (33%) -> 0s (0%)
+    const alphaDecay = 1.0 - (elapsedMs / 4000); // Linear decay from 1.0 to 0
+    
+    // === SAVE CONTEXT ===
+    ctx.save();
+    
+    // === CLIP TO VISION CIRCLE ===
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, visionRadius, 0, Math.PI * 2);
+    ctx.clip();
+    
+    // === COUNTDOWN BACKGROUND (with decreasing opacity) ===
+    ctx.fillStyle = `rgba(10, 10, 10, ${alphaDecay})`; // Very dark, fading
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // === GEOMETRY FOR COUNTDOWN GRAPHICS ===
+    const maxRadius = visionRadius * 0.85; // Fit inside vision circle
     const outerRadius = maxRadius;
     const middleRadius = maxRadius * 0.65;
     const innerRadius = maxRadius * 0.35;
 
-    // === CONCENTRIC CIRCLES ===
+    // === CONCENTRIC CIRCLES (with decreasing opacity) ===
+    ctx.globalAlpha = alphaDecay;
     drawConcentricCircles(ctx, centerX, centerY, outerRadius, middleRadius, innerRadius);
 
     // === CROSSHAIR ===
@@ -42,12 +59,15 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     const displayNumber = getCountdownNumber(elapsedMs);
     drawCountdownNumber(ctx, centerX, centerY, displayNumber, outerRadius);
 
-    // === VINTAGE FILM EFFECTS ===
+    // === VINTAGE FILM EFFECTS (with decreasing opacity) ===
     applyFilmGrain(ctx, canvas);
     applyScratches(ctx, canvas);
     applyDust(ctx, canvas);
     applyJitter(ctx, canvas);
     applyFlicker(ctx, canvas, elapsedMs);
+    
+    // === RESTORE CONTEXT ===
+    ctx.restore();
 }
 
 /**

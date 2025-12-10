@@ -60,8 +60,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
     
-    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (Par-dessus le jeu avec transparence croissante) ===
-    // NOTE: On n'arrête PAS le rendu - le jeu est affiché EN DESSOUS du countdown
+    // === AFFICHER LE COUNTDOWN DE DÉMARRAGE SOLO (avant vérification de sécurité) ===
+    // Si le countdown est actif, afficher ET continuer le rendu du jeu
+    const countdownRendered = soloStartCountdownActive && typeof renderAcademyLeader === 'function';
+    if (countdownRendered) {
+        // Le countdown s'affichera à la fin, mais on continue le rendu du jeu
+    }
     
     if (currentGameMode === 'solo') {
         console.log(`[DEBUG] renderGame reçoit currentGameMode="solo", soloCurrentLevelTime=${soloCurrentLevelTime}, soloRunTotalTime=${soloRunTotalTime}`);
@@ -79,6 +83,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Chargement du jeu...", canvas.width / 2, canvas.height / 2);
+        
+        // === AFFICHER LE COUNTDOWN MÊME PENDANT LE CHARGEMENT ===
+        if (countdownRendered) {
+            renderAcademyLeader(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
+        }
         return; // On arrête là et on attend la prochaine frame
     }
     // ----------------------------------------

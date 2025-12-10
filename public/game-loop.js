@@ -91,9 +91,16 @@ socket.on('state', (gameState) => {
     // --- GESTION DU COUNTDOWN DE DÉMARRAGE SOLO (Uniquement au démarrage) ---
     if (soloStartCountdownActive && soloStartCountdownStartTime) {
         const countdownElapsed = Date.now() - soloStartCountdownStartTime;
-        if (countdownElapsed >= 4000) { // 4 secondes de countdown (3-2-1-GO)
+        
+        // À 3 secondes: affichage du GO et DÉMARRAGE du timer réel
+        if (countdownElapsed >= 3000 && !levelStartTime) {
+            levelStartTime = Date.now(); // ⚠️ Timer démarre ICI quand GO apparaît
+            soloSessionStartTime = Date.now(); // ⚠️ Temps total de session démarre AUSSI ici
+        }
+        
+        // À 4 secondes: fin du countdown, continuer le jeu
+        if (countdownElapsed >= 4000) {
             soloStartCountdownActive = false;
-            levelStartTime = Date.now(); // Démarrer le jeu ICI
         }
     }
 

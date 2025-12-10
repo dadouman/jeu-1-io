@@ -30,7 +30,10 @@ function processSoloGameLoop(soloSessions, io, {
             const countdownElapsed = Date.now() - session.countdownStartTime;
             if (countdownElapsed >= 3000) {
                 session.countdownActive = false;
-                session.levelStartTime = Date.now(); // Démarrer le vrai timer APRÈS countdown
+                session.levelStartTime = Date.now(); // ⚠️ Timer de niveau démarre au GO
+                if (!session.startTime) {
+                    session.startTime = Date.now(); // ⚠️ Temps total de session démarre AUSSI au GO
+                }
                 console.log(`✅ [SOLO] Countdown terminé pour joueur ${playerId}, timer démarre`);
             }
         }

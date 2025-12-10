@@ -88,8 +88,8 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     map: generateMaze(15, 15),
                     coin: getRandomEmptyPosition(generateMaze(15, 15)),
                     player: player,
-                    startTime: Date.now(),
-                    levelStartTime: Date.now(),
+                    startTime: null, // ⚠️ Sera défini après le countdown (au GO)
+                    levelStartTime: null, // ⚠️ Sera défini après le countdown (au GO)
                     splitTimes: [],
                     totalTime: 0,
                     currentShopLevel: null,  // ← Pour tracker quel niveau a un shop actif

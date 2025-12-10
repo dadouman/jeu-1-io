@@ -22,24 +22,26 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     const centerY = canvas.height / 2;
     const visionRadius = 180; // Match game vision radius exactly
     
-    // === CALCULATE TRANSPARENCY PROGRESSION (STEPPED with radar sweep) ===
-    // Transparency changes when radar needle completes each quadrant (90° increments)
-    // 0-1s (0-90°): alpha = 1.0
-    // 1-2s (90-180°): alpha = 0.8
-    // 2-3s (180-270°): alpha = 0.6
-    // 3-4s (270-360°): alpha = 0.4
+    // === CALCULATE TRANSPARENCY PROGRESSION (STEPPED with countdown number) ===
+    // Transparency changes when countdown number changes: 3 → 2 → 1 → GO
+    // Shows: 3 (1.0) → 2 (0.8) → 1 (0.6) → GO (0.4)
+    // Stays at same alpha until next number change
     
-    const totalAngle = (elapsedMs / 1000) * 360; // 360° per second
-    const normalizedAngle = totalAngle % 360;
-    const quadrant = Math.floor(normalizedAngle / 90); // 0, 1, 2, or 3
+    const secondsPassed = Math.floor(elapsedMs / 1000);
     
     let alphaDecay;
-    switch(quadrant) {
-        case 0: alphaDecay = 1.0; break;
-        case 1: alphaDecay = 0.8; break;
-        case 2: alphaDecay = 0.6; break;
-        case 3: alphaDecay = 0.4; break;
-        default: alphaDecay = 0.4;
+    if (secondsPassed === 0) {
+        // 0-1s: Showing "3"
+        alphaDecay = 1.0;
+    } else if (secondsPassed === 1) {
+        // 1-2s: Showing "2"
+        alphaDecay = 0.8;
+    } else if (secondsPassed === 2) {
+        // 2-3s: Showing "1"
+        alphaDecay = 0.6;
+    } else {
+        // 3-4s: Showing "GO"
+        alphaDecay = 0.4;
     }
     
     // === SAVE CONTEXT ===

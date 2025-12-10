@@ -6,7 +6,7 @@
 
 /**
  * Renders the Academy Leader countdown sequence
- * Features: Fills vision circle exactly, reveals game underneath with stepped transparency
+ * Features: Centered countdown with game visible underneath via transparency
  * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
  * @param {HTMLCanvasElement} canvas - Canvas element
  * @param {number} elapsedMs - Milliseconds elapsed since countdown start
@@ -17,10 +17,9 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
         return; // Countdown finished at 3500ms
     }
 
-    // === VISION CIRCLE (same as game vision: 180px radius) ===
+    // === CENTER POSITION ===
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const visionRadius = 180; // Match game vision radius exactly
     
     // === CALCULATE ALPHA (STEPPED based on countdown number, NOT time) ===
     // 0-1s (3): alpha=1.0 (game 0% visible, countdown opaque)
@@ -39,53 +38,50 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
         default: alphaOverlay = 0.0;
     }
     
-    // === SAVE CONTEXT FOR CLIPPING ===
+    // === SAVE CONTEXT ===
     ctx.save();
     
-    // === CLIP TO VISION CIRCLE ===
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, visionRadius, 0, Math.PI * 2);
-    ctx.clip();
-    
-    // === DRAW OVERLAY: Dark overlay with stepped alpha ===
-    // This is what blocks the game, allowing it to show through progressively
-    ctx.fillStyle = `rgba(10, 10, 10, ${alphaOverlay})`;
+    // === DRAW SEMI-TRANSPARENT OVERLAY (NOT full black) ===
+    // This darkens the game but keeps it visible
+    ctx.fillStyle = `rgba(10, 10, 10, ${alphaOverlay * 0.7})`; // Reduced opacity for visibility
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // === GEOMETRY FOR COUNTDOWN GRAPHICS (all use same alpha) ===
-    const maxRadius = visionRadius * 0.85; // Fit inside vision circle
-    const outerRadius = maxRadius;
-    const middleRadius = maxRadius * 0.65;
-    const innerRadius = maxRadius * 0.35;
-
-    // === SAVE GRAPHICS STATE ===
-    ctx.save();
-    ctx.globalAlpha = alphaOverlay;
+    // === SET GLOBAL ALPHA FOR ALL COUNTDOWN ELEMENTS ===
+    ctx.globalAlpha = 1.0; // Countdown elements are fully opaque
     
-    // === CONCENTRIC CIRCLES ===
-    drawConcentricCircles(ctx, centerX, centerY, outerRadius, middleRadius, innerRadius);
-
-    // === CROSSHAIR ===
-    drawCrosshair(ctx, canvas, centerX, centerY, outerRadius);
-
-    // === RADAR SWEEP ===
-    drawRadarSweep(ctx, centerX, centerY, outerRadius, elapsedMs);
-
-    // === COUNTDOWN NUMBER (LARGE, PROMINENT, centered) ===
+    // === DRAW COUNTDOWN NUMBER (LARGE, CENTERED, PROMINENT) ===
     const displayNumber = getCountdownNumber(elapsedMs);
-    drawCountdownNumber(ctx, centerX, centerY, displayNumber, outerRadius);
-
-    // === RESTORE GRAPHICS STATE ===
-    ctx.restore();
+    drawCountdownNumberCentered(ctx, centerX, centerY, displayNumber, alphaOverlay);
     
-    // === MINIMAL FILM EFFECTS (subtle, not distracting) ===
-    // Only apply occasionally to avoid jitter
-    if (Math.random() > 0.85) {
-        applyFilmGrain(ctx, canvas, alphaOverlay);
+    // === RESTORE CONTEXT ===
+    ctx.restore();
+}
+
+/**
+ * Draw the large countdown number centered on screen
+ */
+function drawCountdownNumberCentered(ctx, centerX, centerY, number, alphaOverlay) {
+    // Color based on phase
+    let textColor;
+    switch(number) {
+        case '3': textColor = '#FF6B6B'; break;  // Red
+        case '2': textColor = '#FFD700'; break;  // Gold
+        case '1': textColor = '#00FF00'; break;  // Green
+        case 'GO': textColor = '#00FFFF'; break; // Cyan
+        default: textColor = '#FFFFFF';
     }
     
-    // === RESTORE CONTEXT (remove clipping) ===
-    ctx.restore();
+    // ===== SHADOW LAYER (for contrast) =====
+    ctx.font = `bold 200px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillText(number, centerX + 6, centerY + 6);
+
+    // ===== MAIN TEXT - BRIGHT AND CENTERED =====
+    ctx.fillStyle = textColor;
+    ctx.globalAlpha = 1.0;
+    ctx.fillText(number, centerX, centerY);
 }
 
 /**

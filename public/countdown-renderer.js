@@ -1,6 +1,6 @@
 /**
  * countdown-renderer.js
- * NEW COUNTDOWN LOGIC - 4 PHASES with stepped transparency and game visibility
+ * CINEMA-STYLE COUNTDOWN - Old cinema leader aesthetic with vintage effects
  * 
  * PHASE 1: 0-1000ms - AFFICHE "3" (opaque, jeu 0% visible)
  * PHASE 2: 1000-2000ms - AFFICHE "2" (alpha=0.8, jeu 20% visible)
@@ -14,7 +14,7 @@
  */
 
 /**
- * Render the multi-phase countdown with stepped transparency
+ * Render old-style cinema countdown with vintage aesthetic
  * @param {CanvasRenderingContext2D} ctx - Canvas 2D context
  * @param {HTMLCanvasElement} canvas - Canvas element
  * @param {number} elapsedMs - Milliseconds elapsed since countdown start
@@ -61,46 +61,87 @@ function renderCountdownMultiPhase(ctx, canvas, elapsedMs, countdownActive) {
     ctx.fillStyle = `rgba(0, 0, 0, ${overlayAlpha})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // === DRAW RADAR CIRCLES (shrinking) ===
-    drawCountdownRadarCircles(ctx, centerX, centerY, elapsedMs, overlayAlpha);
+    // === DRAW VINTAGE CINEMA EFFECTS ===
+    // Film grain effect
+    drawFilmGrain(ctx, canvas, overlayAlpha);
+
+    // === DRAW RADAR CIRCLES (FIXED SIZE - NO SHRINK) ===
+    drawCountdownRadarCircles(ctx, centerX, centerY, overlayAlpha);
 
     // === DRAW RADAR SWEEP (rotating line) ===
     drawCountdownRadarSweep(ctx, centerX, centerY, elapsedMs, overlayAlpha);
 
-    // === DRAW CROSSHAIR ===
-    drawCountdownCrosshair(ctx, centerX, centerY, overlayAlpha);
-
-    // === DRAW COUNTDOWN NUMBER (LARGE, CENTERED) ===
-    drawCountdownNumber(ctx, centerX, centerY, displayNumber, overlayAlpha);
+    // === DRAW VINTAGE COUNTDOWN NUMBER (LARGE, CENTERED) ===
+    drawCountdownNumber(ctx, centerX, centerY, displayNumber, overlayAlpha, elapsedMs);
 
     // === RESTORE CONTEXT ===
     ctx.restore();
 }
 
 /**
- * Draw radar circles that shrink progressively
+ * Draw film grain effect for vintage cinema feel
  */
-function drawCountdownRadarCircles(ctx, centerX, centerY, elapsedMs, overlayAlpha) {
-    const radius = 150;
-    const shrinkFactor = Math.min(1, (3500 - elapsedMs) / 3500); // Shrink to 0 at 3500ms
-    const mainRadius = radius * shrinkFactor;
+function drawFilmGrain(ctx, canvas, overlayAlpha) {
+    const intensity = overlayAlpha * 0.15; // Grain visibility depends on overlay opacity
+    
+    // Create noise pattern
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    for (let i = 0; i < data.length; i += 4) {
+        const noise = Math.random() * 255 * intensity;
+        data[i] += noise;     // R
+        data[i + 1] += noise; // G
+        data[i + 2] += noise; // B
+        // data[i + 3] stays as is (alpha)
+    }
+    
+    ctx.putImageData(imageData, 0, 0);
+}
 
-    ctx.strokeStyle = `rgba(255, 200, 100, ${0.6 * overlayAlpha})`;
+/**
+ * Draw radar circles at FIXED SIZE (no shrinking)
+ */
+function drawCountdownRadarCircles(ctx, centerX, centerY, overlayAlpha) {
+    const radius = 150;
+    
+    // Gradient for vintage look
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius * 3);
+    
+    ctx.strokeStyle = `rgba(255, 150, 50, ${0.5 * overlayAlpha})`;
     ctx.lineWidth = 2;
 
-    // Draw 3 concentric circles
-    for (let i = 1; i <= 3; i++) {
+    // Draw 5 concentric circles for retro film leader look
+    for (let i = 1; i <= 5; i++) {
         ctx.beginPath();
-        ctx.arc(centerX, centerY, (mainRadius * i) / 3, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, (radius * i) / 5, 0, Math.PI * 2);
         ctx.stroke();
     }
+    
+    // Add corner circles (classic film leader)
+    const cornerDist = 80;
+    const corners = [
+        [centerX - cornerDist, centerY - cornerDist],
+        [centerX + cornerDist, centerY - cornerDist],
+        [centerX - cornerDist, centerY + cornerDist],
+        [centerX + cornerDist, centerY + cornerDist]
+    ];
+    
+    ctx.strokeStyle = `rgba(255, 150, 50, ${0.3 * overlayAlpha})`;
+    ctx.lineWidth = 1;
+    
+    corners.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2);
+        ctx.stroke();
+    });
 }
 
 /**
  * Draw rotating radar sweep line
  */
 function drawCountdownRadarSweep(ctx, centerX, centerY, elapsedMs, overlayAlpha) {
-    const sweepRadius = 150;
+    const sweepRadius = 200;
     const sweepAnglePerSecond = 360; // degrees per second
     const totalAngle = (elapsedMs / 1000) * sweepAnglePerSecond;
     const normalizedAngle = totalAngle % 360;
@@ -108,9 +149,22 @@ function drawCountdownRadarSweep(ctx, centerX, centerY, elapsedMs, overlayAlpha)
     // Convert to radians
     const angle = normalizedAngle * (Math.PI / 180);
 
-    // Draw the sweep line
-    ctx.strokeStyle = `rgba(255, 200, 100, ${0.8 * overlayAlpha})`;
-    ctx.lineWidth = 3;
+    // Draw the main sweep line with glow
+    ctx.strokeStyle = `rgba(255, 150, 50, ${0.6 * overlayAlpha})`;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+        centerX + Math.cos(angle - Math.PI / 2) * sweepRadius,
+        centerY + Math.sin(angle - Math.PI / 2) * sweepRadius
+    );
+    ctx.stroke();
+    
+    // Add glow around sweep
+    ctx.strokeStyle = `rgba(255, 200, 100, ${0.2 * overlayAlpha})`;
+    ctx.lineWidth = 15;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(
@@ -121,75 +175,74 @@ function drawCountdownRadarSweep(ctx, centerX, centerY, elapsedMs, overlayAlpha)
 }
 
 /**
- * Draw crosshair at center
+ * Draw the large countdown number with vintage cinema styling
  */
-function drawCountdownCrosshair(ctx, centerX, centerY, overlayAlpha) {
-    const crosshairSize = 40;
+function drawCountdownNumber(ctx, centerX, centerY, number, overlayAlpha, elapsedMs) {
+    // Jitter effect for vintage feel (slight random movement)
+    const jitterX = (Math.random() - 0.5) * 4;
+    const jitterY = (Math.random() - 0.5) * 4;
     
-    ctx.strokeStyle = `rgba(255, 100, 100, ${0.7 * overlayAlpha})`;
-    ctx.lineWidth = 2;
-
-    // Horizontal line
-    ctx.beginPath();
-    ctx.moveTo(centerX - crosshairSize, centerY);
-    ctx.lineTo(centerX + crosshairSize, centerY);
-    ctx.stroke();
-
-    // Vertical line
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY - crosshairSize);
-    ctx.lineTo(centerX, centerY + crosshairSize);
-    ctx.stroke();
-
-    // Center circle
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
-    ctx.stroke();
-}
-
-/**
- * Draw the large countdown number
- */
-function drawCountdownNumber(ctx, centerX, centerY, number, overlayAlpha) {
-    // Color based on phase
+    const displayX = centerX + jitterX;
+    const displayY = centerY + jitterY;
+    
+    // Scale animation: number appears and slightly grows
+    const phaseElapsed = (elapsedMs % 1000);
+    const scaleAnimation = 0.9 + (phaseElapsed / 1000) * 0.1; // 0.9 → 1.0
+    
+    // Color based on phase - vintage film colors
     let textColor;
-    const alpha = (1 - overlayAlpha) * 0.5 + 0.5; // Inverse alpha for visibility
-
+    let strokeColor;
+    
     switch (number) {
         case '3': 
-            textColor = `rgba(255, 107, 107, ${Math.min(1, alpha + 0.3)})`; // Red
+            textColor = `rgba(255, 100, 100, ${0.95})`; // Red
+            strokeColor = `rgba(200, 50, 50, 1)`;
             break;
         case '2': 
-            textColor = `rgba(255, 215, 0, ${Math.min(1, alpha + 0.3)})`; // Gold
+            textColor = `rgba(255, 180, 50, ${0.95})`; // Orange
+            strokeColor = `rgba(200, 120, 20, 1)`;
             break;
         case '1': 
-            textColor = `rgba(0, 255, 0, ${Math.min(1, alpha + 0.3)})`; // Green
+            textColor = `rgba(100, 200, 100, ${0.95})`; // Green
+            strokeColor = `rgba(50, 150, 50, 1)`;
             break;
         case 'GO': 
-            textColor = `rgba(0, 255, 255, ${Math.min(1, alpha + 0.3)})`; // Cyan
+            textColor = `rgba(100, 150, 255, ${0.95})`; // Blue
+            strokeColor = `rgba(50, 100, 200, 1)`;
             break;
         default: 
             textColor = 'rgba(255, 255, 255, 1)';
+            strokeColor = 'rgba(100, 100, 100, 1)';
     }
-
-    // Draw shadow for depth
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.font = 'bold 200px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
     
-    // Shadow offset
-    ctx.fillText(number, centerX + 4, centerY + 4);
-
-    // Main number
-    ctx.fillStyle = textColor;
-    ctx.fillText(number, centerX, centerY);
-
-    // Add glow effect
-    ctx.strokeStyle = textColor;
-    ctx.lineWidth = 3;
-    ctx.font = 'bold 200px Arial';
+    ctx.save();
+    
+    // Apply scale and translation for animation
+    ctx.translate(displayX, displayY);
+    ctx.scale(scaleAnimation, scaleAnimation);
+    ctx.translate(-displayX, -displayY);
+    
+    // Draw multiple strokes for bold vintage look
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.font = 'bold 280px "Arial Black", Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.strokeText(number, centerX, centerY);
+    ctx.strokeText(number, displayX, displayY);
+    
+    // Draw colored stroke
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = strokeColor;
+    ctx.strokeText(number, displayX, displayY);
+    
+    // Draw main number with fill
+    ctx.fillStyle = textColor;
+    ctx.fillText(number, displayX, displayY);
+    
+    // Draw highlight for 3D effect
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * (1 - overlayAlpha)})`;
+    ctx.font = 'bold 280px "Arial Black", Arial, sans-serif';
+    ctx.fillText(number, displayX - 3, displayY - 3);
+    
+    ctx.restore();
 }

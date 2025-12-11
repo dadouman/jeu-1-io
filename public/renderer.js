@@ -55,7 +55,7 @@ function getRanking(players) {
     return playersList.sort((a, b) => b.score - a.score);
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, countdownActive = false, countdownElapsed = 0) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0) {
     
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
     ctx.globalAlpha = 1.0;
@@ -64,10 +64,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // === AFFICHER LE COUNTDOWN (AVANT tout le reste) ===
-    if (countdownActive && typeof renderAcademyLeader === 'function') {
-        renderAcademyLeader(ctx, canvas, countdownElapsed, countdownActive);
-        return; // Arrêter ici pendant le countdown, ne pas afficher le jeu
+    // === AFFICHER LE COUNTDOWN MULTI-PHASE (SUR LE JEU) ===
+    // Le jeu est rendu en dessous, le countdown est un overlay transparent
+    if (soloStartCountdownActive && typeof renderCountdownMultiPhase === 'function') {
+        // Rendre le jeu d'abord (COMPLÈTEMENT)
+        // Puis overlay le countdown par-dessus (voir fin de function)
     }
 
     // --- SÉCURITÉ (Sans les logs moches) ---
@@ -292,6 +293,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.fillText(`🏆 Record : ${safeRecord.score} ${safeRecord.skin}`, canvas.width - 20, 40);
     }
     */
+
+    // === AFFICHER LE COUNTDOWN OVERLAY (À LA FIN, DESSUS LE JEU) ===
+    if (soloStartCountdownActive && typeof renderCountdownMultiPhase === 'function') {
+        renderCountdownMultiPhase(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
+    }
 }
 
 /**

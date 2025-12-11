@@ -23,10 +23,10 @@ function selectMode(mode) {
         }
 
         // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
-        if (mode === 'solo') {
+        if (mode === 'solo' && !soloStartCountdownActive) {
             soloSessionStartTime = Date.now(); // Initialiser le chrono AVANT le countdown
             startCountdown(); // Démarrer le countdown
-            console.log('%c🎬 Mode Solo lancé avec countdown!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+            console.log('%c🎬 Mode Solo lancé! PHASE 1: "3" (0-1000ms) | Jeu 0% visible, inputs BLOQUÉS', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
         }
         
         // Émettre l'événement au serveur

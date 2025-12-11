@@ -12,7 +12,8 @@ document.addEventListener('click', (e) => {
             soloTotalTime = 0;
             soloSplitTimes = [];
             soloInactiveTime = 0;
-            countdownActive = false; // Réinitialiser le flag countdown
+            soloStartCountdownActive = false; // Réinitialiser le flag countdown
+            inputsBlocked = false; // Débloquer les inputs
             // Déclencher le countdown (sélectionner le mode)
             selectMode('solo');
             window.replayButtonRect = null;

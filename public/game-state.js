@@ -21,8 +21,8 @@ let levelStartTime = null;
 let lastLevel = 0;
 
 // --- VARIABLES COUNTDOWN (Solo Mode Only) ---
-let countdownActive = false; // Countdown actuellement en cours
-let countdownStartTime = null; // Timestamp du démarrage du countdown
+let soloStartCountdownActive = false; // Countdown actuellement en cours
+let soloStartCountdownStartTime = null; // Timestamp du démarrage du countdown
 let inputsBlocked = false; // Bloquer inputs pendant countdown (0-3000ms)
 
 // --- VARIABLES CHECKPOINT ---
@@ -86,11 +86,11 @@ let classicShowPersonalDelta = true; // Toggle: true = personnel, false = world 
 
 // === FONCTION POUR DÉMARRER LE COUNTDOWN ===
 function startCountdown() {
-    if (!countdownActive) {
-        countdownActive = true;
-        countdownStartTime = Date.now();
+    if (!soloStartCountdownActive) {
+        soloStartCountdownActive = true;
+        soloStartCountdownStartTime = Date.now();
         inputsBlocked = true;
         levelStartTime = null;
-        console.log('%c🎬 Countdown lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+        console.log('%c🎬 Countdown lancé! PHASE 1: "3" (0-1000ms)', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
     }
 }

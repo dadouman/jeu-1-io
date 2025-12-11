@@ -21,9 +21,9 @@ let levelStartTime = null;
 let lastLevel = 0;
 
 // --- VARIABLES COUNTDOWN (Solo Mode Only) ---
-let soloStartCountdownActive = false; // Countdown UNIQUEMENT au démarrage de solo
-let soloStartCountdownStartTime = null; // Timestamp du démarrage du countdown
-let inputsBlocked = false; // Bloquer inputs pendant countdown (jusqu'à 3000ms)
+let countdownActive = false; // Countdown actuellement en cours
+let countdownStartTime = null; // Timestamp du démarrage du countdown
+let inputsBlocked = false; // Bloquer inputs pendant countdown (0-3000ms)
 
 // --- VARIABLES CHECKPOINT ---
 let checkpoint = null;
@@ -83,3 +83,14 @@ let soloLastGemLevel = null; // Niveau quand la gem a été prise
 let classicPersonalBestScore = null; // Meilleur score personnel (localStorage)
 let classicLeaderboardBest = null; // Meilleur score du leaderboard (record mondial)
 let classicShowPersonalDelta = true; // Toggle: true = personnel, false = world record
+
+// === FONCTION POUR DÉMARRER LE COUNTDOWN ===
+function startCountdown() {
+    if (!countdownActive) {
+        countdownActive = true;
+        countdownStartTime = Date.now();
+        inputsBlocked = true;
+        levelStartTime = null;
+        console.log('%c🎬 Countdown lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+    }
+}

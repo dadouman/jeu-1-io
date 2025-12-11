@@ -23,12 +23,10 @@ function selectMode(mode) {
         }
 
         // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
-        if (mode === 'solo' && !soloStartCountdownActive) { // ← Ne déclencher qu'une fois
-            soloStartCountdownActive = true;
-            soloStartCountdownStartTime = Date.now();
-            soloSessionStartTime = Date.now(); // Initialiser le chrono AVANT le countdown (comme côté serveur)
-            inputsBlocked = true; // Bloquer les inputs jusqu'à 3000ms
-            console.log('%c🎬 Academy Leader countdown lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+        if (mode === 'solo') {
+            soloSessionStartTime = Date.now(); // Initialiser le chrono AVANT le countdown
+            startCountdown(); // Démarrer le countdown
+            console.log('%c🎬 Mode Solo lancé avec countdown!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
         }
         
         // Émettre l'événement au serveur

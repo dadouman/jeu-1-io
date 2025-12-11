@@ -50,19 +50,15 @@ socket.on('state', (gameState) => {
     if (isShopOpen && shopTimerStart) {
         const elapsed = Date.now() - shopTimerStart;
         if (elapsed >= SHOP_DURATION) {
-            // Ajouter le temps du shop au temps inactif (solo mode)
             if (soloSessionStartTime) {
                 soloInactiveTime += SHOP_DURATION;
             }
             isShopOpen = false;
             shopTimerStart = null;
             
-            // Démarrer le countdown en mode solo APRÈS le shop
-            if (currentGameMode === 'solo' && !soloStartCountdownActive) {
-                soloStartCountdownStartTime = Date.now();
-                soloStartCountdownActive = true;
-                inputsBlocked = true; // Bloquer les inputs pendant le countdown
-                levelStartTime = null; // Réinitialiser pour le prochain niveau
+            // Redémarrer le countdown après le shop
+            if (currentGameMode === 'solo') {
+                startCountdown();
             }
         }
     }
@@ -71,7 +67,6 @@ socket.on('state', (gameState) => {
     if (isInTransition && transitionStartTime) {
         const transitionElapsed = Date.now() - transitionStartTime;
         if (transitionElapsed >= TRANSITION_DURATION) {
-            // Ajouter le temps de transition au temps inactif (solo mode)
             if (soloSessionStartTime) {
                 soloInactiveTime += TRANSITION_DURATION;
             }
@@ -80,12 +75,9 @@ socket.on('state', (gameState) => {
             transitionStartTime = null;
             voteResult = null;
             
-            // Démarrer le countdown en mode solo APRÈS la transition
-            if (currentGameMode === 'solo' && !soloStartCountdownActive) {
-                soloStartCountdownStartTime = Date.now();
-                soloStartCountdownActive = true;
-                inputsBlocked = true; // Bloquer les inputs pendant le countdown
-                levelStartTime = null; // Réinitialiser pour le prochain niveau
+            // Redémarrer le countdown après la transition
+            if (currentGameMode === 'solo') {
+                startCountdown();
             }
         }
     }
@@ -99,19 +91,19 @@ socket.on('state', (gameState) => {
         }
     }
 
-    // --- GESTION DU COUNTDOWN DE DÉMARRAGE SOLO (Uniquement au démarrage) ---
-    if (soloStartCountdownActive && soloStartCountdownStartTime) {
-        const countdownElapsed = Date.now() - soloStartCountdownStartTime;
+    // --- GESTION DU COUNTDOWN (Tous les 16ms ~ 60 FPS) ---
+    if (countdownActive && countdownStartTime) {
+        const countdownElapsed = Date.now() - countdownStartTime;
         
-        // À 3000ms (phase "GO"): Démarrer le timer et débloquer les inputs
+        // À 3000ms: Débloquer les inputs et démarrer le timer
         if (countdownElapsed >= 3000 && levelStartTime === null) {
             levelStartTime = Date.now();
             inputsBlocked = false;
         }
         
-        // À 3500ms: Démarrer le countdown
+        // À 3500ms: Terminer le countdown
         if (countdownElapsed >= 3500) {
-            soloStartCountdownActive = false;
+            countdownActive = false;
         }
     }
 
@@ -150,10 +142,10 @@ socket.on('state', (gameState) => {
         
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         
-        // Calcul du countdown de démarrage solo
-        const soloStartCountdownElapsed = soloStartCountdownActive && soloStartCountdownStartTime ? Date.now() - soloStartCountdownStartTime : 0;
+        // Calcul du countdown
+        const countdownElapsed = countdownActive && countdownStartTime ? Date.now() - countdownStartTime : 0;
         
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, countdownActive, countdownElapsed);
     }
 });
 
@@ -193,10 +185,10 @@ function continuousRender() {
         const zoomLevel = typeof calculateZoomForMode === 'function' ? calculateZoomForMode(level) : Math.max(0.7, Math.min(1.0, 1.0 - (level - 1) * 0.02));
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         
-        // Calcul du countdown de démarrage solo
-        const soloStartCountdownElapsed = soloStartCountdownActive && soloStartCountdownStartTime ? Date.now() - soloStartCountdownStartTime : 0;
+        // Calcul du countdown
+        const countdownElapsed = countdownActive && countdownStartTime ? Date.now() - countdownStartTime : 0;
         
-        renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerId || socket.id, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerId || socket.id, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, countdownActive, countdownElapsed);
     }
     requestAnimationFrame(continuousRender);
 }

@@ -58,9 +58,11 @@ socket.on('state', (gameState) => {
             shopTimerStart = null;
             
             // Démarrer le countdown en mode solo APRÈS le shop
-            if (currentGameMode === 'solo' && !soloCountdownActive) {
-                soloCountdownStartTime = Date.now();
-                soloCountdownActive = true;
+            if (currentGameMode === 'solo' && !soloStartCountdownActive) {
+                soloStartCountdownStartTime = Date.now();
+                soloStartCountdownActive = true;
+                inputsBlocked = true; // Bloquer les inputs pendant le countdown
+                levelStartTime = null; // Réinitialiser pour le prochain niveau
             }
         }
     }
@@ -79,9 +81,11 @@ socket.on('state', (gameState) => {
             voteResult = null;
             
             // Démarrer le countdown en mode solo APRÈS la transition
-            if (currentGameMode === 'solo' && !soloCountdownActive) {
-                soloCountdownStartTime = Date.now();
-                soloCountdownActive = true;
+            if (currentGameMode === 'solo' && !soloStartCountdownActive) {
+                soloStartCountdownStartTime = Date.now();
+                soloStartCountdownActive = true;
+                inputsBlocked = true; // Bloquer les inputs pendant le countdown
+                levelStartTime = null; // Réinitialiser pour le prochain niveau
             }
         }
     }

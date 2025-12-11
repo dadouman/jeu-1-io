@@ -24,6 +24,17 @@ canvas {
     max-height: 100%;
 }
 
+/* Canvas du countdown cinématique */
+#countdownCinemaCanvas {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+}
+
+
 /* ============================================
    CONTRÔLES TACTILES (Mobile)
    ============================================ */

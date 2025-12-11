@@ -56,9 +56,9 @@ socket.on('state', (gameState) => {
             isShopOpen = false;
             shopTimerStart = null;
             
-            // Redémarrer le countdown après le shop
+            // Redémarrer le timer du niveau (sans countdown cinéma)
             if (currentGameMode === 'solo') {
-                startCountdown();
+                levelStartTime = Date.now();
             }
         }
     }
@@ -75,9 +75,9 @@ socket.on('state', (gameState) => {
             transitionStartTime = null;
             voteResult = null;
             
-            // Redémarrer le countdown après la transition
+            // Redémarrer le timer du niveau (sans countdown cinéma)
             if (currentGameMode === 'solo') {
-                startCountdown();
+                levelStartTime = Date.now();
             }
         }
     }
@@ -91,19 +91,15 @@ socket.on('state', (gameState) => {
         }
     }
 
-    // --- GESTION DU COUNTDOWN (Tous les 16ms ~ 60 FPS) ---
-    if (countdownActive && countdownStartTime) {
-        const countdownElapsed = Date.now() - countdownStartTime;
+    // --- GESTION DU COUNTDOWN SOLO (Tous les 16ms ~ 60 FPS) ---
+    // Le countdown cinématique est géré dans countdown-cinema.js
+    // Le déverrouillage des inputs et démarrage du timer se fait dans le callback
+    if (soloStartCountdownActive && soloStartCountdownStartTime) {
+        const countdownElapsed = Date.now() - soloStartCountdownStartTime;
         
-        // À 3000ms: Débloquer les inputs et démarrer le timer
-        if (countdownElapsed >= 3000 && levelStartTime === null) {
-            levelStartTime = Date.now();
-            inputsBlocked = false;
-        }
-        
-        // À 3500ms: Terminer le countdown
+        // À 3500ms: Terminer le countdown solo (visuel est géré par countdown-cinema.js)
         if (countdownElapsed >= 3500) {
-            countdownActive = false;
+            soloStartCountdownActive = false;
         }
     }
 

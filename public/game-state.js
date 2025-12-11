@@ -86,11 +86,30 @@ let classicShowPersonalDelta = true; // Toggle: true = personnel, false = world 
 
 // === FONCTION POUR DÉMARRER LE COUNTDOWN ===
 function startCountdown() {
-    if (!soloStartCountdownActive) {
+    if (!soloStartCountdownActive && !cinematicCountdownActive) {
         soloStartCountdownActive = true;
         soloStartCountdownStartTime = Date.now();
         inputsBlocked = true;
         levelStartTime = null;
-        console.log('%c🎬 Countdown lancé! PHASE 1: "3" (0-1000ms)', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+        
+        // Lancer le countdown cinématique
+        startCinemaCountdown(() => {
+            console.log('%c🎬 Countdown cinématique terminé!', 'color: #FFD700; font-weight: bold;');
+            
+            // ✅ DÉVERROUILLER LES INPUTS À LA FIN DU COUNTDOWN
+            inputsBlocked = false;
+            
+            // ✅ DÉMARRER LE TIMER DU JEU À 00:00.00
+            // IMPORTANT: Définir levelStartTime ET soloSessionStartTime au MÊME moment
+            // Pour que soloRunTotalTime soit calculé à partir de ce point
+            const now = Date.now();
+            levelStartTime = now;
+            soloSessionStartTime = now;
+            soloInactiveTime = 0;
+            
+            console.log('%c▶️ Timer du jeu DÉMARRE à 00:00.00', 'color: #00FF00; font-weight: bold;');
+        }, currentGameMode);
+        
+        console.log('%c🎬 Countdown cinématique lancé!', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
     }
 }

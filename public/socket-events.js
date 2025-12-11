@@ -68,6 +68,9 @@ socket.on('levelUpdate', (newLevel) => {
         if (playerData) {
             console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         }
+        
+        // ✅ DÉMARRER LE TIMER DU NIVEAU SUIVANT IMMÉDIATEMENT (pas après la transition)
+        levelStartTime = Date.now();
     } else if (newLevel === 1 && lastLevel === 0) {
         console.log(`📥 [FIRST LEVEL] Premier niveau`);
         // Premier niveau : déclencher une transition spéciale
@@ -75,16 +78,12 @@ socket.on('levelUpdate', (newLevel) => {
         isFirstLevel = true;
         transitionStartTime = Date.now();
         playerCountStart = Object.keys(currentPlayers).length;
-        levelStartTime = Date.now() + TRANSITION_DURATION;
+        // ✅ DÉMARRER LE TIMER IMMÉDIATEMENT (le countdown cinéma se fera AVANT celle-ci via startCountdown())
+        levelStartTime = Date.now();
     }
     
     level = newLevel;
     lastLevel = newLevel;
-    
-    // Si c'est une vraie transition (pas le premier niveau), attendre 3s
-    if (lastLevel > 1 && !isFirstLevel) {
-        levelStartTime = Date.now() + TRANSITION_DURATION;
-    }
     
     checkpoint = null;
     trails = {};

@@ -46,6 +46,9 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     ctx.fillStyle = `rgba(10, 10, 10, ${alphaOverlay * 0.7})`; // Reduced opacity for visibility
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    // === DRAW RADAR SWEEP (rotating line with stepped transparency) ===
+    drawRadarSweep(ctx, centerX, centerY, 250, elapsedMs, alphaOverlay);
+    
     // === SET GLOBAL ALPHA FOR ALL COUNTDOWN ELEMENTS ===
     ctx.globalAlpha = 1.0; // Countdown elements are fully opaque
     
@@ -55,6 +58,30 @@ function renderAcademyLeader(ctx, canvas, elapsedMs, countdownActive) {
     
     // === RESTORE CONTEXT ===
     ctx.restore();
+}
+
+/**
+ * Draw the radar sweep (rotating line with progressive transparency)
+ * Line opacity matches the stepped countdown transparency
+ */
+function drawRadarSweep(ctx, centerX, centerY, radius, elapsedMs, alphaOverlay) {
+    const sweepAnglePerSecond = 360; // degrees per second
+    const totalAngle = (elapsedMs / 1000) * sweepAnglePerSecond;
+    const normalizedAngle = totalAngle % 360;
+
+    // Convert to radians
+    const angle = normalizedAngle * (Math.PI / 180);
+
+    // Draw the sweep line with stepped transparency
+    ctx.strokeStyle = `rgba(255, 200, 100, ${0.8 * alphaOverlay})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(
+        centerX + Math.cos(angle - Math.PI / 2) * radius,
+        centerY + Math.sin(angle - Math.PI / 2) * radius
+    );
+    ctx.stroke();
 }
 
 /**

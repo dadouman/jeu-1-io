@@ -253,7 +253,6 @@ function continuousRender() {
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         
         // === GESTION DU COUNTDOWN (4 PHASES) ===
-        let soloStartCountdownElapsed = 0;
         if (soloStartCountdownActive && soloStartCountdownStartTime) {
             soloStartCountdownElapsed = Date.now() - soloStartCountdownStartTime;
             

@@ -34,11 +34,11 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     ctx.font = "bold 20px Arial";
     ctx.fillText("⏱️ " + shopTimeRemaining + "s", canvas.width / 2, shopY + 65);
     
-    // Gems disponibles
+    // Gems disponibles (plus gros)
     ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 16px Arial";
+    ctx.font = "bold 32px Arial";
     ctx.textAlign = "right";
-    ctx.fillText(`💎 ${playerGems}`, shopX + shopWidth - 20, shopY + 40);
+    ctx.fillText(`💎 ${playerGems}`, shopX + shopWidth - 20, shopY + 50);
     
     // Items du shop
     const itemList = [

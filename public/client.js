@@ -28,11 +28,22 @@ canvas.addEventListener('click', (event) => {
         const { x, y, width, height } = area.rect;
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
             if (shopItems[area.id]) {
-                socket.emit('shopPurchase', { itemId: area.id });
-                // Déclencher l'animation d'achat
-                shopAnimations.purchaseAnimations[area.id] = {
-                    startTime: Date.now()
-                };
+                const item = shopItems[area.id];
+                
+                // Vérifier si le joueur a assez de gems
+                const hasEnoughGems = playerGems >= item.price;
+                
+                // Vérifier si l'item est déjà acheté (non-stackable)
+                const isAlreadyPurchased = (item.id !== 'speedBoost' && purchasedFeatures[item.id] === true);
+                
+                // Ne pas acheter si pas assez d'argent ou si déjà acheté
+                if (hasEnoughGems && !isAlreadyPurchased) {
+                    socket.emit('shopPurchase', { itemId: area.id });
+                    // Déclencher l'animation d'achat
+                    shopAnimations.purchaseAnimations[area.id] = {
+                        startTime: Date.now()
+                    };
+                }
             }
             break;
         }

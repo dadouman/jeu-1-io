@@ -129,6 +129,12 @@ socket.on('state', (gameState) => {
             soloStartCountdownActive = soloGameState.countdown?.active || false;
             soloStartCountdownElapsed = soloGameState.countdown?.elapsed || 0;
             
+            // Mettre à jour l'état global de fin de jeu
+            if (soloGameState.isGameFinished) {
+                isSoloGameFinished = true;
+                soloTotalTime = soloGameState.runTotalTime || 0;
+            }
+            
             // Calculer le delta avec le meilleur personnel/global
             if (soloRunTotalTime > 0) {
                 if (soloShowPersonalDelta && soloPersonalBestTime) {
@@ -210,8 +216,10 @@ function continuousRender() {
             soloStartCountdownActive = soloGameState.countdown?.active || false;
             soloStartCountdownElapsed = soloGameState.countdown?.elapsed || 0;
             
-            // Si jeu fini, utiliser le temps sauvegardé
+            // Mettre à jour l'état global de fin de jeu
             if (soloGameState.isGameFinished) {
+                isSoloGameFinished = true;
+                soloTotalTime = soloGameState.runTotalTime || 0;
                 soloRunTotalTime = soloGameState.runTotalTime;
             }
             

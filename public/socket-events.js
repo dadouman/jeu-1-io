@@ -47,6 +47,10 @@ socket.on('checkpointUpdate', (data) => {
 });
 
 socket.on('levelUpdate', (newLevel) => {
+    // Événement pour classique/infini uniquement
+    // Solo est géré via soloGameState
+    if (currentGameMode === 'solo') return;
+    
     // Détecter si c'est vraiment un changement de niveau
     if (newLevel !== lastLevel && lastLevel !== 0) {
         // Niveau a changé ! Déclencher la transition
@@ -56,12 +60,6 @@ socket.on('levelUpdate', (newLevel) => {
         // Calculer le temps SEULEMENT si le timer était actif (pas null pendant le shop)
         levelUpTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
         levelUpPlayerSkin = myPlayerId ? (currentPlayers[myPlayerId]?.skin || "❓") : "❓";
-        
-        // En mode solo, enregistrer le temps pour afficher le delta pendant 1-2s
-        if (currentGameMode === 'solo') {
-            soloLastGemTime = Date.now();
-            soloLastGemLevel = lastLevel;
-        }
         
         // Log de jeu
         const playerData = currentPlayers[myPlayerId];
@@ -90,15 +88,28 @@ socket.on('levelUpdate', (newLevel) => {
 });
 
 // --- ÉVÉNEMENTS SHOP ---
+// ===== ÉVÉNEMENTS SOLO REFACTORISÉS =====
+
+/**
+ * Événement soloGameState - Reçoit l'état complet du jeu solo du serveur
+ * S'appelle à chaque tick du serveur (~60fps)
+ */
+socket.on('soloGameState', (state) => {
+    updateSoloGameState(state);
+});
+
+// ===== ÉVÉNEMENTS SHOP (LEGACY - à conserver pour classique) =====
+
 socket.on('shopOpen', (data) => {
-    console.log(`🏪 [SHOP OPEN EVENT] Reçu shopOpen avec level: ${data.level}`);
-    isShopOpen = true;
-    shopItems = data.items;
-    shopTimerStart = Date.now();
-    // PAUSE le temps du niveau pendant que le shop est ouvert
-    levelStartTime = null;
-    const shopNumber = Math.floor(data.level / 5);
-    console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+    // Pour le mode classique seulement
+    if (currentGameMode !== 'solo') {
+        isShopOpen = true;
+        shopItems = data.items;
+        shopTimerStart = Date.now();
+        levelStartTime = null;
+        const shopNumber = Math.floor(data.level / 5);
+        console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+    }
 });
 
 socket.on('shopPurchaseSuccess', (data) => {
@@ -116,12 +127,13 @@ socket.on('shopPurchaseFailed', (data) => {
 });
 
 socket.on('shopClosed', (data) => {
-    isShopOpen = false;
-    shopItems = {};
-    console.log(`%c🏪 SHOP FERMÉ | Retour au niveau`, 'color: #FFD700; font-weight: bold');
-    // Réinitialiser le timer du niveau après la fermeture du shop
-    // Le serveur envoie le vrai temps de démarrage du niveau suivant
-    levelStartTime = Date.now();
+    // Pour le mode classique seulement
+    if (currentGameMode !== 'solo') {
+        isShopOpen = false;
+        shopItems = {};
+        console.log(`%c🏪 SHOP FERMÉ | Retour au niveau`, 'color: #FFD700; font-weight: bold');
+        levelStartTime = Date.now();
+    }
 });
 
 // --- ÉVÉNEMENTS VOTE ---
@@ -190,117 +202,33 @@ socket.on('gameModSelected', (data) => {
                    : 'SOLO (10 niveaux) 🎯';
     console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
     
-    // Charger le record personnel du localStorage au démarrage de solo
+    // Pour solo: le serveur gère tout l'état via soloGameState
     if (data.mode === 'solo') {
-        const savedPersonalBest = localStorage.getItem('soloPersonalBest');
-        if (savedPersonalBest) {
-            soloPersonalBestTime = parseFloat(savedPersonalBest);
-            console.log(`%c🎯 Record personnel chargé: ${soloPersonalBestTime.toFixed(2)}s`, 'color: #00FF00; font-weight: bold; font-size: 12px');
-        }
-        
-        // Charger les splits personnels du localStorage
-        const savedPersonalSplits = localStorage.getItem('soloPersonalBestSplits');
-        if (savedPersonalSplits) {
-            soloPersonalBestSplits = JSON.parse(savedPersonalSplits);
-            console.log(`%c📊 Splits personnels chargés pour ${Object.keys(soloPersonalBestSplits).length} niveaux`, 'color: #00FF00; font-weight: bold; font-size: 12px');
-        }
-        
-        // Charger les meilleurs splits mondiaux au démarrage
-        socket.emit('getSoloBestSplits');
+        console.log(`%c📊 État solo géré par le serveur`, 'color: #00FF00; font-weight: bold; font-size: 12px');
     }
 });
 
 socket.on('gameFinished', (data) => {
-    console.log(`%c🏁 Jeu terminé! Vous avez atteint le niveau ${data.finalLevel} en mode ${data.mode}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
-});
-
-socket.on('soloGameFinished', (data) => {
-    console.log(`%c🏁 SOLO TERMINÉ! Reçu soloGameFinished du serveur`, 'color: #FF00FF; font-weight: bold; font-size: 20px');
-    console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime.toFixed(2)}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
-    console.log(`%c📊 Split times: ${data.splitTimes.map(t => t.toFixed(1)).join(', ')}`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
-    
-    // Stocker les résultats
-    soloTotalTime = data.totalTime;
-    soloSplitTimes = data.splitTimes || [];
-    isSoloGameFinished = true;
-    soloFinishedTime = Date.now();
-    console.log(`%c✅ isSoloGameFinished = true, vérification: ${isSoloGameFinished}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
-    
-    // Sauvegarder les résultats sur le serveur
-    const playerSkin = currentPlayers[myPlayerId]?.skin || "❓";
-    socket.emit('saveSoloResults', {
-        totalTime: data.totalTime,
-        splitTimes: data.splitTimes || [],
-        playerSkin: playerSkin,
-        mode: currentGameMode || 'solo',
-        finalLevel: data.finalLevel || soloMaxLevel
-    });
-    
-    // Demander le leaderboard et les meilleurs splits
-    socket.emit('getSoloLeaderboard');
-    socket.emit('getSoloBestSplits');
-    
-    // Afficher l'écran de résultats
-    isInTransition = true;
-    transitionStartTime = Date.now();
+    // Événement générique pour tous les modes
+    if (currentGameMode === 'solo') {
+        // Solo - l'état est géré via soloGameState
+        console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
+    } else {
+        // Classique/Infini
+        console.log(`%c🏁 Jeu terminé! Vous avez atteint le niveau ${data.finalLevel} en mode ${data.mode}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
+    }
 });
 
 socket.on('soloLeaderboard', (data) => {
-    console.log(`%c🏆 Leaderboard Solo reçu:`, 'color: #FFD700; font-weight: bold');
-    window.soloLeaderboard = data.scores;
-    
-    // Sauvegarder le meilleur temps du leaderboard (record mondial)
-    if (data.scores && data.scores.length > 0) {
-        soloLeaderboardBest = data.scores[0].totalTime;
-    }
-    
-    // Calculer et sauvegarder le meilleur temps personnel en localStorage
-    const savedPersonalBest = localStorage.getItem('soloPersonalBest');
-    if (savedPersonalBest) {
-        soloPersonalBestTime = parseFloat(savedPersonalBest);
-    }
-    
-    // Charger les meilleurs splits personnels depuis localStorage
-    const savedPersonalSplits = localStorage.getItem('soloPersonalBestSplits');
-    if (savedPersonalSplits) {
-        soloPersonalBestSplits = JSON.parse(savedPersonalSplits);
-    }
-    
-    // Si ce temps est meilleur que le précédent, le sauvegarder
-    if (!soloPersonalBestTime || soloTotalTime < soloPersonalBestTime) {
-        soloPersonalBestTime = soloTotalTime;
-        soloPersonalBestSplits = soloSplitTimes && soloSplitTimes.length > 0 ? 
-            soloSplitTimes.reduce((acc, split, idx) => { acc[idx + 1] = split; return acc; }, {}) : {};
-        localStorage.setItem('soloPersonalBest', soloTotalTime.toString());
-        localStorage.setItem('soloPersonalBestSplits', JSON.stringify(soloPersonalBestSplits));
-    }
-    
-    // Calculer le rang du joueur actuel
-    let playerRank = 1;
-    for (let i = 0; i < data.scores.length; i++) {
-        if (data.scores[i].totalTime < soloTotalTime) {
-            playerRank = i + 2;
-        } else {
-            break;
-        }
-    }
-    window.soloPlayerRank = playerRank;
-    
-    console.log(`%c🏆 Votre rang: #${playerRank}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
-    console.log(`%c🎯 Meilleur temps personnel: ${soloPersonalBestTime ? soloPersonalBestTime.toFixed(2) + 's' : 'N/A'}`, 'color: #00FF00; font-weight: bold; font-size: 12px');
-    console.log(`%c🌍 Record mondial: ${soloLeaderboardBest ? soloLeaderboardBest.toFixed(2) + 's' : 'N/A'}`, 'color: #FF0000; font-weight: bold; font-size: 12px');
-    
-    data.scores.slice(0, 10).forEach((run, index) => {
-        console.log(`%c ${index + 1}. ${run.playerSkin} - ${run.totalTime.toFixed(2)}s`, 'color: #FFD700; font-size: 12px');
-    });
+    // Événement reçu du serveur avec le leaderboard
+    window.soloLeaderboard = data.scores || [];
+    console.log(`%c🏆 Leaderboard Solo reçu (${window.soloLeaderboard.length} entrées)`, 'color: #FFD700; font-weight: bold');
 });
 
 socket.on('soloBestSplits', (data) => {
-    console.log(`%c🏁 Meilleurs splits reçus:`, 'color: #00FF00; font-weight: bold');
-    soloBestSplits = data.splits || {};
-    for (let level in data.splits) {
-        console.log(`%c  Niveau ${level}: ${data.splits[level].toFixed(2)}s`, 'color: #00FF00; font-size: 12px');
-    }
+    // Événement reçu du serveur avec les meilleurs splits
+    window.soloBestSplits = data.splits || {};
+    console.log(`%c📊 Meilleurs splits reçus`, 'color: #00FF00; font-weight: bold');
 });
 
 socket.on('error', (data) => {

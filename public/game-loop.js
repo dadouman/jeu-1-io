@@ -46,20 +46,25 @@ socket.on('state', (gameState) => {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
-    // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES ---
-    if (isShopOpen && shopTimerStart) {
-        const elapsed = Date.now() - shopTimerStart;
-        if (elapsed >= SHOP_DURATION) {
-            if (soloSessionStartTime) {
-                soloInactiveTime += SHOP_DURATION;
-            }
-            isShopOpen = false;
-            shopTimerStart = null;
-            
-            // Redémarrer le timer du niveau (sans countdown cinéma)
-            if (currentGameMode === 'solo') {
+    // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES (classique/infini) ---
+    if (!currentGameMode || currentGameMode === 'classic' || currentGameMode === 'infinite') {
+        if (isShopOpen && shopTimerStart) {
+            const elapsed = Date.now() - shopTimerStart;
+            if (elapsed >= SHOP_DURATION) {
+                if (soloSessionStartTime) {
+                    soloInactiveTime += SHOP_DURATION;
+                }
+                isShopOpen = false;
+                shopTimerStart = null;
+                
+                // Redémarrer le timer du niveau
                 levelStartTime = Date.now();
             }
+        }
+    } else if (currentGameMode === 'solo') {
+        // Solo: shop fermé automatiquement par le serveur via soloGameState
+        if (soloGameState && soloGameState.shop) {
+            isShopOpen = soloGameState.shop.active;
         }
     }
 
@@ -75,8 +80,8 @@ socket.on('state', (gameState) => {
             transitionStartTime = null;
             voteResult = null;
             
-            // Redémarrer le timer du niveau (sans countdown cinéma)
-            if (currentGameMode === 'solo') {
+            // Redémarrer le timer du niveau (classique/infini seulement)
+            if (currentGameMode === 'classic' || currentGameMode === 'infinite') {
                 levelStartTime = Date.now();
             }
         }
@@ -109,27 +114,50 @@ socket.on('state', (gameState) => {
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
-        // Calculer le temps total de la session solo (déduire le temps inactif)
+        // === SOLO: UTILISER L'ÉTAT REÇU DU SERVEUR ===
         let soloRunTotalTime = 0;
-        if (soloSessionStartTime) {
-            const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
-            soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
-        }
-        
-        // Stocker le temps du niveau actuel en mode solo
-        soloCurrentLevelTime = currentLevelTime;
-        
-        // Calculer le delta time (différence avec le record)
+        let soloCurrentLevelTime = 0;
         let soloDeltaTime = null;
-        let soloDeltaReference = null; // 'personal' ou 'global'
+        let soloDeltaReference = null;
+        let soloStartCountdownActive = false;
+        let soloStartCountdownElapsed = 0;
         
-        if (soloRunTotalTime > 0) {
-            if (soloShowPersonalDelta && soloPersonalBestTime) {
-                soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
-                soloDeltaReference = 'personal';
-            } else if (soloLeaderboardBest) {
-                soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
-                soloDeltaReference = 'global';
+        if (currentGameMode === 'solo' && soloGameState) {
+            // Utiliser l'état reçu du serveur
+            soloRunTotalTime = soloGameState.runTotalTime || 0;
+            soloCurrentLevelTime = soloGameState.currentLevelTime || 0;
+            soloStartCountdownActive = soloGameState.countdown?.active || false;
+            soloStartCountdownElapsed = soloGameState.countdown?.elapsed || 0;
+            
+            // Calculer le delta avec le meilleur personnel/global
+            if (soloRunTotalTime > 0) {
+                if (soloShowPersonalDelta && soloPersonalBestTime) {
+                    soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
+                    soloDeltaReference = 'personal';
+                } else if (soloLeaderboardBest) {
+                    soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
+                    soloDeltaReference = 'global';
+                }
+            }
+        } else {
+            // CLASSIQUE/INFINI: Calculer le timing localement
+            if (soloSessionStartTime) {
+                const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
+                soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
+            }
+            
+            // Stocker le temps du niveau actuel
+            soloCurrentLevelTime = currentLevelTime;
+            
+            // Calculer le delta time
+            if (soloRunTotalTime > 0) {
+                if (soloShowPersonalDelta && soloPersonalBestTime) {
+                    soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
+                    soloDeltaReference = 'personal';
+                } else if (soloLeaderboardBest) {
+                    soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
+                    soloDeltaReference = 'global';
+                }
             }
         }
         
@@ -168,29 +196,57 @@ function continuousRender() {
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
-        // Calculer le temps total de la session solo
+        // === SOLO: UTILISER L'ÉTAT REÇU DU SERVEUR ===
         let soloRunTotalTime = 0;
-        if (soloSessionStartTime && !isSoloGameFinished) {
-            const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
-            soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
-        } else if (isSoloGameFinished) {
-            soloRunTotalTime = soloTotalTime; // Utiliser le temps sauvegardé
-        }
-        
-        // Stocker le temps du niveau actuel en mode solo
-        soloCurrentLevelTime = currentLevelTime;
-        
-        // Calculer le delta time (différence avec le record)
+        let soloCurrentLevelTime = 0;
         let soloDeltaTime = null;
-        let soloDeltaReference = null; // 'personal' ou 'global'
+        let soloDeltaReference = null;
+        let soloStartCountdownActive = false;
+        let soloStartCountdownElapsed = 0;
         
-        if (soloRunTotalTime > 0) {
-            if (soloShowPersonalDelta && soloPersonalBestTime) {
-                soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
-                soloDeltaReference = 'personal';
-            } else if (soloLeaderboardBest) {
-                soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
-                soloDeltaReference = 'global';
+        if (currentGameMode === 'solo' && soloGameState) {
+            // Utiliser l'état reçu du serveur
+            soloRunTotalTime = soloGameState.runTotalTime || 0;
+            soloCurrentLevelTime = soloGameState.currentLevelTime || 0;
+            soloStartCountdownActive = soloGameState.countdown?.active || false;
+            soloStartCountdownElapsed = soloGameState.countdown?.elapsed || 0;
+            
+            // Si jeu fini, utiliser le temps sauvegardé
+            if (soloGameState.isGameFinished) {
+                soloRunTotalTime = soloGameState.runTotalTime;
+            }
+            
+            // Calculer le delta
+            if (soloRunTotalTime > 0) {
+                if (soloShowPersonalDelta && soloPersonalBestTime) {
+                    soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
+                    soloDeltaReference = 'personal';
+                } else if (soloLeaderboardBest) {
+                    soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
+                    soloDeltaReference = 'global';
+                }
+            }
+        } else {
+            // CLASSIQUE/INFINI: Calculer localement
+            if (soloSessionStartTime && !isSoloGameFinished) {
+                const totalRawTime = (Date.now() - soloSessionStartTime) / 1000;
+                soloRunTotalTime = Math.max(0, totalRawTime - (soloInactiveTime / 1000));
+            } else if (isSoloGameFinished) {
+                soloRunTotalTime = soloTotalTime; // Utiliser le temps sauvegardé
+            }
+            
+            // Stocker le temps du niveau actuel
+            soloCurrentLevelTime = currentLevelTime;
+            
+            // Calculer le delta
+            if (soloRunTotalTime > 0) {
+                if (soloShowPersonalDelta && soloPersonalBestTime) {
+                    soloDeltaTime = soloRunTotalTime - soloPersonalBestTime;
+                    soloDeltaReference = 'personal';
+                } else if (soloLeaderboardBest) {
+                    soloDeltaTime = soloRunTotalTime - soloLeaderboardBest;
+                    soloDeltaReference = 'global';
+                }
             }
         }
         

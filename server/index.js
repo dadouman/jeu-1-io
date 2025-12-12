@@ -96,6 +96,8 @@ startGameLoop(io, lobbies, soloSessions, playerModes, {
 }, {
     mongoURI,
     HighScoreModel,
+    SoloRunModel,
+    SoloBestSplitsModel,
     TRANSITION_DURATION,
     SHOP_DURATION
 });

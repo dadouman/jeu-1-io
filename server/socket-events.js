@@ -6,6 +6,7 @@ const { initializePlayerForMode } = require('../utils/player');
 const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
 const { purchaseItem } = require('../utils/shop');
 const { emitToLobby } = require('./utils');
+const SoloSession = require('./utils/SoloSession');
 const { 
     startRestartVote, 
     submitRestartVote, 
@@ -75,38 +76,29 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             if (mode === 'solo') {
                 console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO (10 niveaux)`);
                 
-                const startPos = getRandomEmptyPosition(generateMaze(15, 15));
-                const player = initializePlayerForMode(startPos, 0, 'solo');
+                // Créer une nouvelle session solo avec la classe
+                const session = new SoloSession(socket.id, socket);
                 
-                // Débloquer aléatoirement une feature au départ en solo
+                // Initialiser le joueur
+                const startPos = getRandomEmptyPosition(generateMaze(15, 15));
+                session.player = initializePlayerForMode(startPos, 0, 'solo');
+                
+                // Débloquer aléatoirement une feature au départ
                 const unlockedFeature = generateRandomFeatureWeighted();
-                player.purchasedFeatures[unlockedFeature] = true;
+                session.player.purchasedFeatures[unlockedFeature] = true;
                 console.log(`   ⚡ Feature débloquée gratuitement: ${unlockedFeature}`);
                 
-                soloSessions[socket.id] = {
-                    currentLevel: 1,
-                    map: generateMaze(15, 15),
-                    coin: getRandomEmptyPosition(generateMaze(15, 15)),
-                    player: player,
-                    startTime: Date.now(),
-                    levelStartTime: Date.now(),
-                    splitTimes: [],
-                    totalTime: 0,
-                    currentShopLevel: null,  // ← Pour tracker quel niveau a un shop actif
-                    countdownActive: true,   // ← Countdown actif au démarrage
-                    countdownStartTime: Date.now()  // ← Timestamp du début du countdown
-                };
+                // Générer la première map
+                session.map = generateMaze(15, 15);
+                session.coin = getRandomEmptyPosition(session.map);
                 
-                const session = soloSessions[socket.id];
-                socket.emit('mapData', session.map);
-                socket.emit('levelUpdate', session.currentLevel);
-                socket.emit('gameModSelected', { mode: 'solo' });
+                // Stocker la session
+                soloSessions[socket.id] = session;
                 
-                // Demander les meilleurs splits immédiatement pour le delta pendant la run
-                // Au lieu d'attendre le mapData côté client
-                socket.emit('requestSoloBestSplits');
+                // Envoyer l'état initial au client
+                session.sendGameState();
                 
-                console.log(`   Session SOLO (10 niveaux) créée pour joueur ${socket.id}`);
+                console.log(`   ✅ Session SOLO créée pour joueur ${socket.id}`);
             } else {
                 if (!lobbies[mode]) {
                     socket.emit('error', { message: 'Mode invalide' });
@@ -307,11 +299,14 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 const session = soloSessions[socket.id];
                 if (!session) return;
                 
-                // BLOQUER LES MOUVEMENTS EN MODE SOLO SI LE COUNTDOWN EST ACTIF
-                // Le countdown dure 3 secondes après le démarrage de la session
-                if (session.countdownActive !== false) {
-                    // Pas de mouvement pendant le countdown
-                    return;
+                // ✅ SERVEUR DÉCIDE SI INPUTS BLOQUÉS
+                const isInputsBlocked = 
+                    session.countdownActive ||
+                    session.inTransition ||
+                    session.shopActive;
+                
+                if (isInputsBlocked) {
+                    return; // Inputs bloqués, ne pas bouger
                 }
                 
                 player = session.player;
@@ -325,10 +320,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
 
             // Calculer la vitesse : vitesse de base + (speedBoost * incrément par achat)
-            // speedBoost est un nombre (0, 1, 2, 3, ...) représentant le nombre d'achats
             const baseSpeed = 3;
-            const speedBoostIncrement = 1; // +1 par achat de speedBoost
-            const speedBoostLevel = Math.max(0, player.purchasedFeatures?.speedBoost || 0); // Assurer que c'est un nombre
+            const speedBoostIncrement = 1;
+            const speedBoostLevel = Math.max(0, player.purchasedFeatures?.speedBoost || 0);
             const speed = baseSpeed + (speedBoostLevel * speedBoostIncrement);
             
             let nextX = player.x;

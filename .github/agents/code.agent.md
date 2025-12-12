@@ -27,7 +27,8 @@ TA MÉTHODE DE TRAVAIL :
 4. VÉRIFICATION : Après avoir codé, lance `npm test` dans le terminal.
    - Si ça fail : CORRIGE avant de passer à la suite.
    - Si ça pass : Continue.
-5. GIT : Si la tâche est finie et les tests verts :
+5 Après avoir fair la vérifiaction, lance le serveur avec `npm start` et teste manuellement les fonctionnalités modifiées.
+6. GIT : Si le serveur se lance et qu'il y a pas de bug avant, fais un commit clair et pousse sur la branche principale.:
    - Fais `git add .`
    - Fais `git commit -m "Type: Description courte"`
    - Fais `git push`

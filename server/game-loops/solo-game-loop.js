@@ -148,7 +148,7 @@ class SoloGameLoop {
         if (!session.validateSplits(splitTimes)) {
             console.error(`❌ [SOLO] Splits invalides pour ${playerId}, sauvegarde refusée`);
             session.socket.emit('gameFinished', {
-                error: 'Données de jeu invalides'
+                error: 'Données de jeu invalides - splits incorrects'
             });
             
             // Nettoyer la session
@@ -156,69 +156,98 @@ class SoloGameLoop {
             return;
         }
         
-        // ===== SAUVEGARDE MONGODB =====
-        try {
-            // Vérifier si les modèles sont disponibles
-            if (!this.SoloRunModel || !this.SoloBestSplitsModel) {
-                console.warn(`⚠️ [SOLO] Modèles MongoDB non disponibles, sauvegarde skippée`);
+        // ===== SAUVEGARDE MONGODB (AVEC RETRY) =====
+        const MAX_RETRIES = 3;
+        let retryCount = 0;
+        let saved = false;
+        
+        while (retryCount < MAX_RETRIES && !saved) {
+            try {
+                // Vérifier si les modèles sont disponibles
+                if (!this.SoloRunModel || !this.SoloBestSplitsModel) {
+                    console.warn(`⚠️ [SOLO] Modèles MongoDB non disponibles, sauvegarde skippée`);
+                    session.socket.emit('gameFinished', {
+                        finalLevel: session.currentLevel - 1,
+                        totalTime,
+                        gems: player.gems,
+                        splits: splitTimes,
+                        saved: false,
+                        warning: 'Modèles non disponibles'
+                    });
+                    delete this.soloSessions[playerId];
+                    return;
+                }
+                
+                // === CRÉER LE DOCUMENT DE RUN ===
+                const soloRun = new this.SoloRunModel({
+                    playerId,
+                    playerSkin: player.skin,
+                    mode: 'solo',
+                    totalTime,
+                    splitTimes,
+                    finalLevel: session.currentLevel - 1,
+                    personalBestTime: totalTime,
+                    createdAt: new Date()
+                });
+                
+                // === SAUVEGARDER ===
+                await soloRun.save();
+                console.log(`💾 [SOLO] Run sauvegardée: ${totalTime.toFixed(2)}s (tentative ${retryCount + 1})`);
+                
+                // === METTRE À JOUR LES MEILLEURS SPLITS ===
+                for (let i = 0; i < splitTimes.length; i++) {
+                    const level = i + 1;
+                    const splitTime = splitTimes[i];
+                    
+                    try {
+                        await this.SoloBestSplitsModel.updateOne(
+                            { level },
+                            { 
+                                bestSplitTime: splitTime, 
+                                playerSkin: player.skin,
+                                updatedAt: new Date()
+                            },
+                            { upsert: true }
+                        );
+                    } catch (splitErr) {
+                        console.warn(`⚠️ [SOLO] Erreur mise à jour split level ${level}: ${splitErr.message}`);
+                        // Continue even if split update fails
+                    }
+                }
+                
+                console.log(`✅ [SOLO] Données sauvegardées avec succès`);
+                
+                // Notifier le client
                 session.socket.emit('gameFinished', {
                     finalLevel: session.currentLevel - 1,
                     totalTime,
                     gems: player.gems,
                     splits: splitTimes,
-                    saved: false
+                    saved: true
                 });
-                delete this.soloSessions[playerId];
-                return;
-            }
-            
-            // Créer le document de run
-            const soloRun = new this.SoloRunModel({
-                playerId,
-                playerSkin: player.skin,
-                mode: 'solo',
-                totalTime,
-                splitTimes,
-                finalLevel: session.currentLevel - 1,
-                personalBestTime: totalTime,
-                createdAt: new Date()
-            });
-            
-            await soloRun.save();
-            console.log(`💾 [SOLO] Run sauvegardée: ${totalTime.toFixed(2)}s`);
-            
-            // Mettre à jour les meilleurs splits
-            for (let i = 0; i < splitTimes.length; i++) {
-                const level = i + 1;
-                const splitTime = splitTimes[i];
                 
-                await this.SoloBestSplitsModel.updateOne(
-                    { level },
-                    { 
-                        bestSplitTime: splitTime, 
-                        playerSkin: player.skin,
-                        updatedAt: new Date()
-                    },
-                    { upsert: true }
-                );
+                saved = true;
+                
+            } catch (err) {
+                retryCount++;
+                console.error(`❌ [SOLO] Erreur sauvegarde (tentative ${retryCount}/${MAX_RETRIES}): ${err.message}`);
+                
+                // Si dernière tentative échouée
+                if (retryCount >= MAX_RETRIES) {
+                    console.error(`❌ [SOLO] Sauvegarde échouée après ${MAX_RETRIES} tentatives`);
+                    session.socket.emit('gameFinished', { 
+                        error: 'Erreur sauvegarde MongoDB',
+                        finalLevel: session.currentLevel - 1,
+                        totalTime,
+                        gems: player.gems,
+                        splits: splitTimes,
+                        saved: false
+                    });
+                } else {
+                    // Attendre avant de réessayer (200ms * tentative)
+                    await new Promise(resolve => setTimeout(resolve, 200 * retryCount));
+                }
             }
-            
-            console.log(`✅ [SOLO] Données sauvegardées avec succès`);
-            
-            // Notifier le client
-            session.socket.emit('gameFinished', {
-                finalLevel: session.currentLevel - 1,
-                totalTime,
-                gems: player.gems,
-                splits: splitTimes,
-                saved: true
-            });
-            
-        } catch (err) {
-            console.error(`❌ [SOLO] Erreur sauvegarde MongoDB:`, err);
-            session.socket.emit('gameFinished', { 
-                error: 'Erreur sauvegarde: ' + err.message 
-            });
         }
         
         // ===== NETTOYER LA SESSION =====

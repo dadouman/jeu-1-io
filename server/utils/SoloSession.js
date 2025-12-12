@@ -190,40 +190,64 @@ class SoloSession {
     
     /**
      * Valider les splits avant sauvegarde MongoDB
+     * Vérifie que les splits sont cohérents et valides
      * @param {array} splits - Array de split times
      * @returns {boolean} true si valides
      */
     validateSplits(splits) {
         // Vérification basiques
         if (!Array.isArray(splits) || splits.length === 0) {
-            console.warn(`❌ [SOLO] Splits invalides: pas un array`);
+            console.warn(`❌ [SOLO] Validation échouée: pas un array`);
             return false;
+        }
+        
+        // Vérifier le nombre de splits (doit être 10 pour solo)
+        if (splits.length !== this.maxLevel) {
+            console.warn(`❌ [SOLO] Validation échouée: ${splits.length} splits reçus (attendu ${this.maxLevel})`);
+            return false;
+        }
+        
+        // Vérifier que chaque split est un nombre valide
+        for (let i = 0; i < splits.length; i++) {
+            if (typeof splits[i] !== 'number' || isNaN(splits[i]) || !isFinite(splits[i])) {
+                console.warn(`❌ [SOLO] Validation échouée: split ${i + 1} n'est pas un nombre valide`);
+                return false;
+            }
         }
         
         // Chaque split doit être > 0.5s (minimum physique)
         const tooLow = splits.filter(s => s <= 0.5);
         if (tooLow.length > 0) {
-            console.warn(`❌ [SOLO] Splits trop bas: ${tooLow.join(', ')}s (min 0.5s)`);
+            console.warn(`❌ [SOLO] Validation échouée: ${tooLow.length} split(s) < 0.5s (${tooLow.join(', ').substring(0, 50)}...)`);
             return false;
         }
         
-        // Chaque split doit être < 60s (limit raisonnable)
-        const tooHigh = splits.filter(s => s >= 60);
+        // Chaque split doit être < 120s (limit raisonnable)
+        const tooHigh = splits.filter(s => s >= 120);
         if (tooHigh.length > 0) {
-            console.warn(`❌ [SOLO] Splits trop hauts: ${tooHigh.join(', ')}s (max 60s)`);
+            console.warn(`❌ [SOLO] Validation échouée: ${tooHigh.length} split(s) >= 120s`);
+            return false;
+        }
+        
+        // Chaque split doit être < 3x la moyenne (détection anomalies)
+        const avgSplit = splits.reduce((a, b) => a + b, 0) / splits.length;
+        const anomalies = splits.filter(s => s > avgSplit * 3);
+        if (anomalies.length > 2) {
+            console.warn(`❌ [SOLO] Validation échouée: ${anomalies.length} anomalies détectées (3x moyenne)`);
             return false;
         }
         
         // La somme des splits doit être proche du temps total (±5%)
         const sumSplits = splits.reduce((a, b) => a + b, 0);
-        const tolerance = Math.max(1, this.totalTime * 0.05); // Au moins 1 seconde
+        const tolerance = Math.max(2, this.totalTime * 0.05); // Au moins 2 secondes
+        const diff = Math.abs(sumSplits - this.totalTime);
         
-        if (Math.abs(sumSplits - this.totalTime) > tolerance) {
-            console.warn(`❌ [SOLO] Somme splits (${sumSplits.toFixed(2)}s) ≠ totalTime (${this.totalTime.toFixed(2)}s), tolerance: ±${tolerance.toFixed(2)}s`);
+        if (diff > tolerance) {
+            console.warn(`❌ [SOLO] Validation échouée: somme splits (${sumSplits.toFixed(2)}s) ≠ totalTime (${this.totalTime.toFixed(2)}s), diff: ${diff.toFixed(2)}s, tolerance: ${tolerance.toFixed(2)}s`);
             return false;
         }
         
-        console.log(`✅ [SOLO] Splits validés`);
+        console.log(`✅ [SOLO] Validation complète: ${splits.length} splits, temps total: ${this.totalTime.toFixed(2)}s`);
         return true;
     }
     

@@ -259,7 +259,7 @@ const GAME_MODES_CONFIG = {
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {
             // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
-            sizes: generateSizesArray(15, 2, 10,5,2)
+            sizes: generateSizesArray(15, 2, 10)
         },
 
         shop: {

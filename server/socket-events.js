@@ -78,7 +78,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 
                 // Récupérer la configuration du mode solo
                 const gameModes = require('../config/gameModes');
-                const soloConfig = gameModes.getModeConfig('solo');
+                const soloConfig = gameModes.getGameModeConfig('solo');
                 
                 // Créer une nouvelle session solo avec la configuration
                 const session = new SoloSession(socket.id, socket, soloConfig);

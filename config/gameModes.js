@@ -300,8 +300,9 @@ const GAME_MODES_CONFIG = {
         gemsPerLevel: {
             baseValue: 10,
             linearIncrement: 5,
-            peakLevel: null,  // Pas de décroissance
-            calculateGems: (level) => calculateLinearProgression(level, 10, 5, null)
+            peakLevel: 5,  // Pic au niveau 5
+            decayIncrement: 2,  // Décroissance de 2 par niveau
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5, 5, 2)
         },
 
         startingFeatures: {
@@ -392,8 +393,9 @@ const GAME_MODES_CONFIG = {
         gemsPerLevel: {
             baseValue: 10,
             linearIncrement: 5,
-            peakLevel: null,  // Pas de décroissance
-            calculateGems: (level) => calculateLinearProgression(level, 10, 5, null)
+            peakLevel: 5,  // Pic au niveau 5
+            decayIncrement: 2,  // Décroissance de 2 par niveau
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5, 5, 2)
         },
 
         startingFeatures: {

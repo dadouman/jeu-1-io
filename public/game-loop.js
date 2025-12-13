@@ -196,7 +196,8 @@ socket.on('state', (gameState) => {
 
 // --- BOUCLE DE RENDU CONTINUE (pour l'écran de fin solo et transitions) ---
 function continuousRender() {
-    if (typeof renderGame === "function" && ctx && canvas) {
+    // Vérifier que tous les éléments nécessaires sont disponibles
+    if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
@@ -280,7 +281,11 @@ function continuousRender() {
         
         renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerId || socket.id, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
     }
-    requestAnimationFrame(continuousRender);
+    
+    // Continuer la boucle de rendu seulement si les conditions sont met
+    if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
+        requestAnimationFrame(continuousRender);
+    }
 }
 
 // Démarrer la boucle de rendu continue

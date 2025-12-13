@@ -1,6 +1,8 @@
 // server/game-loops/solo-loop.js
 // Boucle de jeu pour mode solo (20 niveaux)
 
+const SOLO_DEBUG = false;  // Set to true for verbose logging
+
 const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const GameMode = require('../../utils/GameMode');
@@ -47,7 +49,7 @@ function processSoloGameLoop(soloSessions, io, {
             session.levelStartTime = Date.now();
             session.shopEndTime = null;
             shopManager.closeShop();  // ← Synchroniser le ShopManager
-            console.log(`✅ [SOLO] Shop fermé pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
+            if (SOLO_DEBUG) console.log(`✅ [SOLO] Shop fermé pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
         }
         
         // ⚠️ Si shopEndTime est null mais ShopManager croit qu'il est ouvert, c'est qu'on a quitté via validateShop
@@ -55,7 +57,7 @@ function processSoloGameLoop(soloSessions, io, {
         if (!session.shopEndTime && shopManager.isShopCurrentlyActive) {
             shopManager.closeShop();
             session.levelStartTime = Date.now();
-            console.log(`✅ [SOLO] Shop fermé (validation client) pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
+            if (SOLO_DEBUG) console.log(`✅ [SOLO] Shop fermé (validation client) pour le joueur ${playerId}, niveau ${session.currentLevel} commence`);
         }
         
         const dist = Math.hypot(player.x - session.coin.x, player.y - session.coin.y);
@@ -79,7 +81,7 @@ function processSoloGameLoop(soloSessions, io, {
             const gemsEarned = calculateGemsForLevel(session.currentLevel);
             addGems(player, gemsEarned);
             
-            console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
+            if (SOLO_DEBUG) console.log(`🎯 [SOLO] Joueur ${playerId} a terminé le niveau ${session.currentLevel} en ${checkpointTime.toFixed(1)}s | +${gemsEarned}💎 (Total: ${player.gems}💎)`);
             
             // Réinitialiser le timer pour le prochain niveau
             session.levelStartTime = Date.now();
@@ -95,9 +97,9 @@ function processSoloGameLoop(soloSessions, io, {
                 
                 // Envoyer le résultat au client
                 const socket = io.sockets.sockets.get(playerId);
-                console.log(`   Socket existe: ${!!socket}, Connected: ${socket ? socket.connected : false}`);
+                if (SOLO_DEBUG) console.log(`   Socket existe: ${!!socket}, Connected: ${socket ? socket.connected : false}`);
                 if (socket && socket.connected) {
-                    console.log(`   📤 Envoi de soloGameFinished au client ${playerId}`);
+                    if (SOLO_DEBUG) console.log(`   📤 Envoi de soloGameFinished au client ${playerId}`);
                     socket.emit('soloGameFinished', {
                         totalTime: session.totalTime,
                         splitTimes: session.splitTimes,
@@ -141,7 +143,7 @@ function processSoloGameLoop(soloSessions, io, {
                         session.shopEndTime = Date.now() + SHOP_DURATION;
                         // ⚠️ NE PAS RÉINITIALISER levelStartTime ici - il sera réinitialisé quand le shop ferme
                         socket.emit('shopOpen', { items: getShopItemsForMode('solo'), level: completedLevel });
-                        console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
+                        if (SOLO_DEBUG) console.log(`🏪 [SOLO] Shop ouvert pour le joueur ${playerId} après niveau ${completedLevel}`);
                     } else {
                         // Pas de shop, relancer le niveau immédiatement
                         session.levelStartTime = Date.now();

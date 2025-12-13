@@ -4,6 +4,8 @@
  * Reçoit l'état complet du serveur via soloGameState event
  */
 
+const SOLO_DEBUG = false;  // Set to true for verbose logging
+
 let soloGameState = {
     // Joueur
     player: null,
@@ -80,7 +82,7 @@ function updateSoloGameState(newState) {
  */
 socket.on('soloGameState', (state) => {
     updateSoloGameState(state);
-    console.log(`📊 [SOLO STATE] Reçu état - Level ${soloGameState.currentLevel}, Time: ${soloGameState.runTotalTime.toFixed(2)}s`);
+    if (SOLO_DEBUG) console.log(`📊 [SOLO STATE] Reçu état - Level ${soloGameState.currentLevel}, Time: ${soloGameState.runTotalTime.toFixed(2)}s`);
 });
 
 /**
@@ -103,7 +105,7 @@ socket.on('gameFinished', (data) => {
 socket.on('soloBestSplits', (data) => {
     if (data && data.splits) {
         window.soloBestSplits = data.splits;
-        console.log(`🏆 [SOLO] Meilleurs splits reçus`);
+        if (SOLO_DEBUG) console.log(`🏆 [SOLO] Meilleurs splits reçus`);
     }
 });
 
@@ -113,6 +115,6 @@ socket.on('soloBestSplits', (data) => {
 socket.on('soloLeaderboard', (data) => {
     if (data && data.leaderboard) {
         window.soloLeaderboard = data.leaderboard;
-        console.log(`📈 [SOLO] Leaderboard reçu (${data.leaderboard.length} entrées)`);
+        if (SOLO_DEBUG) console.log(`📈 [SOLO] Leaderboard reçu (${data.leaderboard.length} entrées)`);
     }
 });

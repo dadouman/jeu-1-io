@@ -112,7 +112,6 @@ function updateSoloGameState(newState) {
  */
 socket.on('soloGameState', (state) => {
     updateSoloGameState(state);
-    console.log(`📊 [SOLO STATE] Reçu état - Level ${soloGameState.currentLevel}, Time: ${soloGameState.runTotalTime.toFixed(2)}s`);
 });
 
 /**
@@ -126,7 +125,6 @@ socket.on('gameFinished', (data) => {
     
     soloGameState.isGameFinished = true;
     console.log(`🎉 [SOLO] Jeu terminé! Temps total: ${data.totalTime.toFixed(2)}s`);
-    console.log(`📊 Splits: ${data.splits.map(s => s.toFixed(2)).join('s, ')}s`);
 });
 
 /**
@@ -135,7 +133,6 @@ socket.on('gameFinished', (data) => {
 socket.on('soloBestSplits', (data) => {
     if (data && data.splits) {
         window.soloBestSplits = data.splits;
-        console.log(`🏆 [SOLO] Meilleurs splits reçus`);
     }
 });
 
@@ -145,6 +142,5 @@ socket.on('soloBestSplits', (data) => {
 socket.on('soloLeaderboard', (data) => {
     if (data && data.leaderboard) {
         window.soloLeaderboard = data.leaderboard;
-        console.log(`📈 [SOLO] Leaderboard reçu (${data.leaderboard.length} entrées)`);
     }
 });

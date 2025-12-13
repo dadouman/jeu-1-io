@@ -54,7 +54,6 @@ socket.on('levelUpdate', (newLevel) => {
     // Détecter si c'est vraiment un changement de niveau
     if (newLevel !== lastLevel && lastLevel !== 0) {
         // Niveau a changé ! Déclencher la transition
-        console.log(`📥 [LEVEL UPDATE] Reçu levelUpdate: ${newLevel} (lastLevel était ${lastLevel})`);
         isInTransition = true;
         transitionStartTime = Date.now();
         // Calculer le temps SEULEMENT si le timer était actif (pas null pendant le shop)
@@ -70,7 +69,6 @@ socket.on('levelUpdate', (newLevel) => {
         // ✅ DÉMARRER LE TIMER DU NIVEAU SUIVANT IMMÉDIATEMENT (pas après la transition)
         levelStartTime = Date.now();
     } else if (newLevel === 1 && lastLevel === 0) {
-        console.log(`📥 [FIRST LEVEL] Premier niveau`);
         // Premier niveau : déclencher une transition spéciale
         isInTransition = true;
         isFirstLevel = true;
@@ -197,15 +195,7 @@ socket.on('returnToModeSelection', () => {
 socket.on('gameModSelected', (data) => {
     currentGameMode = data.mode;
     soloMaxLevel = data.mode === 'solo' ? 10 : 20;
-    const modeName = data.mode === 'classic' ? '40 NIVEAUX 🎯' 
-                   : data.mode === 'infinite' ? 'MODE INFINI ∞'
-                   : 'SOLO (10 niveaux) 🎯';
-    console.log(`%c🎮 Mode de jeu confirmé: ${modeName}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
-    
     // Pour solo: le serveur gère tout l'état via soloGameState
-    if (data.mode === 'solo') {
-        console.log(`%c📊 État solo géré par le serveur`, 'color: #00FF00; font-weight: bold; font-size: 12px');
-    }
 });
 
 socket.on('gameFinished', (data) => {

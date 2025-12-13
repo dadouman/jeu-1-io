@@ -78,7 +78,6 @@ class SoloGameLoop {
      */
     handleCoinCollision(session) {
         const currentLevel = session.currentLevel;
-        console.log(`✅ [SOLO] ${session.player.skin} a complété le niveau ${currentLevel}`);
         
         // 1. Enregistrer le split time
         session.finishLevel();
@@ -92,7 +91,6 @@ class SoloGameLoop {
         // 3. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
         if (session.shouldOpenShop(currentLevel)) {
             session.openShop();
-            console.log(`🏪 [SOLO] Shop s'ouvre après le niveau ${currentLevel}`);
         }
         
         // 4. Générer le prochain niveau
@@ -109,8 +107,6 @@ class SoloGameLoop {
         session.closeShop();
         this.generateNextLevel(session);
         session.sendGameState();
-        
-        console.log(`✅ [SOLO] Shop fermé automatiquement pour ${session.playerId}`);
     }
     
     /**

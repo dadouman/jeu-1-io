@@ -1,6 +1,31 @@
 // config/gameModes.js - Configuration centralisée pour tous les modes de jeu
 
 /**
+ * Fonction générique pour calculer une valeur linéaire progressive
+ * @param {number} level - Le niveau actuel
+ * @param {number} baseValue - Valeur de départ (niveau 1)
+ * @param {number} linearIncrement - Augmentation par niveau
+ * @returns {number} La valeur calculée
+ */
+function calculateLinearProgression(level, baseValue, linearIncrement) {
+    return Math.max(baseValue, baseValue + (level - 1) * linearIncrement);
+}
+
+/**
+ * Fonction générique pour calculer la taille du maze
+ * @param {number} level - Le niveau actuel
+ * @param {Array<number>} sizeArray - Tableau de tailles disponibles
+ * @returns {Object} { width, height }
+ */
+function calculateMazeSize(level, sizeArray) {
+    const size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+    return {
+        width: size,
+        height: size
+    };
+}
+
+/**
  * Configuration flexible pour chaque mode de jeu
  * Permet de varier: niveaux, shops, prix, joueurs max, objets, etc
  */
@@ -12,13 +37,12 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 8,
         maxLevels: Infinity,  // Pas de limite
         levelConfig: {
+            // Tableau de tailles pour chaque niveau
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
             // Fonction pour calculer la taille du maze selon le niveau
             calculateSize: (level) => {
                 const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return {
-                    width: sizes[Math.min(level - 1, sizes.length - 1)],
-                    height: sizes[Math.min(level - 1, sizes.length - 1)]
-                };
+                return calculateMazeSize(level, sizes);
             }
         },
         
@@ -63,11 +87,11 @@ const GAME_MODES_CONFIG = {
         ],
 
         // Gems gagnées selon le niveau
+        // Formule: baseValue + (level - 1) * increment
         gemsPerLevel: {
-            calculateGems: (level) => {
-                // Formule: 10 + (level - 1) * 5
-                return Math.max(10, 10 + (level - 1) * 5);
-            }
+            baseValue: 10,
+            linearIncrement: 5,
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5)
         },
 
         // Features débloquées au départ
@@ -101,12 +125,10 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 4,
         maxLevels: Infinity,
         levelConfig: {
+            sizes: [21, 23, 25, 27, 29, 31, 33],
             calculateSize: (level) => {
                 const sizes = [21, 23, 25, 27, 29, 31, 33];
-                return {
-                    width: sizes[Math.min(level - 1, sizes.length - 1)],
-                    height: sizes[Math.min(level - 1, sizes.length - 1)]
-                };
+                return calculateMazeSize(level, sizes);
             }
         },
 
@@ -149,9 +171,9 @@ const GAME_MODES_CONFIG = {
         ],
 
         gemsPerLevel: {
-            calculateGems: (level) => {
-                return Math.max(15, 15 + (level - 1) * 3);
-            }
+            baseValue: 15,
+            linearIncrement: 3,
+            calculateGems: (level) => calculateLinearProgression(level, 15, 3)
         },
 
         startingFeatures: {
@@ -181,18 +203,16 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
             calculateSize: (level) => {
                 const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return {
-                    width: sizes[Math.min(level - 1, sizes.length - 1)],
-                    height: sizes[Math.min(level - 1, sizes.length - 1)]
-                };
+                return calculateMazeSize(level, sizes);
             }
         },
 
         shop: {
             enabled: true,
-            levels: [5, 10],  // Shop aux niveaux 5 et 10 seulement
+            levels: [5, 10],  // Shop aux niveaux 5 et 10
             duration: 15000,
         },
 
@@ -229,9 +249,9 @@ const GAME_MODES_CONFIG = {
         ],
 
         gemsPerLevel: {
-            calculateGems: (level) => {
-                return Math.max(10, 10 + (level - 1) * 5);
-            }
+            baseValue: 10,
+            linearIncrement: 5,
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5)
         },
 
         startingFeatures: {
@@ -270,12 +290,10 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 20,  // ← À la place de changer partout dans le code
         levelConfig: {
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
             calculateSize: (level) => {
                 const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return {
-                    width: sizes[Math.min(level - 1, sizes.length - 1)],
-                    height: sizes[Math.min(level - 1, sizes.length - 1)]
-                };
+                return calculateMazeSize(level, sizes);
             }
         },
 
@@ -325,9 +343,9 @@ const GAME_MODES_CONFIG = {
         ],
 
         gemsPerLevel: {
-            calculateGems: (level) => {
-                return Math.max(10, 10 + (level - 1) * 5);
-            }
+            baseValue: 10,
+            linearIncrement: 5,
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5)
         },
 
         startingFeatures: {
@@ -394,5 +412,7 @@ module.exports = {
     GAME_MODES_CONFIG,
     getGameModeConfig,
     getAllGameModes,
-    getGameModeConfigCopy
+    getGameModeConfigCopy,
+    calculateLinearProgression,
+    calculateMazeSize
 };

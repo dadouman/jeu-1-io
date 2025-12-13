@@ -23,6 +23,17 @@ canvas.addEventListener('click', (event) => {
     
     console.log(`🖱️ Position: (${mouseX}, ${mouseY}) | Gems: ${playerGems}`);
     
+    // === VÉRIFIER LE BOUTON CONTINUER ===
+    if (typeof getShopContinueButtonArea === 'function') {
+        const continueButton = getShopContinueButtonArea(canvas.width, canvas.height);
+        if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.width &&
+            mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.height) {
+            console.log(`✅ Bouton Continuer cliqué!`);
+            socket.emit('validateShop');
+            return;
+        }
+    }
+    
     // Obtenir les zones cliquables du shop
     const clickAreas = getShopClickAreas(canvas.width, canvas.height);
     console.log(`📦 Zones cliquables:`, clickAreas);

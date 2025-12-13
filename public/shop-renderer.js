@@ -1,5 +1,27 @@
-// Public/shop-renderer.js
-// Rendu du système de shop
+/**
+ * Retourne la zone cliquable du bouton "Continuer"
+ * @param {number} canvasWidth 
+ * @param {number} canvasHeight 
+ * @returns {object} {x, y, width, height}
+ */
+function getShopContinueButtonArea(canvasWidth, canvasHeight) {
+    const shopWidth = 600;
+    const shopHeight = 400;
+    const shopX = (canvasWidth - shopWidth) / 2;
+    const shopY = (canvasHeight - shopHeight) / 2;
+    
+    const continueButtonWidth = 150;
+    const continueButtonHeight = 40;
+    const continueButtonX = canvasWidth / 2 - continueButtonWidth / 2;
+    const continueButtonY = shopY + shopHeight - 35;
+    
+    return {
+        x: continueButtonX,
+        y: continueButtonY,
+        width: continueButtonWidth,
+        height: continueButtonHeight
+    };
+}
 
 /**
  * Affiche l'interface du shop
@@ -66,11 +88,33 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     
     renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems);
     
-    // Instructions
+    // Instructions et bouton continuer
     ctx.fillStyle = "#888";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Cliquez sur un item pour acheter | Appuyez sur Entrée pour quitter", canvas.width / 2, shopY + shopHeight - 25);
+    ctx.fillText("Cliquez sur un item pour acheter | Appuyez sur 1,2,3,4 pour acheter", canvas.width / 2, shopY + shopHeight - 50);
+    
+    // Bouton "Continuer" pour fermer le shop
+    const continueButtonWidth = 150;
+    const continueButtonHeight = 40;
+    const continueButtonX = canvas.width / 2 - continueButtonWidth / 2;
+    const continueButtonY = shopY + shopHeight - 35;
+    
+    // Fond du bouton
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
+    
+    // Bordure du bouton
+    ctx.strokeStyle = '#FFA500';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
+    
+    // Texte du bouton
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Continuer', canvas.width / 2, continueButtonY + continueButtonHeight / 2);
 }
 
 /**

@@ -200,27 +200,30 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- VALIDER ET QUITTER LE SHOP AVANT LA FIN ---
         socket.on('validateShop', () => {
             const playerId = socket.id;
-            const session = soloSessions[playerId];
+            const mode = playerModes[playerId];
             
-            if (!session) {
-                console.log(`❌ Aucune session solo trouvée pour ${playerId}`);
-                return;
+            if (mode === 'solo') {
+                const session = soloSessions[playerId];
+                
+                if (!session) {
+                    console.log(`❌ Aucune session solo trouvée pour ${playerId}`);
+                    return;
+                }
+                
+                // Vérifier si le shop est actuellement actif
+                if (!session.shopActive) {
+                    console.log(`⚠️ [SOLO] Joueur ${playerId} a essayé de quitter un shop qui n'était pas actif`);
+                    return;
+                }
+                
+                // Fermer le shop immédiatement
+                session.closeShop();
+                
+                console.log(`✅ [SOLO] Joueur ${playerId} a validé et quitté le shop après le niveau ${session.currentLevel - 1}`);
+                
+                // Notifier le client que le shop est fermé
+                socket.emit('shopClosed', { level: session.currentLevel - 1 });
             }
-            
-            // Vérifier si un shop est actuellement actif (shopEndTime existe et n'est pas passé)
-            if (!session.shopEndTime || Date.now() > session.shopEndTime) {
-                console.log(`⚠️ [SOLO] Joueur ${playerId} a essayé de quitter un shop qui n'était pas actif`);
-                return;
-            }
-            
-            // Fermer le shop immédiatement
-            session.levelStartTime = Date.now();
-            session.shopEndTime = null;  // Nettoyer le flag du shop
-            
-            console.log(`✅ [SOLO] Joueur ${playerId} a validé et quitté le shop après le niveau ${session.currentLevel - 1}`);
-            
-            // Notifier le client que le shop est fermé
-            socket.emit('shopClosed', { level: session.currentLevel - 1 });
         });
 
         // --- OBTENIR LES MEILLEURS SPLITS PAR NIVEAU (requête côté CLIENT) ---

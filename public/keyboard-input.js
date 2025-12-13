@@ -99,6 +99,7 @@ document.addEventListener('keydown', (e) => {
     // --- SHOP : Quitter le shop avec Entrée ---
     if (isShopOpen && e.code === 'Enter') {
         socket.emit('validateShop');
+        console.log(`%c⌨️ Touche Entrée: fermeture du shop`, 'color: #00FF00; font-weight: bold');
         e.preventDefault();
     }
     

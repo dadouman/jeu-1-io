@@ -1,31 +1,48 @@
 // config/gameModes.js - Configuration centralisée pour tous les modes de jeu
 
 /**
- * Fonction générique pour calculer une valeur linéaire progressive
+ * Fonction générique pour calculer une valeur linéaire progressive avec décroissance optionnelle
  * @param {number} level - Le niveau actuel
  * @param {number} baseValue - Valeur de départ (niveau 1)
  * @param {number} linearIncrement - Augmentation par niveau (positif ou négatif)
  * @param {number} peakLevel - Niveau à partir duquel la valeur décroît (optionnel)
+ * @param {number} decayIncrement - Taux de décroissance (défaut: même que linearIncrement)
  * @returns {number} La valeur calculée
  * 
  * @example
  * // Croissance simple: 10 + (level - 1) * 5
  * calculateLinearProgression(3, 10, 5) // = 20
  * 
- * // Avec décroissance après le niveau 5:
- * calculateLinearProgression(7, 50, 5, 5) // Croît jusqu'à niveau 5, puis décroît
+ * // Avec décroissance après le niveau 5 au même taux:
+ * calculateLinearProgression(7, 10, 5, 5) // level 5 = 30, level 7 = 20 (décroit)
+ * 
+ * // Avec décroissance plus lente:
+ * calculateLinearProgression(7, 10, 5, 5, 2) // level 5 = 30, level 7 = 26
  */
-function calculateLinearProgression(level, baseValue, linearIncrement, peakLevel = null) {
-    let value = baseValue + (level - 1) * linearIncrement;
-    
-    // Si un niveau de pic est défini et qu'on l'a dépassé, on décroît
-    if (peakLevel !== null && level > peakLevel) {
-        const distancePastPeak = level - peakLevel;
-        // On décroît de la moitié du taux d'augmentation
-        value = baseValue + (peakLevel - 1) * linearIncrement - (distancePastPeak * linearIncrement / 2);
+function calculateLinearProgression(level, baseValue, linearIncrement, peakLevel = null, decayIncrement = null) {
+    // Si pas de décroissance définie, utiliser le même taux pour la décroissance
+    if (decayIncrement === null) {
+        decayIncrement = linearIncrement;
     }
     
-    return Math.max(baseValue, Math.round(value));
+    // Si pas de pic défini, croissance simple
+    if (peakLevel === null) {
+        const value = baseValue + (level - 1) * linearIncrement;
+        return Math.max(baseValue, Math.round(value));
+    }
+    
+    // Avec pic: croissance jusqu'au pic, puis décroissance
+    if (level <= peakLevel) {
+        // Phase de croissance jusqu'au pic
+        const value = baseValue + (level - 1) * linearIncrement;
+        return Math.max(baseValue, Math.round(value));
+    } else {
+        // Phase de décroissance après le pic
+        const peakValue = baseValue + (peakLevel - 1) * linearIncrement;
+        const distancePastPeak = level - peakLevel;
+        const value = peakValue - (distancePastPeak * decayIncrement);
+        return Math.max(baseValue, Math.round(value));
+    }
 }
 
 /**

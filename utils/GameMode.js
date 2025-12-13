@@ -1,6 +1,6 @@
 // utils/GameMode.js - Classe abstraite pour tous les modes de jeu
 
-const { getGameModeConfig } = require('../config/gameModes');
+const { getGameModeConfig, calculateMazeSize } = require('../config/gameModes');
 
 /**
  * Classe abstraite GameMode - parente pour tous les modes
@@ -31,7 +31,7 @@ class GameMode {
      * @returns {object} {width, height}
      */
     getMazeSize(level) {
-        return this.config.levelConfig.calculateSize(level);
+        return calculateMazeSize(level, this.config.levelConfig.sizes);
     }
 
     /**

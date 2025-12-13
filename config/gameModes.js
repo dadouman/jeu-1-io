@@ -72,12 +72,7 @@ const GAME_MODES_CONFIG = {
         maxLevels: Infinity,  // Pas de limite
         levelConfig: {
             // Tableau de tailles pour chaque niveau
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
-            // Fonction pour calculer la taille du maze selon le niveau
-            calculateSize: (level) => {
-                const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return calculateMazeSize(level, sizes);
-            }
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
         },
         
         shop: {
@@ -161,11 +156,7 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 4,
         maxLevels: Infinity,
         levelConfig: {
-            sizes: [21, 23, 25, 27, 29, 31, 33],
-            calculateSize: (level) => {
-                const sizes = [21, 23, 25, 27, 29, 31, 33];
-                return calculateMazeSize(level, sizes);
-            }
+            sizes: [21, 23, 25, 27, 29, 31, 33]
         },
 
         shop: {
@@ -240,11 +231,7 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
-            calculateSize: (level) => {
-                const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return calculateMazeSize(level, sizes);
-            }
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
         },
 
         shop: {
@@ -328,11 +315,7 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 20,  // ← À la place de changer partout dans le code
         levelConfig: {
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33],
-            calculateSize: (level) => {
-                const sizes = [15, 17, 19, 21, 23, 25, 27, 29, 31, 33];
-                return calculateMazeSize(level, sizes);
-            }
+            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
         },
 
         shop: {

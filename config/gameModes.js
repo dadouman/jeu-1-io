@@ -60,6 +60,28 @@ function calculateMazeSize(level, sizeArray) {
 }
 
 /**
+ * Génère un tableau de tailles de maze selon une progression linéaire
+ * @param {number} startSize - Taille de départ (niveau 1)
+ * @param {number} increment - Augmentation par niveau
+ * @param {number} numLevels - Nombre de niveaux à générer
+ * @returns {Array<number>} Tableau de tailles
+ * 
+ * @example
+ * // Génère 10 niveaux: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33
+ * generateSizesArray(15, 2, 10)
+ * 
+ * // Génère 7 niveaux: 21, 23, 25, 27, 29, 31, 33
+ * generateSizesArray(21, 2, 7)
+ */
+function generateSizesArray(startSize, increment, numLevels) {
+    const sizes = [];
+    for (let i = 0; i < numLevels; i++) {
+        sizes.push(startSize + (i * increment));
+    }
+    return sizes;
+}
+
+/**
  * Configuration flexible pour chaque mode de jeu
  * Permet de varier: niveaux, shops, prix, joueurs max, objets, etc
  */
@@ -71,8 +93,8 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 8,
         maxLevels: Infinity,  // Pas de limite
         levelConfig: {
-            // Tableau de tailles pour chaque niveau
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
+            // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
+            sizes: generateSizesArray(15, 2, 10)
         },
         
         shop: {
@@ -156,7 +178,8 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 4,
         maxLevels: Infinity,
         levelConfig: {
-            sizes: [21, 23, 25, 27, 29, 31, 33]
+            // Génère: 21, 23, 25, 27, 29, 31, 33 (7 tailles)
+            sizes: generateSizesArray(21, 2, 7)
         },
 
         shop: {
@@ -231,7 +254,8 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
+            // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
+            sizes: generateSizesArray(15, 2, 10)
         },
 
         shop: {
@@ -315,7 +339,8 @@ const GAME_MODES_CONFIG = {
         maxPlayers: 1,
         maxLevels: 20,  // ← À la place de changer partout dans le code
         levelConfig: {
-            sizes: [15, 17, 19, 21, 23, 25, 27, 29, 31, 33]
+            // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
+            sizes: generateSizesArray(15, 2, 10)
         },
 
         shop: {
@@ -436,5 +461,6 @@ module.exports = {
     getAllGameModes,
     getGameModeConfigCopy,
     calculateLinearProgression,
-    calculateMazeSize
+    calculateMazeSize,
+    generateSizesArray
 };

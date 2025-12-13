@@ -89,15 +89,20 @@ class SoloGameLoop {
         }
         
         // 3. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
+        let shopItems = {};
         if (session.shouldOpenShop(currentLevel)) {
             session.openShop();
+            // Récupérer les items du shop pour envoyer au client
+            const gameModes = require('../../config/gameModes');
+            const soloConfig = gameModes.getGameModeConfig('solo');
+            shopItems = soloConfig.shopItems || [];
         }
         
         // 4. Générer le prochain niveau
         this.generateNextLevel(session);
         
-        // 5. Envoyer l'état mis à jour
-        session.sendGameState();
+        // 5. Envoyer l'état mis à jour avec les items du shop si ouvert
+        session.sendGameState(shopItems);
     }
     
     /**

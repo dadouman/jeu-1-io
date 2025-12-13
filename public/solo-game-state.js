@@ -56,6 +56,10 @@ let soloGameState = {
 function updateSoloGameState(newState) {
     if (!newState) return;
     
+    // Sauvegarder l'ancien niveau pour détecter les changements
+    const previousLevel = soloGameState.currentLevel;
+    const previousSplitCount = soloGameState.splitTimes ? soloGameState.splitTimes.length : 0;
+    
     // Fusionner l'état du serveur avec l'état local
     soloGameState = {
         ...soloGameState,
@@ -71,6 +75,21 @@ function updateSoloGameState(newState) {
     }
     if (soloGameState.transition.startTime) {
         soloGameState.transition.elapsed = Date.now() - soloGameState.transition.startTime;
+    }
+    
+    // === SYNCHRONISER LES SPLIT TIMES ===
+    // Mettre à jour soloSplitTimes (variable globale) depuis soloGameState
+    if (newState.splitTimes && Array.isArray(newState.splitTimes)) {
+        soloSplitTimes = newState.splitTimes;
+        
+        // Détecter si un nouveau split a été ajouté (= gem prise)
+        if (newState.splitTimes.length > previousSplitCount && previousSplitCount >= 0) {
+            // Un nouveau split! Sauvegarder pour l'affichage du delta
+            soloLastGemTime = Date.now();
+            soloLastGemLevel = previousLevel;
+            // Le temps du level qui vient d'être terminé
+            levelUpTime = newState.splitTimes[newState.splitTimes.length - 1];
+        }
     }
     
     // === SYNCHRONISER AVEC LES VARIABLES GLOBALES POUR LE RENDERER ===
@@ -100,6 +119,35 @@ function updateSoloGameState(newState) {
         // Mettre à jour les gems et features pour l'affichage HUD
         playerGems = newState.player.gems || 0;
         purchasedFeatures = newState.player.purchasedFeatures || {};
+    }
+    
+    // === SYNCHRONISER LE SHOP ===
+    // Mettre à jour isShopOpen et shopItems depuis soloGameState.shop
+    if (newState.shop) {
+        isShopOpen = newState.shop.active || false;
+        
+        // Convertir le tableau d'items en objet avec ID comme clé (si nécessaire)
+        if (newState.shop.items) {
+            if (Array.isArray(newState.shop.items)) {
+                // C'est un tableau, convertir en objet {id: item, ...}
+                shopItems = {};
+                newState.shop.items.forEach(item => {
+                    if (item && item.id) {
+                        shopItems[item.id] = item;
+                    }
+                });
+            } else if (typeof newState.shop.items === 'object' && Object.keys(newState.shop.items).length > 0) {
+                // C'est déjà un objet
+                shopItems = newState.shop.items;
+            }
+        }
+        
+        // Définir shopTimerStart pour le timer du shop
+        if (newState.shop.active && !shopTimerStart) {
+            shopTimerStart = newState.shop.startTime || Date.now();
+        } else if (!newState.shop.active) {
+            shopTimerStart = null;
+        }
     }
     
     // Mettre à jour le mode de jeu

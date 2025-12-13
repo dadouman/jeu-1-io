@@ -167,10 +167,15 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     if (currentGameMode === 'solo' && typeof renderSoloHUD === 'function' && !isShopOpen && !isSoloGameFinished) {
         const preferences = {
             showPersonal: soloShowPersonalDelta || false,
-            personalBestSplits: soloPersonalBestTime ? { [level]: soloPersonalBestTime } : {},
+            personalBestSplits: soloPersonalBestSplits || {},
             bestSplits: soloBestSplits || {}
         };
         renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
+        
+        // --- AFFICHAGE DU DELTA TEMPORAIRE (après prise de gem) ---
+        if (typeof renderSoloGemDelta === 'function' && soloLastGemTime && soloLastGemLevel) {
+            renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
+        }
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

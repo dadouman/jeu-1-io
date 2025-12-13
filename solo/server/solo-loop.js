@@ -157,6 +157,64 @@ function processSoloGameLoop(soloSessions, io, {
         if (soloSessions[playerId]) {
             const socket = io.sockets.sockets.get(playerId);
             if (socket && socket.connected) {
+                // Calculer les temps
+                const runTotalTime = session.startTime ? (Date.now() - session.startTime) / 1000 : 0;
+                const currentLevelTime = session.levelStartTime && !session.shopEndTime && !session.countdownActive 
+                    ? (Date.now() - session.levelStartTime) / 1000 
+                    : 0;
+                
+                // Vérifier si le shop est actif
+                const isShopActive = session.shopEndTime && Date.now() < session.shopEndTime;
+                
+                // Construire l'état complet du jeu solo
+                const soloGameStateData = {
+                    // Joueur
+                    player: player,
+                    
+                    // Niveaux
+                    currentLevel: session.currentLevel,
+                    maxLevel: 10,
+                    isGameFinished: false,
+                    
+                    // Timings
+                    runTotalTime: runTotalTime,
+                    currentLevelTime: currentLevelTime,
+                    splitTimes: session.splitTimes || [],
+                    
+                    // UI - Countdown
+                    countdown: {
+                        active: session.countdownActive || false,
+                        duration: 3000,
+                        startTime: session.countdownStartTime || null,
+                        elapsed: session.countdownStartTime ? Date.now() - session.countdownStartTime : 0
+                    },
+                    
+                    // UI - Shop
+                    shop: {
+                        active: isShopActive,
+                        duration: SHOP_DURATION,
+                        startTime: isShopActive ? (session.shopEndTime - SHOP_DURATION) : null,
+                        elapsed: isShopActive ? Date.now() - (session.shopEndTime - SHOP_DURATION) : 0,
+                        items: isShopActive ? getShopItemsForMode('solo') : {}
+                    },
+                    
+                    // UI - Transition
+                    transition: {
+                        active: false,
+                        duration: TRANSITION_DURATION,
+                        startTime: null,
+                        elapsed: 0
+                    },
+                    
+                    // Map
+                    map: session.map,
+                    coin: session.coin
+                };
+                
+                // Envoyer l'état complet solo
+                socket.emit('soloGameState', soloGameStateData);
+                
+                // Garder aussi state pour compatibilité avec le renderer existant
                 socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
             }
         }

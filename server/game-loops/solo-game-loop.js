@@ -59,7 +59,14 @@ class SoloGameLoop {
             }
             
             // ===== ENVOYER L'ÉTAT =====
-            session.sendGameState();
+            // Si le shop est actif, récupérer les items pour les envoyer
+            let shopItems = {};
+            if (session.shopActive) {
+                const gameModes = require('../../config/gameModes');
+                const soloConfig = gameModes.getGameModeConfig('solo');
+                shopItems = soloConfig.shopItems || {};
+            }
+            session.sendGameState(shopItems);
         }
     }
     

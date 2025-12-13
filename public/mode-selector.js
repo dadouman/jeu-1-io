@@ -22,9 +22,9 @@ function selectMode(mode) {
             modeSelector.style.display = 'none';
         }
 
-        // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
-        if (mode === 'solo' && !soloStartCountdownActive) {
-            // Définir le mode AVANT de démarrer le countdown
+        // === INITIALISATION SOLO (sans countdown client) ===
+        if (mode === 'solo') {
+            // Définir le mode AVANT le countdown
             currentGameMode = 'solo';
             
             // Réinitialiser les variables solo
@@ -33,9 +33,9 @@ function selectMode(mode) {
             soloTotalTime = 0;
             soloSplitTimes = [];
             
-            // soloSessionStartTime sera défini dans le callback du countdown
-            startCountdown(); // Démarrer le countdown
-            console.log('%c🎬 Mode Solo lancé! PHASE 1: "3" (0-1000ms) | Jeu 0% visible, inputs BLOQUÉS', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
+            // Le countdown sera géré par le serveur via soloGameState.countdown
+            // Le client affichera le countdown basé sur soloGameState.countdown.active
+            console.log('%c🎬 Mode Solo lancé! Countdown géré par le serveur', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
         }
         
         // Émettre l'événement au serveur

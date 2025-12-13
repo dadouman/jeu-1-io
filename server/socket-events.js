@@ -76,8 +76,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             if (mode === 'solo') {
                 console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO (10 niveaux)`);
                 
-                // Créer une nouvelle session solo avec la classe
-                const session = new SoloSession(socket.id, socket);
+                // Récupérer la configuration du mode solo
+                const gameModes = require('../config/gameModes');
+                const soloConfig = gameModes.getModeConfig('solo');
+                
+                // Créer une nouvelle session solo avec la configuration
+                const session = new SoloSession(socket.id, socket, soloConfig);
                 
                 // Initialiser le joueur
                 const startPos = getRandomEmptyPosition(generateMaze(15, 15));
@@ -99,6 +103,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 session.sendGameState();
                 
                 console.log(`   ✅ Session SOLO créée pour joueur ${socket.id}`);
+                console.log(`   🏪 Shop aux niveaux: ${session.shopLevels.join(', ')}`);
             } else {
                 if (!lobbies[mode]) {
                     socket.emit('error', { message: 'Mode invalide' });

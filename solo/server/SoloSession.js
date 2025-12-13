@@ -4,7 +4,12 @@
  */
 
 class SoloSession {
-    constructor(playerId, socket) {
+    /**
+     * @param {string} playerId - ID du joueur
+     * @param {Socket} socket - Socket.io socket
+     * @param {Object} config - Configuration du mode solo (optionnel)
+     */
+    constructor(playerId, socket, config = {}) {
         this.playerId = playerId;
         this.socket = socket;
         
@@ -13,7 +18,7 @@ class SoloSession {
         
         // ===== NIVEAUX =====
         this.currentLevel = 1;
-        this.maxLevel = 10;
+        this.maxLevel = config.maxLevels || 10;
         this.isGameFinished = false;
         
         // ===== TIMING PRINCIPAL =====
@@ -32,12 +37,12 @@ class SoloSession {
         // ===== SHOP =====
         this.shopActive = false;
         this.shopStartTime = null;
-        this.shopDuration = 15000; // 15 secondes
+        this.shopDuration = config.shop?.duration || 15000; // 15 secondes
         
         // ===== CONFIGURATION DU SHOP =====
-        // À quelle niveau doit s'ouvrir le shop
-        // Vient de config/gameModes.js (peut être modifié)
-        this.shopLevels = [5, 10]; // Par défaut
+        // À quels niveaux doit s'ouvrir le shop
+        // Vient de config/gameModes.js (peut être modifié per session)
+        this.shopLevels = config.shop?.levels || [5, 10];
         
         // ===== TRANSITION =====
         this.inTransition = false;

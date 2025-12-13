@@ -4,13 +4,13 @@ const SHOP_ITEMS = {
     dash: {
         id: 'dash',
         name: 'Dash ⚡',
-        price: 2,
+        price: 5,
         description: 'Dash rapide en direction'
     },
     checkpoint: {
         id: 'checkpoint',
         name: 'Checkpoint 🚩',
-        price: 2,
+        price: 3,
         description: 'Marquer et téléporter'
     },
     rope: {
@@ -22,7 +22,7 @@ const SHOP_ITEMS = {
     speedBoost: {
         id: 'speedBoost',
         name: 'Vitesse+ 💨',
-        price: 1,
+        price: 2,
         description: 'Boost de vitesse'
     }
 };

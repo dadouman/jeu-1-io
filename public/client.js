@@ -29,10 +29,10 @@ canvas.addEventListener('click', (event) => {
     
     // Items par défaut si shopItems est vide
     const defaultShopItems = {
-        dash: { id: 'dash', name: 'Dash', price: 2 },
-        checkpoint: { id: 'checkpoint', name: 'Checkpoint', price: 2 },
+        dash: { id: 'dash', name: 'Dash', price: 5 },
+        checkpoint: { id: 'checkpoint', name: 'Checkpoint', price: 3 },
         rope: { id: 'rope', name: 'Rope', price: 1 },
-        speedBoost: { id: 'speedBoost', name: 'Speed+', price: 1, stackable: true }
+        speedBoost: { id: 'speedBoost', name: 'Speed+', price: 2, stackable: true }
     };
     
     // Utiliser shopItems du serveur ou les valeurs par défaut

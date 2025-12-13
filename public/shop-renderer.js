@@ -42,10 +42,10 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     
     // Items du shop - utiliser shopItems du serveur si disponible, sinon fallback sur les valeurs par défaut
     const defaultItems = [
-        { id: 'dash', name: 'Dash', emoji: '⚡', price: 2, color: '#FF6B6B' },
-        { id: 'checkpoint', name: 'Checkpoint', emoji: '🚩', price: 2, color: '#00D4FF' },
+        { id: 'dash', name: 'Dash', emoji: '⚡', price: 5, color: '#FF6B6B' },
+        { id: 'checkpoint', name: 'Checkpoint', emoji: '🚩', price: 3, color: '#00D4FF' },
         { id: 'rope', name: 'Rope', emoji: '🪢', price: 1, color: '#9B59B6' },
-        { id: 'speedBoost', name: 'Speed+', emoji: '💨', price: 1, color: '#FFD700', isStackable: true }
+        { id: 'speedBoost', name: 'Speed+', emoji: '💨', price: 2, color: '#FFD700', isStackable: true }
     ];
     
     // Utiliser les items du serveur si disponibles

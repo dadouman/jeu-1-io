@@ -113,14 +113,14 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'dash',
                 name: 'Dash',
-                price: 2,
+                price: 5,
                 description: 'Accélération rapide',
                 type: 'feature'
             },
             {
                 id: 'checkpoint',
                 name: 'Checkpoint',
-                price: 2,
+                price: 3,
                 description: 'Sauvegarde ta position',
                 type: 'feature'
             },
@@ -134,7 +134,7 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'speedBoost',
                 name: 'Vitesse +1',
-                price: 1,
+                price: 2,
                 description: 'Augmente ta vitesse',
                 type: 'speedBoost',
                 stackable: true  // Peut être acheté plusieurs fois
@@ -196,14 +196,14 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'dash',
                 name: 'Dash',
-                price: 2,
+                price: 5,
                 description: 'Accélération rapide',
                 type: 'feature'
             },
             {
                 id: 'checkpoint',
                 name: 'Checkpoint',
-                price: 2,
+                price: 3,
                 description: 'Sauvegarde ta position',
                 type: 'feature'
             },
@@ -217,7 +217,7 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'speedBoost',
                 name: 'Vitesse +1',
-                price: 1,
+                price: 2,
                 description: 'Augmente ta vitesse',
                 type: 'speedBoost',
                 stackable: true
@@ -272,14 +272,14 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'dash',
                 name: 'Dash',
-                price: 2,
+                price: 5,
                 description: 'Accélération rapide',
                 type: 'feature'
             },
             {
                 id: 'checkpoint',
                 name: 'Checkpoint',
-                price: 2,
+                price: 3,
                 description: 'Sauvegarde ta position',
                 type: 'feature'
             },
@@ -293,7 +293,7 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'speedBoost',
                 name: 'Vitesse +1',
-                price: 1,
+                price: 2,
                 description: 'Augmente ta vitesse',
                 type: 'speedBoost',
                 stackable: true
@@ -357,14 +357,14 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'dash',
                 name: 'Dash',
-                price: 2,
+                price: 5,
                 description: 'Accélération rapide',
                 type: 'feature'
             },
             {
                 id: 'checkpoint',
                 name: 'Checkpoint',
-                price: 2,
+                price: 3,
                 description: 'Sauvegarde ta position',
                 type: 'feature'
             },
@@ -378,7 +378,7 @@ const GAME_MODES_CONFIG = {
             {
                 id: 'speedBoost',
                 name: 'Vitesse +1',
-                price: 1,
+                price: 2,
                 description: 'Augmente ta vitesse',
                 type: 'speedBoost',
                 stackable: true

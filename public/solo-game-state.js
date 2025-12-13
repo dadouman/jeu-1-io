@@ -113,8 +113,15 @@ function updateSoloGameState(newState) {
     
     // Mettre à jour le joueur dans currentPlayers (pour le renderer)
     // Le renderer attend currentPlayers[myPlayerId]
-    if (newState.player && myPlayerId) {
-        currentPlayers[myPlayerId] = newState.player;
+    // Utiliser socket.id si myPlayerId n'est pas encore défini
+    const playerId = myPlayerId || (typeof socket !== 'undefined' ? socket.id : null);
+    if (newState.player && playerId) {
+        currentPlayers[playerId] = newState.player;
+        
+        // S'assurer que myPlayerId est défini
+        if (!myPlayerId) {
+            myPlayerId = playerId;
+        }
         
         // Mettre à jour les gems et features pour l'affichage HUD
         playerGems = newState.player.gems || 0;
@@ -172,7 +179,50 @@ socket.on('gameFinished', (data) => {
     }
     
     soloGameState.isGameFinished = true;
+    isSoloGameFinished = true;
     console.log(`🎉 [SOLO] Jeu terminé! Temps total: ${data.totalTime.toFixed(2)}s`);
+    
+    // === SAUVEGARDER LES MEILLEURS SPLITS PERSONNELS DANS LOCALSTORAGE ===
+    if (data.splitTimes && Array.isArray(data.splitTimes)) {
+        // Charger les splits existants depuis localStorage
+        let savedSplits = {};
+        try {
+            const saved = localStorage.getItem('soloPersonalBestSplits');
+            if (saved) {
+                savedSplits = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Erreur lors du chargement des splits:', e);
+        }
+        
+        // Comparer et sauvegarder les meilleurs temps pour chaque niveau
+        let hasNewBest = false;
+        data.splitTimes.forEach((splitTime, index) => {
+            const level = index + 1;
+            if (!savedSplits[level] || splitTime < savedSplits[level]) {
+                savedSplits[level] = splitTime;
+                hasNewBest = true;
+                console.log(`%c🏆 Nouveau meilleur split niveau ${level}: ${splitTime.toFixed(2)}s`, 'color: #00FF00; font-weight: bold');
+            }
+        });
+        
+        if (hasNewBest) {
+            localStorage.setItem('soloPersonalBestSplits', JSON.stringify(savedSplits));
+        }
+        
+        // Mettre à jour la variable globale
+        soloPersonalBestSplits = savedSplits;
+    }
+    
+    // Sauvegarder le meilleur temps total
+    if (data.totalTime) {
+        const savedBestTime = localStorage.getItem('soloPersonalBestTime');
+        if (!savedBestTime || data.totalTime < parseFloat(savedBestTime)) {
+            localStorage.setItem('soloPersonalBestTime', data.totalTime.toString());
+            soloPersonalBestTime = data.totalTime;
+            console.log(`%c🏆 Nouveau record personnel: ${data.totalTime.toFixed(2)}s!`, 'color: #00FF00; font-weight: bold; font-size: 16px');
+        }
+    }
 });
 
 /**

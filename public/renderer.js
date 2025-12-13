@@ -13,10 +13,10 @@ function getShopClickAreas(canvasWidth, canvasHeight) {
     const shopY = (canvasHeight - shopHeight) / 2;
     
     const itemList = [
-        { id: 'dash', name: 'Dash ⚡', price: 5 },
-        { id: 'checkpoint', name: 'Checkpoint 🚩', price: 3 },
+        { id: 'dash', name: 'Dash ⚡', price: 2 },
+        { id: 'checkpoint', name: 'Checkpoint 🚩', price: 2 },
         { id: 'rope', name: 'Corde 🪢', price: 1 },
-        { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
+        { id: 'speedBoost', name: 'Vitesse+ 💨', price: 1 }
     ];
     
     const BOX_SIZE = 90;

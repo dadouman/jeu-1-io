@@ -14,35 +14,54 @@ window.addEventListener('resize', () => {
 
 // --- GESTION DES CLICS SOURIS POUR LE SHOP ---
 canvas.addEventListener('click', (event) => {
+    console.log(`🖱️ Click détecté | isShopOpen=${isShopOpen}`);
     if (!isShopOpen) return;
     
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
     
+    console.log(`🖱️ Position: (${mouseX}, ${mouseY}) | Gems: ${playerGems}`);
+    
     // Obtenir les zones cliquables du shop
     const clickAreas = getShopClickAreas(canvas.width, canvas.height);
+    console.log(`📦 Zones cliquables:`, clickAreas);
+    
+    // Items par défaut si shopItems est vide
+    const defaultShopItems = {
+        dash: { id: 'dash', name: 'Dash', price: 2 },
+        checkpoint: { id: 'checkpoint', name: 'Checkpoint', price: 2 },
+        rope: { id: 'rope', name: 'Rope', price: 1 },
+        speedBoost: { id: 'speedBoost', name: 'Speed+', price: 1, stackable: true }
+    };
+    
+    // Utiliser shopItems du serveur ou les valeurs par défaut
+    const effectiveShopItems = (shopItems && Object.keys(shopItems).length > 0) ? shopItems : defaultShopItems;
     
     // Vérifier si un item a été cliqué
     for (const area of clickAreas) {
         const { x, y, width, height } = area.rect;
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            if (shopItems[area.id]) {
-                const item = shopItems[area.id];
-                
+            const item = effectiveShopItems[area.id];
+            if (item) {
                 // Vérifier si le joueur a assez de gems
                 const hasEnoughGems = playerGems >= item.price;
                 
                 // Vérifier si l'item est déjà acheté (non-stackable)
-                const isAlreadyPurchased = (item.id !== 'speedBoost' && purchasedFeatures[item.id] === true);
+                const isAlreadyPurchased = (item.id !== 'speedBoost' && !item.stackable && purchasedFeatures[item.id] === true);
+                
+                console.log(`🎯 Item cliqué: ${area.id} | Assez de gems: ${hasEnoughGems} | Déjà acheté: ${isAlreadyPurchased}`);
                 
                 // Ne pas acheter si pas assez d'argent ou si déjà acheté
                 if (hasEnoughGems && !isAlreadyPurchased) {
+                    console.log(`📤 Envoi shopPurchase: ${area.id}`);
                     socket.emit('shopPurchase', { itemId: area.id });
                     // Déclencher l'animation d'achat
                     shopAnimations.purchaseAnimations[area.id] = {
                         startTime: Date.now()
                     };
+                } else {
+                    console.log(`❌ Achat refusé: gems=${playerGems}, price=${item.price}, purchased=${purchasedFeatures[area.id]}`);
                 }
             }
             break;

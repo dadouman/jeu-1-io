@@ -218,7 +218,9 @@ socket.on('soloLeaderboard', (data) => {
 socket.on('soloBestSplits', (data) => {
     // Événement reçu du serveur avec les meilleurs splits
     window.soloBestSplits = data.splits || {};
-    console.log(`%c📊 Meilleurs splits reçus`, 'color: #00FF00; font-weight: bold');
+    // Synchroniser avec la variable globale utilisée par le renderer
+    soloBestSplits = data.splits || {};
+    console.log(`%c📊 Meilleurs splits reçus: ${JSON.stringify(data.splits)}`, 'color: #00FF00; font-weight: bold');
 });
 
 socket.on('error', (data) => {

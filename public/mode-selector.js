@@ -33,6 +33,23 @@ function selectMode(mode) {
             soloTotalTime = 0;
             soloSplitTimes = [];
             
+            // Charger les meilleurs splits personnels depuis localStorage
+            try {
+                const savedSplits = localStorage.getItem('soloPersonalBestSplits');
+                if (savedSplits) {
+                    soloPersonalBestSplits = JSON.parse(savedSplits);
+                    console.log('%c📊 Meilleurs splits personnels chargés depuis localStorage', 'color: #00FF00; font-weight: bold');
+                }
+                const savedBestTime = localStorage.getItem('soloPersonalBestTime');
+                if (savedBestTime) {
+                    soloPersonalBestTime = parseFloat(savedBestTime);
+                    console.log(`%c🏆 Meilleur temps personnel: ${soloPersonalBestTime.toFixed(2)}s`, 'color: #00FF00; font-weight: bold');
+                }
+            } catch (e) {
+                console.error('Erreur lors du chargement des splits personnels:', e);
+                soloPersonalBestSplits = {};
+            }
+            
             // Le countdown sera géré par le serveur via soloGameState.countdown
             // Le client affichera le countdown basé sur soloGameState.countdown.active
             console.log('%c🎬 Mode Solo lancé! Countdown géré par le serveur', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
@@ -41,6 +58,13 @@ function selectMode(mode) {
         // Émettre l'événement au serveur
         if (socket) {
             socket.emit('selectGameMode', { mode });
+            
+            // En mode solo, demander les meilleurs splits pour afficher les deltas
+            if (mode === 'solo') {
+                socket.emit('getSoloBestSplits');
+                socket.emit('getSoloLeaderboard');
+                console.log('%c📊 Demande des meilleurs splits et leaderboard', 'color: #00FF00; font-weight: bold');
+            }
         }
     }
 }

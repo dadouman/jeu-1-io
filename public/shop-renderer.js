@@ -40,13 +40,29 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     ctx.textAlign = "right";
     ctx.fillText(`💎 ${playerGems}`, shopX + shopWidth - 20, shopY + 50);
     
-    // Items du shop
-    const itemList = [
-        { id: 'dash', name: 'Dash', emoji: '⚡', price: 5, color: '#FF6B6B' },
-        { id: 'checkpoint', name: 'Checkpoint', emoji: '🚩', price: 3, color: '#00D4FF' },
+    // Items du shop - utiliser shopItems du serveur si disponible, sinon fallback sur les valeurs par défaut
+    const defaultItems = [
+        { id: 'dash', name: 'Dash', emoji: '⚡', price: 2, color: '#FF6B6B' },
+        { id: 'checkpoint', name: 'Checkpoint', emoji: '🚩', price: 2, color: '#00D4FF' },
         { id: 'rope', name: 'Rope', emoji: '🪢', price: 1, color: '#9B59B6' },
-        { id: 'speedBoost', name: 'Speed+', emoji: '💨', price: 2, color: '#FFD700', isStackable: true }
+        { id: 'speedBoost', name: 'Speed+', emoji: '💨', price: 1, color: '#FFD700', isStackable: true }
     ];
+    
+    // Utiliser les items du serveur si disponibles
+    let itemList = defaultItems;
+    if (typeof shopItems !== 'undefined' && shopItems && Object.keys(shopItems).length > 0) {
+        itemList = defaultItems.map(defaultItem => {
+            const serverItem = shopItems[defaultItem.id];
+            if (serverItem) {
+                return {
+                    ...defaultItem,
+                    price: serverItem.price || defaultItem.price,
+                    name: serverItem.name || defaultItem.name
+                };
+            }
+            return defaultItem;
+        });
+    }
     
     renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems);
     

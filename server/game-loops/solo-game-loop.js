@@ -86,16 +86,22 @@ class SoloGameLoop {
     handleCoinCollision(session) {
         const currentLevel = session.currentLevel;
         
-        // 1. Enregistrer le split time
+        // 1. Ajouter les gems gagnées pour ce niveau
+        const { calculateGemsForLevel, addGems } = require('../../utils/gems');
+        const gemsEarned = calculateGemsForLevel(currentLevel);
+        addGems(session.player, gemsEarned);
+        console.log(`💎 [SOLO] +${gemsEarned} gems (total: ${session.player.gems})`);
+        
+        // 2. Enregistrer le split time
         session.finishLevel();
         
-        // 2. Vérifier si le jeu est terminé
+        // 3. Vérifier si le jeu est terminé
         if (session.isGameFinished) {
             this.endGame(session);
             return;
         }
         
-        // 3. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
+        // 4. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
         let shopItems = {};
         if (session.shouldOpenShop(currentLevel)) {
             session.openShop();
@@ -105,10 +111,10 @@ class SoloGameLoop {
             shopItems = soloConfig.shopItems || [];
         }
         
-        // 4. Générer le prochain niveau
+        // 5. Générer le prochain niveau
         this.generateNextLevel(session);
         
-        // 5. Envoyer l'état mis à jour avec les items du shop si ouvert
+        // 6. Envoyer l'état mis à jour avec les items du shop si ouvert
         session.sendGameState(shopItems);
     }
     
@@ -171,6 +177,7 @@ class SoloGameLoop {
                         totalTime,
                         gems: player.gems,
                         splits: splitTimes,
+                        splitTimes: splitTimes,
                         saved: false,
                         warning: 'Modèles non disponibles'
                     });
@@ -223,6 +230,7 @@ class SoloGameLoop {
                     totalTime,
                     gems: player.gems,
                     splits: splitTimes,
+                    splitTimes: splitTimes,
                     saved: true
                 });
                 
@@ -241,6 +249,7 @@ class SoloGameLoop {
                         totalTime,
                         gems: player.gems,
                         splits: splitTimes,
+                        splitTimes: splitTimes,
                         saved: false
                     });
                 } else {

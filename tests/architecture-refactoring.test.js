@@ -31,8 +31,8 @@ describe('Architecture Refactorée - Flexible Game Configuration', () => {
             const size10 = soloMode.getMazeSize(10);
             
             expect(size1.width).toBe(15);
-            expect(size5.width).toBe(23);
-            expect(size10.width).toBe(33);
+            expect(size5.width).toBe(23);  // Pic au niveau 5
+            expect(size10.width).toBe(15);  // Décroissance: 23 -> 21 -> 19 -> 17 -> 15
         });
 
         test('Récupère les gems selon le niveau', () => {

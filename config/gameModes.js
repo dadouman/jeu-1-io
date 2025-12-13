@@ -64,7 +64,10 @@ function calculateMazeSize(level, sizeArray) {
  * @param {number} startSize - Taille de départ (niveau 1)
  * @param {number} increment - Augmentation par niveau
  * @param {number} numLevels - Nombre de niveaux à générer
+ * @param {number} [highlevel] - Niveau de pic pour décroissance (optionnel)
+ * @param {number} [decroissanceTaux] - Taux de décroissance (optionnel)
  * @returns {Array<number>} Tableau de tailles
+ *
  * 
  * @example
  * // Génère 10 niveaux: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33
@@ -73,11 +76,11 @@ function calculateMazeSize(level, sizeArray) {
  * // Génère 7 niveaux: 21, 23, 25, 27, 29, 31, 33
  * generateSizesArray(21, 2, 7)
  */
-function generateSizesArray(startSize, increment, numLevels) {
+function generateSizesArray(startSize, increment, numLevels, highlevel, decroissanceTaux) {
     const sizes = [];
     for (let i = 1; i <= numLevels; i++) {
         // Utilise calculateLinearProgression pour la cohérence
-        sizes.push(calculateLinearProgression(i, startSize, increment, null, null));
+        sizes.push(calculateLinearProgression(i, startSize, increment, highlevel, decroissanceTaux));
     }
     return sizes;
 }
@@ -256,7 +259,7 @@ const GAME_MODES_CONFIG = {
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {
             // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
-            sizes: generateSizesArray(15, 2, 10)
+            sizes: generateSizesArray(15, 2, 10,5,2)
         },
 
         shop: {

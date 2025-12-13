@@ -137,10 +137,12 @@ class SoloGameLoop {
         session.map = generateMaze(width, height);
         session.coin = getRandomEmptyPosition(session.map);
         
-        // Placer le joueur sur une position aléatoire
+        // Placer le joueur sur une position aléatoire et réinitialiser le trail
         const startPos = getRandomEmptyPosition(session.map);
         session.player.x = startPos.x;
         session.player.y = startPos.y;
+        session.player.checkpoint = null;
+        session.player.trail = [];  // Réinitialiser la rope/trail
     }
     
     /**

@@ -24,8 +24,15 @@ function selectMode(mode) {
 
         // === DÉCLENCHER LE COUNTDOWN UNIQUEMENT POUR SOLO ===
         if (mode === 'solo' && !soloStartCountdownActive) {
+            // Définir le mode AVANT de démarrer le countdown
+            currentGameMode = 'solo';
+            
             // Réinitialiser les variables solo
             soloInactiveTime = 0;
+            isSoloGameFinished = false;
+            soloTotalTime = 0;
+            soloSplitTimes = [];
+            
             // soloSessionStartTime sera défini dans le callback du countdown
             startCountdown(); // Démarrer le countdown
             console.log('%c🎬 Mode Solo lancé! PHASE 1: "3" (0-1000ms) | Jeu 0% visible, inputs BLOQUÉS', 'color: #FF6B6B; font-weight: bold; font-size: 14px');

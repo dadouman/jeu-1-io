@@ -84,8 +84,16 @@ function renderCountdownMultiPhase(ctx, canvas, elapsedMs, countdownActive) {
 function drawFilmGrain(ctx, canvas, overlayAlpha) {
     const intensity = overlayAlpha * 0.15; // Grain visibility depends on overlay opacity
     
+    // S'assurer que les dimensions sont valides
+    const w = Math.max(1, Math.floor(canvas.width) || 1);
+    const h = Math.max(1, Math.floor(canvas.height) || 1);
+    
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+        return; // Ne pas dessiner si les dimensions sont invalides
+    }
+    
     // Create noise pattern
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const imageData = ctx.createImageData(w, h);
     const data = imageData.data;
     
     for (let i = 0; i < data.length; i += 4) {

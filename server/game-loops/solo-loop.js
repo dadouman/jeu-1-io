@@ -151,12 +151,9 @@ function processSoloGameLoop(soloSessions, io, {
             }
         }
         
-        // Envoyer l'état du jeu au joueur (avec les gems) - SEULEMENT si la session existe toujours
-        if (soloSessions[playerId]) {
-            const socket = io.sockets.sockets.get(playerId);
-            if (socket && socket.connected) {
-                socket.emit('state', { players: { [playerId]: player }, coin: session.coin, playerGems: player.gems });
-            }
+        // Envoyer l'état du jeu au joueur via soloGameState - SEULEMENT si la session existe toujours
+        if (soloSessions[playerId] && session) {
+            session.sendGameState();
         }
     }
 }

@@ -63,9 +63,15 @@ function initCinemaCountdown(isHorror = false) {
  * @param {number} intensity 
  */
 function drawFilmGrain(ctx, width, height, intensity) {
-  // Arrondir les dimensions pour éviter les erreurs de createImageData
-  const w = Math.floor(width);
-  const h = Math.floor(height);
+  // Arrondir les dimensions et s'assurer qu'elles sont valides
+  const w = Math.max(1, Math.floor(width) || 1);
+  const h = Math.max(1, Math.floor(height) || 1);
+  
+  // Vérifier que les valeurs sont des nombres valides
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+    return; // Ne pas dessiner si les dimensions sont invalides
+  }
+  
   const imgData = ctx.createImageData(w, h);
   const data = imgData.data;
   

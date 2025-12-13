@@ -72,6 +72,38 @@ function updateSoloGameState(newState) {
     if (soloGameState.transition.startTime) {
         soloGameState.transition.elapsed = Date.now() - soloGameState.transition.startTime;
     }
+    
+    // === SYNCHRONISER AVEC LES VARIABLES GLOBALES POUR LE RENDERER ===
+    // Le renderer utilise les variables globales: map, currentPlayers, coin, level
+    // On doit les mettre à jour à partir de soloGameState
+    
+    // Mettre à jour la map
+    if (newState.map && newState.map.length > 0) {
+        map = newState.map;
+    }
+    
+    // Mettre à jour la position du coin (gem)
+    if (newState.coin) {
+        coin = newState.coin;
+    }
+    
+    // Mettre à jour le niveau
+    if (newState.currentLevel) {
+        level = newState.currentLevel;
+    }
+    
+    // Mettre à jour le joueur dans currentPlayers (pour le renderer)
+    // Le renderer attend currentPlayers[myPlayerId]
+    if (newState.player && myPlayerId) {
+        currentPlayers[myPlayerId] = newState.player;
+        
+        // Mettre à jour les gems et features pour l'affichage HUD
+        playerGems = newState.player.gems || 0;
+        purchasedFeatures = newState.player.purchasedFeatures || {};
+    }
+    
+    // Mettre à jour le mode de jeu
+    currentGameMode = 'solo';
 }
 
 /**

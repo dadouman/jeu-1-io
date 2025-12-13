@@ -126,6 +126,19 @@ function updateSoloGameState(newState) {
         // Mettre à jour les gems et features pour l'affichage HUD
         playerGems = newState.player.gems || 0;
         purchasedFeatures = newState.player.purchasedFeatures || {};
+        
+        // === METTRE À JOUR LES TRAILS POUR LA ROPE ===
+        // Le renderer affiche les trails basé sur la variable globale `trails`
+        if (newState.player.trail && newState.player.purchasedFeatures && newState.player.purchasedFeatures.rope) {
+            // La rope est achetée, afficher la trace
+            trails[playerId] = {
+                color: newState.player.color,
+                positions: newState.player.trail
+            };
+        } else {
+            // La rope n'est pas achetée, supprimer la trace
+            delete trails[playerId];
+        }
     }
     
     // === SYNCHRONISER LE SHOP ===

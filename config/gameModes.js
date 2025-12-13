@@ -77,7 +77,7 @@ function generateSizesArray(startSize, increment, numLevels) {
     const sizes = [];
     for (let i = 1; i <= numLevels; i++) {
         // Utilise calculateLinearProgression pour la cohérence
-        sizes.push(calculateLinearProgression(i, startSize, increment));
+        sizes.push(calculateLinearProgression(i, startSize, increment, null, null));
     }
     return sizes;
 }

@@ -34,6 +34,11 @@ class SoloSession {
         this.shopStartTime = null;
         this.shopDuration = 15000; // 15 secondes
         
+        // ===== CONFIGURATION DU SHOP =====
+        // À quelle niveau doit s'ouvrir le shop
+        // Vient de config/gameModes.js (peut être modifié)
+        this.shopLevels = [5, 10]; // Par défaut
+        
         // ===== TRANSITION =====
         this.inTransition = false;
         this.transitionStartTime = null;
@@ -168,6 +173,16 @@ class SoloSession {
         this.levelStartTime = Date.now();
         
         console.log(`✅ [SOLO] Shop fermé (durée: ${(shopDuration / 1000).toFixed(1)}s)`);
+    }
+    
+    /**
+     * Vérifier si le shop doit s'ouvrir après ce niveau
+     * Basé sur la configuration shopLevels
+     * @param {number} completedLevel - Le niveau qui vient d'être complété
+     * @returns {boolean} True si le shop doit s'ouvrir
+     */
+    shouldOpenShop(completedLevel) {
+        return this.shopLevels.includes(completedLevel);
     }
     
     /**

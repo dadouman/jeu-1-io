@@ -89,10 +89,8 @@ class SoloGameLoop {
             return;
         }
         
-        // 3. Vérifier si un shop doit ouvrir (après les niveaux 5, 10, 15, 20)
-        // currentLevel a déjà été incrémenté par finishLevel()
-        // Donc on check le niveau PRÉCÉDENT (celui qu'on vient de compléter)
-        if (this.isShopLevel(currentLevel)) {
+        // 3. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
+        if (session.shouldOpenShop(currentLevel)) {
             session.openShop();
             console.log(`🏪 [SOLO] Shop s'ouvre après le niveau ${currentLevel}`);
         }
@@ -102,14 +100,6 @@ class SoloGameLoop {
         
         // 5. Envoyer l'état mis à jour
         session.sendGameState();
-    }
-    
-    /**
-     * Déterminer si un level doit avoir un shop après
-     * Par exemple: après level 5, 10, 15, 20
-     */
-    isShopLevel(level) {
-        return level % 5 === 0 && level < 10;
     }
     
     /**

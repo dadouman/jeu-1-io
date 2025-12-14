@@ -2,8 +2,12 @@
 
 // --- CONFIGURATION SOCKET ---
 const socket = io({
-    transports: ['websocket'],
-    upgrade: false
+    transports: ['polling', 'websocket'],  // Polling d'abord pour réveiller Render, puis upgrade WebSocket
+    upgrade: true,
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    timeout: 20000
 });
 
 // --- VARIABLES DU JEU ---

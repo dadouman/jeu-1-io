@@ -82,6 +82,7 @@ function generateSizesArray(startSize, increment, numLevels, highlevel, decroiss
         // Utilise calculateLinearProgression pour la cohérence
         sizes.push(calculateLinearProgression(i, startSize, increment, highlevel, decroissanceTaux));
     }
+    console.log(`🎮 Classic mode sizes (${numLevels} levels):`, sizes);
     return sizes;
 }
 

@@ -5,6 +5,7 @@ const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
 const { resetPlayerForNewLevel, addScore } = require('../../utils/player');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const { isShopLevel } = require('../../utils/shop');
+const { getGameModeConfig } = require('../../config/gameModes');
 
 function processLobbyGameLoop(lobbies, io, { 
     calculateMazeSize, 
@@ -21,6 +22,10 @@ function processLobbyGameLoop(lobbies, io, {
         const lobby = lobbies[mode];
         let recordChanged = false;
         let levelChanged = false;
+        
+        // Récupérer les limites du mode depuis la configuration
+        const modeConfig = getGameModeConfig(mode);
+        const maxLevels = modeConfig && modeConfig.maxLevels ? modeConfig.maxLevels : Infinity;
 
         for (const id in lobby.players) {
             const p = lobby.players[id];
@@ -44,10 +49,10 @@ function processLobbyGameLoop(lobbies, io, {
                 console.log(`🔢 [POST-INCREMENT] Mode: ${mode}, currentLevel APRÈS: ${lobby.currentLevel}`);
                 levelChanged = true;
 
-                // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Mode classique, 40 niveaux)
-                if (mode === 'classic' && lobby.currentLevel > 40) {
-                    emitToLobby(mode, 'gameFinished', { finalLevel: 40, mode: 'classic' }, io, lobbies);
-                    lobby.currentLevel = 40; // Rester au niveau 40
+                // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Selon le mode)
+                if (maxLevels !== Infinity && lobby.currentLevel > maxLevels) {
+                    emitToLobby(mode, 'gameFinished', { finalLevel: maxLevels, mode: mode }, io, lobbies);
+                    lobby.currentLevel = maxLevels; // Rester au max level
                     break;
                 }
 

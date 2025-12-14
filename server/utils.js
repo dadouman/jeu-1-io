@@ -3,20 +3,32 @@
 const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
 const { isShopLevel, getShopItems } = require('../utils/shop');
 const { initializePlayer } = require('../utils/player');
+const { getGameModeConfig, calculateMazeSize: configCalculateMazeSize } = require('../config/gameModes');
 
 // --- FONCTION POUR CALCULER LA TAILLE DU LABYRINTHE SELON LE MODE ---
 function calculateMazeSize(level, mode = 'classic') {
+    try {
+        // Utiliser la configuration depuis gameModes.js
+        const config = getGameModeConfig(mode);
+        if (config && config.levelConfig && config.levelConfig.sizes) {
+            const sizeArray = config.levelConfig.sizes;
+            const size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+            return { width: size, height: size };
+        }
+    } catch (e) {
+        console.warn(`⚠️ Erreur lors du calcul de taille pour le mode ${mode}:`, e.message);
+    }
+    
+    // Fallback si quelque chose ne marche pas
     const baseSize = 15;
     const sizeIncrement = 2;
     
     if (mode === 'classic') {
-        // 40 niveaux: 20 montée, 20 descente
+        // Fallback: expansion jusqu'au niveau 20, puis contraction
         if (level <= 20) {
-            // Phase montante: 15x15 -> 55x55
             const size = baseSize + (level - 1) * sizeIncrement;
             return { width: size, height: size };
         } else {
-            // Phase descendante: 55x55 -> 15x15
             const descendLevel = level - 20;
             const size = baseSize + (20 - descendLevel) * sizeIncrement;
             return { width: size, height: size };

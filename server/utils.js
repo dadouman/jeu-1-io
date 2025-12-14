@@ -58,7 +58,6 @@ function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
         }
     }
 }
-}
 
 // --- FONCTION POUR OBTENIR LES ITEMS DU SHOP SELON LE MODE ---
 function getShopItemsForMode(mode = 'classic') {

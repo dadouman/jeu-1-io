@@ -95,16 +95,17 @@ const GAME_MODES_CONFIG = {
         name: 'Classic',
         description: 'Mode classique multijoueur',
         maxPlayers: 8,
-        maxLevels: Infinity,  // Pas de limite
+        maxLevels: 10,  // 10 niveaux
         levelConfig: {
-            // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
-            sizes: generateSizesArray(15, 2, 10)
+            // Départ taille 15, augmentation de 2 par niveau jusqu'au niveau 5, puis diminution
+            // Génère: 15, 17, 19, 21, 23, 21, 19, 17, 15, 13
+            sizes: generateSizesArray(15, 2, 10, 5, 2)
         },
         
         shop: {
             enabled: true,
-            // Niveaux où le shop apparaît (après nivel 5, 10, 15, etc)
-            levels: [5, 10, 15, 20, 25, 30],
+            // Niveaux où le shop apparaît
+            levels: [5, 10],
             duration: 15000,  // 15 secondes
         },
 

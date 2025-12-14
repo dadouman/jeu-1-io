@@ -125,7 +125,7 @@ socket.on('shopPurchaseFailed', (data) => {
 });
 
 socket.on('shopClosed', (data) => {
-    // Pour le mode classique seulement
+    // Pour les modes classique et custom (pas solo)
     if (currentGameMode !== 'solo') {
         isShopOpen = false;
         shopItems = {};

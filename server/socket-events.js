@@ -573,6 +573,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             
             const { itemId } = data;
             let player;
+            let customShopItems = null;
 
             // Récupérer le joueur selon le mode
             if (mode === 'solo') {
@@ -583,9 +584,17 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 const lobby = lobbies[mode];
                 if (!lobby || !lobby.players[socket.id]) return;
                 player = lobby.players[socket.id];
+                
+                // Pour le mode custom, convertir les shopItems en dictionnaire
+                if (mode === 'custom' && lobby.customConfig && lobby.customConfig.shopItems) {
+                    customShopItems = {};
+                    for (const item of lobby.customConfig.shopItems) {
+                        customShopItems[item.id] = item;
+                    }
+                }
             }
 
-            const result = purchaseItem(player, itemId);
+            const result = purchaseItem(player, itemId, customShopItems);
             
             if (result.success) {
                 console.log(`💎 [SHOP] ${player.skin} a acheté "${result.item.name}" pour ${result.item.price}💎 | ${result.gemsLeft}💎 restants`);

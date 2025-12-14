@@ -61,6 +61,20 @@ function createAdminPanel() {
                 <input type="number" id="decrement" min="0" max="10" value="2" placeholder="2">
             </div>
             
+            <hr style="border: none; border-top: 1px solid #444; margin: 20px 0;">
+            
+            <div class="form-group">
+                <label for="shopFrequency">🏪 Fréquence d'apparition du shop:</label>
+                <input type="number" id="shopFrequency" min="1" max="20" value="5" placeholder="5">
+                <small style="color: #888;">Le shop apparaît tous les N niveaux</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="itemPriceMultiplier">💎 Multiplicateur de prix des items:</label>
+                <input type="number" id="itemPriceMultiplier" min="0.1" max="5" step="0.1" value="1" placeholder="1">
+                <small style="color: #888;">1 = prix normal, 2 = 2x plus cher, 0.5 = 2x moins cher</small>
+            </div>
+            
             <div class="preview-section">
                 <h3>📋 Aperçu:</h3>
                 <div id="preview-output" class="preview-output">
@@ -114,6 +128,8 @@ function applyCustomMode() {
     const increment = parseInt(document.getElementById('increment').value);
     const peakLevel = document.getElementById('peakLevel').value ? parseInt(document.getElementById('peakLevel').value) : null;
     const decrement = parseInt(document.getElementById('decrement').value) || increment;
+    const shopFrequency = parseInt(document.getElementById('shopFrequency').value) || 5;
+    const itemPriceMultiplier = parseFloat(document.getElementById('itemPriceMultiplier').value) || 1;
     
     // Valider les entrées
     if (!numLevels || numLevels < 1 || numLevels > 100) {
@@ -134,6 +150,14 @@ function applyCustomMode() {
     }
     if (peakLevel && (peakLevel < 1 || peakLevel > numLevels)) {
         alert('❌ Le niveau pivot doit être entre 1 et ' + numLevels);
+        return;
+    }
+    if (shopFrequency < 1 || shopFrequency > 20) {
+        alert('❌ La fréquence du shop doit être entre 1 et 20');
+        return;
+    }
+    if (itemPriceMultiplier < 0.1 || itemPriceMultiplier > 5) {
+        alert('❌ Le multiplicateur de prix doit être entre 0.1 et 5');
         return;
     }
     
@@ -169,16 +193,35 @@ function applyCustomMode() {
             }
             
             // Créer et sauvegarder la configuration
-            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes);
+            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier);
         });
     } else {
         // Sans socket, créer et sauvegarder directement
-        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes);
+        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier);
     }
 }
 
 // Fonction utilitaire pour créer et sauvegarder la configuration
-function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes) {
+function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier) {
+    // Calculer les niveaux de shop selon la fréquence
+    const shopLevels = [];
+    for (let i = shopFrequency; i <= numLevels; i += shopFrequency) {
+        shopLevels.push(i);
+    }
+    
+    // Créer les items du shop avec les prix ajustés
+    const baseShopItems = [
+        { id: 'dash', name: 'Dash', basePrice: 5, description: 'Accélération rapide', type: 'feature' },
+        { id: 'checkpoint', name: 'Checkpoint', basePrice: 3, description: 'Sauvegarde ta position', type: 'feature' },
+        { id: 'rope', name: 'Rope', basePrice: 1, description: 'Trace une corde derrière toi', type: 'feature' },
+        { id: 'speedBoost', name: 'Vitesse +1', basePrice: 2, description: 'Augmente ta vitesse', type: 'speedBoost', stackable: true }
+    ];
+    
+    const shopItems = baseShopItems.map(item => ({
+        ...item,
+        price: Math.max(1, Math.round(item.basePrice * itemPriceMultiplier))
+    }));
+    
     const config = {
         name: 'Personnalisé',
         description: `${numLevels} niveaux (${startSize}→${sizes[Math.floor(sizes.length/2)]}${peakLevel ? '→' + sizes[sizes.length-1] : ''})`,
@@ -189,15 +232,10 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
         },
         shop: {
             enabled: true,
-            levels: Array.from({length: Math.floor(numLevels / 5)}, (_, i) => (i + 1) * 5),
+            levels: shopLevels,
             duration: 15000
         },
-        shopItems: [
-            { id: 'dash', name: 'Dash', price: 5, description: 'Accélération rapide', type: 'feature' },
-            { id: 'checkpoint', name: 'Checkpoint', price: 3, description: 'Sauvegarde ta position', type: 'feature' },
-            { id: 'rope', name: 'Rope', price: 1, description: 'Trace une corde derrière toi', type: 'feature' },
-            { id: 'speedBoost', name: 'Vitesse +1', price: 2, description: 'Augmente ta vitesse', type: 'speedBoost', stackable: true }
-        ],
+        shopItems: shopItems,
         gemsPerLevel: {
             baseValue: 10,
             linearIncrement: 5,
@@ -215,7 +253,7 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
     // Mettre à jour l'affichage du mode personnalisé
     updateCustomModeDisplay();
     
-    alert('✅ Mode personnalisé créé! Sélectionnez "Personnalisé" dans le menu de sélection des modes.');
+    alert(`✅ Mode personnalisé créé!\n🏪 Shop tous les ${shopFrequency} niveaux (${shopLevels.join(', ')})\n💎 Multiplicateur de prix: x${itemPriceMultiplier.toFixed(1)}\n\nSélectionnez "Personnalisé" dans le menu.`);
     closeAdminPanel();
 }
 

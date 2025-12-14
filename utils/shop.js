@@ -70,10 +70,13 @@ function canAfford(playerGems, itemId) {
  * Effectue l'achat d'un item
  * @param {object} player - L'objet joueur
  * @param {string} itemId - L'ID de l'item à acheter
+ * @param {object} customShopItems - (Optionnel) Dictionnaire d'items personnalisés avec les prix
  * @returns {object} - { success: boolean, message: string, gemsLeft: number }
  */
-function purchaseItem(player, itemId) {
-    const item = SHOP_ITEMS[itemId];
+function purchaseItem(player, itemId, customShopItems = null) {
+    // Utiliser les items personnalisés si fournis, sinon utiliser les défauts
+    const itemsToUse = customShopItems || SHOP_ITEMS;
+    const item = itemsToUse[itemId];
     
     if (!item) {
         return { success: false, message: 'Item non trouvé' };

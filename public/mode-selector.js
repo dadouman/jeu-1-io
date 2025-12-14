@@ -102,7 +102,11 @@ function calculateMazeSize(level, maxLevels = 40) {
     const baseSize = 15;
     const sizeIncrement = 2;
     
-    if (mode === 'classic') {
+    if (mode === 'custom' && customModeConfig && customModeConfig.levelConfig && customModeConfig.levelConfig.sizes) {
+        // Mode personnalisé: utiliser les tailles définies
+        const size = customModeConfig.levelConfig.sizes[Math.min(level - 1, customModeConfig.levelConfig.sizes.length - 1)];
+        return { width: size, height: size };
+    } else if (mode === 'classic') {
         // 40 niveaux: 20 montée, 20 descente
         if (level <= 20) {
             // Phase montante: 15x15 -> 55x55
@@ -144,7 +148,12 @@ function calculateMazeSize(level, maxLevels = 40) {
 function calculateZoomForMode(level) {
     const mode = selectedMode;
     
-    if (mode === 'classic') {
+    if (mode === 'custom' && customModeConfig) {
+        // Mode personnalisé: zoom progressif modéré
+        const maxLevels = customModeConfig.maxLevels;
+        const maxZoom = 0.7;
+        return Math.max(maxZoom, Math.min(1.0, 1.0 - (level - 1) * (0.3 / maxLevels)));
+    } else if (mode === 'classic') {
         // 40 niveaux avec zoom adapté
         if (level <= 20) {
             // Phase montante: zoom inversé progressive (0.9 -> 0.6)
@@ -185,7 +194,9 @@ function calculateZoomForMode(level) {
 function isGameFinished(level) {
     const mode = selectedMode;
     
-    if (mode === 'classic') {
+    if (mode === 'custom' && customModeConfig) {
+        return level > customModeConfig.maxLevels;
+    } else if (mode === 'classic') {
         return level > 40;
     } else if (mode === 'infinite') {
         return false; // Jamais fini en mode infini

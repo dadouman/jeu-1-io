@@ -95,11 +95,20 @@ function processLobbyGameLoop(lobbies, io, {
             
             // VÉRIFIER SI LE NIVEAU QU'ON VIENT DE COMPLÉTER est un niveau de MAGASIN
             const completedLevel = lobby.currentLevel - 1;
-            const isShopLvl = isShopLevel(completedLevel);
+            let isShopLvl = false;
+            
+            if (mode === 'custom' && lobby.customConfig && lobby.customConfig.shop && lobby.customConfig.shop.levels) {
+                // Pour le mode custom, utiliser les niveaux définis dans la configuration
+                isShopLvl = lobby.customConfig.shop.levels.includes(completedLevel);
+            } else {
+                // Pour les autres modes, utiliser la fonction standard
+                isShopLvl = isShopLevel(completedLevel);
+            }
+            
             console.log(`🏪 [CHECK SHOP] Mode: ${mode}, Niveau complété: ${completedLevel}, isShopLevel: ${isShopLvl}`);
             if (isShopLvl) {
                 console.log(`🏪 [SHOP TRIGGER] Mode: ${mode}, MAGASIN VA S'OUVRIR après le niveau ${completedLevel}`);
-                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode), level: completedLevel }, io, lobbies);
+                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode, lobby), level: completedLevel }, io, lobbies);
                 console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
             } else {
                 // Afficher la vraie taille depuis la configuration

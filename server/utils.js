@@ -60,8 +60,18 @@ function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
 }
 
 // --- FONCTION POUR OBTENIR LES ITEMS DU SHOP SELON LE MODE ---
-function getShopItemsForMode(mode = 'classic') {
+function getShopItemsForMode(mode = 'classic', lobbyConfig = null) {
     const allItems = getShopItems();
+    
+    // Si c'est un mode custom avec sa propre configuration de shop items
+    if (mode === 'custom' && lobbyConfig && lobbyConfig.customConfig && lobbyConfig.customConfig.shopItems) {
+        // Retourner les items définis dans la configuration personnalisée
+        const customItems = {};
+        for (const item of lobbyConfig.customConfig.shopItems) {
+            customItems[item.id] = item;
+        }
+        return customItems;
+    }
     
     if (mode === 'infinite') {
         // En mode infini, seulement le speedBoost est à acheter

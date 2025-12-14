@@ -116,14 +116,17 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 // Créer un pseudo-lobby pour le mode personnalisé
                 // On utilise 'custom' comme clé, et on traite le mode comme classic
                 if (!lobbies['custom']) {
+                    const firstLevelSize = data.customConfig.levelConfig.sizes[0];
                     lobbies['custom'] = {
                         currentLevel: 1,
                         currentRecord: { score: 0, skin: '❓' },
                         players: {},
-                        map: generateMaze(data.customConfig.levelConfig.sizes[0], data.customConfig.levelConfig.sizes[0]),
+                        map: generateMaze(firstLevelSize, firstLevelSize),
                         coin: null,
                         customConfig: data.customConfig
                     };
+                    // Initialiser le coin pour le premier niveau
+                    lobbies['custom'].coin = getRandomEmptyPosition(lobbies['custom'].map);
                 }
                 
                 const lobby = lobbies['custom'];
@@ -137,6 +140,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 socket.emit('levelUpdate', lobby.currentLevel);
                 socket.emit('highScoreUpdate', lobby.currentRecord);
                 socket.emit('gameModSelected', { mode: 'custom' });
+                socket.emit('coinUpdate', lobby.coin);
                 
                 emitToLobby('custom', 'playersCountUpdate', {
                     count: Object.keys(lobby.players).length
@@ -160,6 +164,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 socket.emit('levelUpdate', lobby.currentLevel);
                 socket.emit('highScoreUpdate', lobby.currentRecord);
                 socket.emit('gameModSelected', { mode: mode });
+                socket.emit('coinUpdate', lobby.coin);
                 
                 emitToLobby(mode, 'playersCountUpdate', {
                     count: Object.keys(lobby.players).length

@@ -21,7 +21,7 @@ describe('Mode Selection System', () => {
         }
     };
 
-    describe('Classic Mode (40 niveaux)', () => {
+    describe('Classic Mode (10 niveaux)', () => {
         test('Niveau 1: doit avoir taille 15x15', () => {
             const size = calculateMazeSize(1, 'classic');
             expect(size.width).toBe(15);

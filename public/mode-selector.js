@@ -10,7 +10,7 @@ function selectMode(mode) {
     if (mode === 'classic' || mode === 'infinite' || mode === 'solo') {
         selectedMode = mode;
         const modeNames = {
-            'classic': '40 Niveaux',
+            'classic': '10 Niveaux',
             'infinite': 'Mode Infini',
             'solo': 'Mode Solo (10 niveaux)'
         };

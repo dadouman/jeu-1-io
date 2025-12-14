@@ -111,7 +111,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 }
                 
                 const lobby = lobbies[mode];
-                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '40 NIVEAUX' : 'INFINI'}`);
+                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '10 NIVEAUX' : 'INFINI'}`);
                 
                 const playerIndex = Object.keys(lobby.players).length;
                 const startPos = getRandomEmptyPosition(lobby.map);

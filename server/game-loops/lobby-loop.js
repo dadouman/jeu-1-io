@@ -95,8 +95,9 @@ function processLobbyGameLoop(lobbies, io, {
                 emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode), level: completedLevel }, io, lobbies);
                 console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
             } else {
-                const mazeSize = 15 + (lobby.currentLevel * 2);
-                console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize}x${mazeSize} généré`);
+                // Afficher la vraie taille depuis la configuration
+                const mazeSize = calculateMazeSize(lobby.currentLevel, mode);
+                console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize.width}x${mazeSize.height} généré`);
             }
         }
 

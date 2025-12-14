@@ -1,0 +1,196 @@
+/* admin-panel.css - Styles du panneau d'administration */
+
+#admin-panel {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+}
+
+.admin-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(135deg, #1a1a1a, #333333);
+    border-bottom: 2px solid #FFD700;
+}
+
+.admin-panel-header h2 {
+    color: #FFD700;
+    margin: 0;
+    font-size: 24px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #FFD700;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.1);
+}
+
+.admin-panel-content {
+    background: #1a1a1a;
+    border: 2px solid #FFD700;
+    border-radius: 10px;
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    color: white;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #FFD700;
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group input {
+    padding: 10px;
+    background: #222;
+    border: 1px solid #FFD700;
+    color: white;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    background: #333;
+    border-color: #FFFF00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+.form-group small {
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.preview-section {
+    margin: 25px 0;
+    padding: 15px;
+    background: rgba(255, 215, 0, 0.05);
+    border-left: 3px solid #FFD700;
+    border-radius: 5px;
+}
+
+.preview-section h3 {
+    color: #FFD700;
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.preview-output {
+    background: rgba(0, 0, 0, 0.5);
+    padding: 15px;
+    border-radius: 5px;
+    font-size: 12px;
+    line-height: 1.6;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+    justify-content: center;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 12px 30px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00AA00, #00FF00);
+    color: black;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #AA0000, #FF0000);
+    color: white;
+}
+
+.btn-secondary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+/* Scrollbar personnalisée */
+.admin-panel-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.admin-panel-content::-webkit-scrollbar-track {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 5px;
+}
+
+.admin-panel-content::-webkit-scrollbar-thumb {
+    background: #FFD700;
+    border-radius: 5px;
+}
+
+.admin-panel-content::-webkit-scrollbar-thumb:hover {
+    background: #FFFF00;
+}
+
+.preview-output::-webkit-scrollbar {
+    width: 6px;
+}
+
+.preview-output::-webkit-scrollbar-track {
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.preview-output::-webkit-scrollbar-thumb {
+    background: #FFD700;
+    border-radius: 3px;
+}

@@ -17,15 +17,22 @@ function processLobbyGameLoop(lobbies, io, {
     TRANSITION_DURATION, 
     SHOP_DURATION 
 }) {
-    // --- TRAITEMENT DES LOBBIES CLASSIQUE ET INFINI ---
-    for (const mode of ['classic', 'infinite']) {
+    // --- TRAITEMENT DES LOBBIES CLASSIQUE, INFINI ET PERSONNALISÉ ---
+    for (const mode of ['classic', 'infinite', 'custom']) {
         const lobby = lobbies[mode];
+        if (!lobby) continue; // Ignorer si le lobby n'existe pas
+        
         let recordChanged = false;
         let levelChanged = false;
         
         // Récupérer les limites du mode depuis la configuration
-        const modeConfig = getGameModeConfig(mode);
-        const maxLevels = modeConfig && modeConfig.maxLevels ? modeConfig.maxLevels : Infinity;
+        let maxLevels;
+        if (mode === 'custom' && lobby.customConfig) {
+            maxLevels = lobby.customConfig.maxLevels;
+        } else {
+            const modeConfig = getGameModeConfig(mode);
+            maxLevels = modeConfig && modeConfig.maxLevels ? modeConfig.maxLevels : Infinity;
+        }
 
         for (const id in lobby.players) {
             const p = lobby.players[id];
@@ -57,7 +64,7 @@ function processLobbyGameLoop(lobbies, io, {
                 }
 
                 // 3. ON AGRANDIT LE LABYRINTHE SELON LE MODE
-                const mazeSize = calculateMazeSize(lobby.currentLevel, mode);
+                const mazeSize = calculateMazeSize(lobby.currentLevel, mode, lobby);
                 lobby.map = generateMaze(mazeSize.width, mazeSize.height);
                 
                 // 3. ON DÉPLACE LA PIÈCE
@@ -96,7 +103,7 @@ function processLobbyGameLoop(lobbies, io, {
                 console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
             } else {
                 // Afficher la vraie taille depuis la configuration
-                const mazeSize = calculateMazeSize(lobby.currentLevel, mode);
+                const mazeSize = calculateMazeSize(lobby.currentLevel, mode, lobby);
                 console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize.width}x${mazeSize.height} généré`);
             }
         }

@@ -6,7 +6,14 @@ const { initializePlayer } = require('../utils/player');
 const { getGameModeConfig, calculateMazeSize: configCalculateMazeSize } = require('../config/gameModes');
 
 // --- FONCTION POUR CALCULER LA TAILLE DU LABYRINTHE SELON LE MODE ---
-function calculateMazeSize(level, mode = 'classic') {
+function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
+    // Si une configuration de lobby est fournie (cas du mode custom), l'utiliser
+    if (lobbyConfig && lobbyConfig.customConfig && lobbyConfig.customConfig.levelConfig && lobbyConfig.customConfig.levelConfig.sizes) {
+        const sizeArray = lobbyConfig.customConfig.levelConfig.sizes;
+        const size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+        return { width: size, height: size };
+    }
+    
     try {
         // Utiliser la configuration depuis gameModes.js
         const config = getGameModeConfig(mode);
@@ -23,7 +30,7 @@ function calculateMazeSize(level, mode = 'classic') {
     const baseSize = 15;
     const sizeIncrement = 2;
     
-    if (mode === 'classic') {
+    if (mode === 'classic' || mode === 'custom') {
         // Fallback: expansion jusqu'au niveau 20, puis contraction
         if (level <= 20) {
             const size = baseSize + (level - 1) * sizeIncrement;
@@ -50,6 +57,7 @@ function calculateMazeSize(level, mode = 'classic') {
             return { width: size, height: size };
         }
     }
+}
 }
 
 // --- FONCTION POUR OBTENIR LES ITEMS DU SHOP SELON LE MODE ---

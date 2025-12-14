@@ -4,15 +4,22 @@ let selectedMode = null;
 
 /**
  * Sélectionne un mode de jeu
- * @param {string} mode - 'classic', 'infinite', ou 'solo'
+ * @param {string} mode - 'classic', 'infinite', 'solo', ou 'custom'
  */
 function selectMode(mode) {
-    if (mode === 'classic' || mode === 'infinite' || mode === 'solo') {
+    if (mode === 'classic' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
+        // Vérifier que le mode personnalisé existe
+        if (mode === 'custom' && !customModeConfig) {
+            alert('❌ Aucun mode personnalisé configuré. Appuyez sur @ pour configurer.');
+            return;
+        }
+        
         selectedMode = mode;
         const modeNames = {
             'classic': '10 Niveaux',
             'infinite': 'Mode Infini',
-            'solo': 'Mode Solo (10 niveaux)'
+            'solo': 'Mode Solo (10 niveaux)',
+            'custom': customModeConfig ? customModeConfig.name + ' (' + customModeConfig.maxLevels + ' niveaux)' : 'Personnalisé'
         };
         console.log(`%c🎮 Mode sélectionné: ${modeNames[mode]}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
@@ -57,7 +64,12 @@ function selectMode(mode) {
         
         // Émettre l'événement au serveur
         if (socket) {
-            socket.emit('selectGameMode', { mode });
+            if (mode === 'custom' && customModeConfig) {
+                // Envoyer la configuration du mode personnalisé
+                socket.emit('selectGameMode', { mode: 'custom', customConfig: customModeConfig });
+            } else {
+                socket.emit('selectGameMode', { mode });
+            }
             
             // En mode solo, demander les meilleurs splits pour afficher les deltas
             if (mode === 'solo') {

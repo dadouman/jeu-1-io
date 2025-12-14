@@ -69,7 +69,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // --- SÉLECTION DU MODE DE JEU ---
         socket.on('selectGameMode', (data) => {
-            let mode = data.mode; // 'classic', 'infinite', ou 'solo'
+            let mode = data.mode; // 'classic', 'infinite', 'solo', ou 'custom'
             
             playerModes[socket.id] = mode;
             
@@ -104,6 +104,45 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 
                 console.log(`   ✅ Session SOLO créée pour joueur ${socket.id}`);
                 console.log(`   🏪 Shop aux niveaux: ${session.shopLevels.join(', ')}`);
+            } else if (mode === 'custom') {
+                // Mode personnalisé: créer un lobby comme classic, mais avec la config fournie
+                if (!data.customConfig) {
+                    socket.emit('error', { message: 'Configuration personnalisée manquante' });
+                    return;
+                }
+                
+                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: PERSONNALISÉ (${data.customConfig.maxLevels} niveaux)`);
+                
+                // Créer un pseudo-lobby pour le mode personnalisé
+                // On utilise 'custom' comme clé, et on traite le mode comme classic
+                if (!lobbies['custom']) {
+                    lobbies['custom'] = {
+                        currentLevel: 1,
+                        currentRecord: { score: 0, skin: '❓' },
+                        players: {},
+                        map: generateMaze(data.customConfig.levelConfig.sizes[0], data.customConfig.levelConfig.sizes[0]),
+                        coin: null,
+                        customConfig: data.customConfig
+                    };
+                }
+                
+                const lobby = lobbies['custom'];
+                lobby.customConfig = data.customConfig;
+                
+                const playerIndex = Object.keys(lobby.players).length;
+                const startPos = getRandomEmptyPosition(lobby.map);
+                lobby.players[socket.id] = initializePlayerForMode(startPos, playerIndex, 'custom');
+                
+                socket.emit('mapData', lobby.map);
+                socket.emit('levelUpdate', lobby.currentLevel);
+                socket.emit('highScoreUpdate', lobby.currentRecord);
+                socket.emit('gameModSelected', { mode: 'custom' });
+                
+                emitToLobby('custom', 'playersCountUpdate', {
+                    count: Object.keys(lobby.players).length
+                }, io, lobbies);
+                
+                console.log(`   ${lobby.players[socket.id].skin} rejoint custom (${Object.keys(lobby.players).length} joueur(s))`);
             } else {
                 if (!lobbies[mode]) {
                     socket.emit('error', { message: 'Mode invalide' });

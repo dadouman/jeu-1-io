@@ -154,13 +154,14 @@ describe('ShopManager - Gestion centralisée du shop', () => {
             const classicManager = new ShopManager(classicMode);
             
             // Solo: shop aux niveaux [5, 10]
-            // Classic: shop aux niveaux [5, 10, 15, 20, 25, 30]
+            // Classic: shop aux niveaux [5, 10] (10 niveaux max)
             
             expect(soloManager.openShop(5)).toBe(true);
             expect(soloManager.openShop(15)).toBe(false);  // Pas de shop au niveau 15 en solo
             
             expect(classicManager.openShop(5)).toBe(true);
-            expect(classicManager.openShop(15)).toBe(true);  // Shop au niveau 15 en classic
+            expect(classicManager.openShop(10)).toBe(true);  // Shop au niveau 10 en classic
+            expect(classicManager.openShop(15)).toBe(false);  // Pas de niveau 15 en classic (max 10)
         });
     });
 

@@ -254,7 +254,7 @@ const GAME_MODES_CONFIG = {
 
     solo: {
         name: 'Solo',
-        description: 'Mode solo - speedrun personnel',
+        description: 'Dan est le plus fort',
         maxPlayers: 1,
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
         levelConfig: {

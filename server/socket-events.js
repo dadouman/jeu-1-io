@@ -49,6 +49,9 @@ function performDash(player, playerId, gameMap) {
     player.y = currentY;
 }
 
+// --- STRUCTURE POUR TRACKER LES JOUEURS PRÊTS AU SHOP ---
+const shopPlayersReady = {}; // { 'mode': Set(playerIds) }
+
 // --- FONCTION D'INITIALISATION DES ÉVÉNEMENTS ---
 function initializeSocketEvents(io, lobbies, soloSessions, playerModes, { 
     SoloRunModel,
@@ -181,6 +184,64 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             
             if (callback) {
                 callback(playersCount);
+            }
+        });
+
+        // --- JOUEUR PRÊT À CONTINUER LE SHOP ---
+        socket.on('playerReadyToContinueShop', () => {
+            const mode = playerModes[socket.id];
+            if (!mode) return;
+            
+            // Cas du SOLO : fermer le shop immédiatement (1 joueur)
+            if (mode === 'solo') {
+                const session = soloSessions[socket.id];
+                if (!session || !session.shopActive) return;
+                
+                console.log(`✅ [SOLO SHOP] ${session.player.skin} a fermé le shop`);
+                session.shopActive = false;
+                session.shopEndTime = null;
+                return;
+            }
+            
+            // Cas du CLASSIQUE/CUSTOM : vote de continuation
+            // Initialiser le Set des joueurs prêts pour ce mode si nécessaire
+            if (!shopPlayersReady[mode]) {
+                shopPlayersReady[mode] = new Set();
+            }
+            
+            // Ajouter le joueur à la liste des prêts
+            shopPlayersReady[mode].add(socket.id);
+            
+            const lobby = lobbies[mode];
+            if (!lobby) return;
+            
+            const totalPlayers = Object.keys(lobby.players).length;
+            const readyCount = shopPlayersReady[mode].size;
+            
+            console.log(`✅ [SHOP] ${lobby.players[socket.id].skin} est prêt à continuer | ${readyCount}/${totalPlayers} joueurs prêts`);
+            
+            // Émettre la mise à jour du compteur à tous les joueurs du lobby
+            emitToLobby(mode, 'shopPlayersReadyUpdate', {
+                readyCount: readyCount,
+                totalPlayers: totalPlayers
+            }, io, lobbies);
+            
+            // Si tous les joueurs sont prêts, fermer le shop
+            if (readyCount === totalPlayers) {
+                console.log(`🎉 [SHOP] Tous les joueurs sont prêts! Fermeture du shop...`);
+                
+                // Réinitialiser les joueurs prêts pour ce mode
+                shopPlayersReady[mode].clear();
+                
+                // Émettre l'événement de fermeture du shop à tous les joueurs
+                emitToLobby(mode, 'shopClosed', {}, io, lobbies);
+                
+                // Redémarrer le timer du niveau
+                if (lobby) {
+                    for (const pid in lobby.players) {
+                        // Les joueurs vont recevoir shopClosed côté client
+                    }
+                }
             }
         });
 

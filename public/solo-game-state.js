@@ -144,7 +144,22 @@ function updateSoloGameState(newState) {
     // === SYNCHRONISER LE SHOP ===
     // Mettre à jour isShopOpen et shopItems depuis soloGameState.shop
     if (newState.shop) {
+        const wasShopClosed = isShopOpen && !newState.shop.active;
         isShopOpen = newState.shop.active || false;
+        
+        // Initialiser le compteur du shop quand il s'ouvre
+        if (newState.shop.active && !wasShopClosed) {
+            isPlayerReadyToContinue = false;
+            shopTotalPlayers = 1; // Solo = 1 joueur
+            shopReadyCount = 0;
+        }
+        
+        // Réinitialiser quand le shop ferme
+        if (wasShopClosed) {
+            isPlayerReadyToContinue = false;
+            shopReadyCount = 0;
+            shopTotalPlayers = 0;
+        }
         
         // Convertir le tableau d'items en objet avec ID comme clé (si nécessaire)
         if (newState.shop.items) {

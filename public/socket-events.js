@@ -99,14 +99,20 @@ socket.on('soloGameState', (state) => {
 // ===== ÉVÉNEMENTS SHOP (LEGACY - à conserver pour classique) =====
 
 socket.on('shopOpen', (data) => {
-    // Pour le mode classique seulement
+    // Pour le mode classique et custom
     if (currentGameMode !== 'solo') {
         isShopOpen = true;
+        isPlayerReadyToContinue = false;
         shopItems = data.items;
         shopTimerStart = Date.now();
         levelStartTime = null;
+        
+        // Initialiser le nombre total de joueurs (depuis gameState.players)
+        shopTotalPlayers = Object.keys(gameState.players).length || 1;
+        shopReadyCount = 0;
+        
         const shopNumber = Math.floor(data.level / 5);
-        console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+        console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
     }
 });
 
@@ -128,10 +134,20 @@ socket.on('shopClosed', (data) => {
     // Pour les modes classique et custom (pas solo)
     if (currentGameMode !== 'solo') {
         isShopOpen = false;
+        isPlayerReadyToContinue = false;
+        shopReadyCount = 0;
+        shopTotalPlayers = 0;
         shopItems = {};
         console.log(`%c🏪 SHOP FERMÉ | Retour au niveau`, 'color: #FFD700; font-weight: bold');
         levelStartTime = Date.now();
     }
+});
+
+socket.on('shopPlayersReadyUpdate', (data) => {
+    // Mettre à jour le compteur des joueurs prêts
+    shopReadyCount = data.readyCount;
+    shopTotalPlayers = data.totalPlayers;
+    console.log(`%c🏪 Joueurs prêts: ${shopReadyCount}/${shopTotalPlayers}`, 'color: #FFD700; font-weight: bold');
 });
 
 // --- ÉVÉNEMENTS VOTE ---

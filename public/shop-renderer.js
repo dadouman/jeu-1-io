@@ -114,7 +114,13 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Continuer', canvas.width / 2, continueButtonY + continueButtonHeight / 2);
+    
+    // Si le joueur est prêt, afficher "x/y ont terminé"
+    let buttonText = 'Continuer';
+    if (isPlayerReadyToContinue) {
+        buttonText = `${shopReadyCount}/${shopTotalPlayers} ont terminé`;
+    }
+    ctx.fillText(buttonText, canvas.width / 2, continueButtonY + continueButtonHeight / 2);
 }
 
 /**

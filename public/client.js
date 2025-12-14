@@ -29,7 +29,9 @@ canvas.addEventListener('click', (event) => {
         if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.width &&
             mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.height) {
             console.log(`✅ Bouton Continuer cliqué!`);
-            socket.emit('validateShop');
+            // Marquer le joueur comme prêt et envoyer l'événement
+            isPlayerReadyToContinue = true;
+            socket.emit('playerReadyToContinueShop');
             return;
         }
     }

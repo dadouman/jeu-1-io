@@ -43,6 +43,9 @@ let playerGems = 0;
 let purchasedFeatures = {};
 let shopTimerStart = null;
 let shopAnimations = { hoveredItemId: null, purchaseAnimations: {} }; // Animations du shop
+let isPlayerReadyToContinue = false; // Joueur prêt à continuer du shop
+let shopReadyCount = 0; // Nombre de joueurs prêts à continuer
+let shopTotalPlayers = 0; // Nombre total de joueurs dans le shop
 const SHOP_DURATION = 15000; // 15 secondes
 
 // --- VARIABLES TRANSITION ---

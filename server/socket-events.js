@@ -245,6 +245,25 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
+        // --- FERMETURE AUTOMATIQUE DU SHOP PAR TIMEOUT ---
+        socket.on('shopClosedByTimeout', () => {
+            const mode = playerModes[socket.id];
+            if (!mode || mode === 'solo') return; // Ignorer solo et modes invalides
+            
+            const lobby = lobbies[mode];
+            if (!lobby) return;
+            
+            // Réinitialiser le compteur de joueurs prêts pour ce mode
+            if (shopPlayersReady[mode]) {
+                shopPlayersReady[mode].clear();
+            }
+            
+            console.log(`⏱️ [SHOP TIMEOUT] Mode ${mode}: Shop fermé après 15 secondes`);
+            
+            // Émettre l'événement de fermeture du shop à tous les joueurs
+            emitToLobby(mode, 'shopClosedAutomatically', {}, io, lobbies);
+        });
+
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;

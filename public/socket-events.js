@@ -150,6 +150,19 @@ socket.on('shopPlayersReadyUpdate', (data) => {
     console.log(`%c🏪 Joueurs prêts: ${shopReadyCount}/${shopTotalPlayers}`, 'color: #FFD700; font-weight: bold');
 });
 
+socket.on('shopClosedAutomatically', (data) => {
+    // Le shop a été fermé automatiquement par timeout
+    if (currentGameMode !== 'solo') {
+        isShopOpen = false;
+        isPlayerReadyToContinue = false;
+        shopReadyCount = 0;
+        shopTotalPlayers = 0;
+        shopItems = {};
+        console.log(`%c🏪 SHOP FERMÉ (TIMEOUT) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
+        levelStartTime = Date.now();
+    }
+});
+
 // --- ÉVÉNEMENTS VOTE ---
 socket.on('restartVoteStarted', (data) => {
     isVoteActive = true;

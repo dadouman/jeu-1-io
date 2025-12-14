@@ -46,8 +46,8 @@ socket.on('state', (gameState) => {
         checkpoint = gameState.players[finalId].checkpoint;
     }
 
-    // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES (classique/infini) ---
-    if (!currentGameMode || currentGameMode === 'classic' || currentGameMode === 'infinite') {
+    // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES (classique/infini/custom) ---
+    if (!currentGameMode || currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') {
         if (isShopOpen && shopTimerStart) {
             const elapsed = Date.now() - shopTimerStart;
             if (elapsed >= SHOP_DURATION) {
@@ -55,7 +55,15 @@ socket.on('state', (gameState) => {
                     soloInactiveTime += SHOP_DURATION;
                 }
                 isShopOpen = false;
+                isPlayerReadyToContinue = false;
                 shopTimerStart = null;
+                shopReadyCount = 0;
+                shopTotalPlayers = 0;
+                
+                // Envoyer l'événement de fermeture au serveur
+                if (socket) {
+                    socket.emit('shopClosedByTimeout');
+                }
                 
                 // Redémarrer le timer du niveau
                 levelStartTime = Date.now();

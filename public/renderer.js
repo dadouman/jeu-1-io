@@ -137,22 +137,26 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     ctx.restore(); // Fin Caméra + Fin clipping
 
-    // === AFFICHAGE DU JOUEUR OPAQUE AU CENTRE ===
-    ctx.save();
-    ctx.globalAlpha = 1.0;
-    ctx.fillStyle = "white";
-    ctx.font = "40px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    
-    if (myPlayer && myPlayer.skin) {
-        ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
-    } else {
-        // Fallback si pas de skin
-        ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
+    // === AFFICHAGE DU JOUEUR OPAQUE AU CENTRE (SOLO UNIQUEMENT) ===
+    // En mode solo, le joueur est rendu séparément au centre de l'écran (hors brouillard)
+    // En mode classic/infinite, les joueurs sont déjà rendus par renderPlayers()
+    if (currentGameMode === 'solo') {
+        ctx.save();
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = "white";
+        ctx.font = "40px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        if (myPlayer && myPlayer.skin) {
+            ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+        } else {
+            // Fallback si pas de skin
+            ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
+        }
+        
+        ctx.restore();
     }
-    
-    ctx.restore();
 
     // === AFFICHAGE HUD DES FEATURES (Au-dessus du brouillard) ===
     // Doit être APRÈS ctx.restore() pour éviter le clipping

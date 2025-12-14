@@ -128,23 +128,57 @@ function applyCustomMode() {
         alert('❌ L\'incrément doit être entre 0 et 10');
         return;
     }
+    if (decrement < 0 || decrement > 10) {
+        alert('❌ La décroissance doit être entre 0 et 10');
+        return;
+    }
     if (peakLevel && (peakLevel < 1 || peakLevel > numLevels)) {
         alert('❌ Le niveau pivot doit être entre 1 et ' + numLevels);
         return;
     }
     
-    // Générer les tailles
+    // Générer les tailles et vérifier qu'aucune n'est négative ou trop petite
     const sizes = [];
     for (let i = 1; i <= numLevels; i++) {
+        let size;
         if (!peakLevel || i <= peakLevel) {
-            sizes.push(startSize + (i - 1) * increment);
+            size = startSize + (i - 1) * increment;
         } else {
             const peakSize = startSize + (peakLevel - 1) * increment;
-            sizes.push(peakSize - (i - peakLevel) * decrement);
+            size = peakSize - (i - peakLevel) * decrement;
         }
+        
+        // Vérifier que la taille est positive et réaliste
+        if (size < 5) {
+            alert(`❌ La taille au niveau ${i} serait ${size}x${size}, ce qui est trop petit (minimum 5x5)`);
+            return;
+        }
+        if (size > 200) {
+            alert(`❌ La taille au niveau ${i} serait ${size}x${size}, ce qui est trop grand (maximum 200x200)`);
+            return;
+        }
+        sizes.push(size);
     }
     
-    // Créer la configuration
+    // Vérifier s'il y a des joueurs connectés au mode custom
+    if (socket) {
+        socket.emit('checkCustomModeConnections', {}, (playersCount) => {
+            if (playersCount > 0) {
+                alert(`⛔ Impossible de modifier le mode personnalisé!\n\n${playersCount} joueur(s) connecté(s) au mode custom.\n\nAttendez que tous les joueurs quittent le mode custom.`);
+                return;
+            }
+            
+            // Créer et sauvegarder la configuration
+            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes);
+        });
+    } else {
+        // Sans socket, créer et sauvegarder directement
+        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes);
+    }
+}
+
+// Fonction utilitaire pour créer et sauvegarder la configuration
+function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes) {
     const config = {
         name: 'Personnalisé',
         description: `${numLevels} niveaux (${startSize}→${sizes[Math.floor(sizes.length/2)]}${peakLevel ? '→' + sizes[sizes.length-1] : ''})`,
@@ -177,12 +211,12 @@ function applyCustomMode() {
     };
     
     saveCustomModeConfig(config);
-    closeAdminPanel();
     
     // Mettre à jour l'affichage du mode personnalisé
     updateCustomModeDisplay();
     
     alert('✅ Mode personnalisé créé! Sélectionnez "Personnalisé" dans le menu de sélection des modes.');
+    closeAdminPanel();
 }
 
 // Mettre à jour l'affichage du mode personnalisé dans le menu

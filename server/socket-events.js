@@ -174,6 +174,16 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
+        // --- VÉRIFIER LE NOMBRE DE JOUEURS CONNECTÉS AU MODE CUSTOM ---
+        socket.on('checkCustomModeConnections', (data, callback) => {
+            const lobby = lobbies['custom'];
+            const playersCount = lobby ? Object.keys(lobby.players).length : 0;
+            
+            if (callback) {
+                callback(playersCount);
+            }
+        });
+
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
         socket.on('saveSoloResults', async (data) => {
             const playerId = socket.id;

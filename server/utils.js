@@ -10,7 +10,14 @@ function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
     // Si une configuration de lobby est fournie (cas du mode custom), l'utiliser
     if (lobbyConfig && lobbyConfig.customConfig && lobbyConfig.customConfig.levelConfig && lobbyConfig.customConfig.levelConfig.sizes) {
         const sizeArray = lobbyConfig.customConfig.levelConfig.sizes;
-        const size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+        let size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+        
+        // Sécurité: vérifier que la taille est valide
+        if (size < 5 || size > 200 || size < 0) {
+            console.warn(`⚠️ Taille invalide détectée pour le mode custom au niveau ${level}: ${size}x${size}. Utilisation de fallback.`);
+            size = Math.max(5, Math.min(200, size || 15));
+        }
+        
         return { width: size, height: size };
     }
     
@@ -19,7 +26,14 @@ function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
         const config = getGameModeConfig(mode);
         if (config && config.levelConfig && config.levelConfig.sizes) {
             const sizeArray = config.levelConfig.sizes;
-            const size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+            let size = sizeArray[Math.min(level - 1, sizeArray.length - 1)];
+            
+            // Sécurité: vérifier que la taille est valide
+            if (size < 5 || size > 200 || size < 0) {
+                console.warn(`⚠️ Taille invalide détectée pour le mode ${mode} au niveau ${level}: ${size}x${size}. Utilisation de fallback.`);
+                size = Math.max(5, Math.min(200, size || 15));
+            }
+            
             return { width: size, height: size };
         }
     } catch (e) {
@@ -29,34 +43,34 @@ function calculateMazeSize(level, mode = 'classic', lobbyConfig = null) {
     // Fallback si quelque chose ne marche pas
     const baseSize = 15;
     const sizeIncrement = 2;
+    let size;
     
     if (mode === 'classic' || mode === 'custom') {
         // Fallback: expansion jusqu'au niveau 20, puis contraction
         if (level <= 20) {
-            const size = baseSize + (level - 1) * sizeIncrement;
-            return { width: size, height: size };
+            size = baseSize + (level - 1) * sizeIncrement;
         } else {
             const descendLevel = level - 20;
-            const size = baseSize + (20 - descendLevel) * sizeIncrement;
-            return { width: size, height: size };
+            size = baseSize + (20 - descendLevel) * sizeIncrement;
         }
     } else if (mode === 'infinite') {
         // Mode infini: continue à grandir
-        const size = baseSize + (level - 1) * sizeIncrement;
-        return { width: size, height: size };
+        size = baseSize + (level - 1) * sizeIncrement;
     } else if (mode === 'solo') {
         // Mode solo: 10 niveaux (5 expansion, 5 contraction)
         if (level <= 5) {
             // Niveaux 1-5: Expansion (15x15 -> 25x25)
-            const size = baseSize + (level - 1) * sizeIncrement;
-            return { width: size, height: size };
+            size = baseSize + (level - 1) * sizeIncrement;
         } else {
             // Niveaux 6-10: Contraction (25x25 -> 15x15)
             const contractLevel = level - 5;
-            const size = baseSize + (5 - contractLevel) * sizeIncrement;
-            return { width: size, height: size };
+            size = baseSize + (5 - contractLevel) * sizeIncrement;
         }
     }
+    
+    // Sécurité finale: clamper la taille entre 5 et 200
+    size = Math.max(5, Math.min(200, size));
+    return { width: size, height: size };
 }
 
 // --- FONCTION POUR OBTENIR LES ITEMS DU SHOP SELON LE MODE ---

@@ -234,8 +234,8 @@ socket.on('gameFinished', (data) => {
     if (currentGameMode === 'solo') {
         // Solo - l'état est géré via soloGameState
         console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
-    } else if (currentGameMode === 'classic' || currentGameMode === 'infinite') {
-        // Classique/Infini - Afficher l'écran de fin
+    } else if (currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') {
+        // Classique/Infini/Custom - Afficher l'écran de fin
         console.log(`%c🏁 ${currentGameMode.toUpperCase()} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
         
         // Activer l'écran de fin
@@ -255,6 +255,7 @@ socket.on('gameFinished', (data) => {
             players: players,
             record: currentHighScore ? { skin: currentHighScore.skin, score: currentHighScore.score } : null
         };
+    }
 });
 
 socket.on('soloBestSplits', (data) => {

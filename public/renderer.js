@@ -163,8 +163,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     renderFeaturesHUD(ctx, canvas, purchasedFeatures);
     
     // === AFFICHAGE DU MEILLEUR JOUEUR (Badge en haut à droite) ===
-    // Affiché en mode classique/infini, sauf pendant la fin du jeu (géré par renderClassicEndScreen)
-    if ((currentGameMode === 'classic' || currentGameMode === 'infinite') && 
+    // Affiché en mode classique/infini/custom, sauf pendant la fin du jeu (géré par renderClassicEndScreen)
+    if ((currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') && 
         !isClassicGameFinished && 
         Object.keys(players).length > 0 &&
         typeof renderBestPlayerBadge === 'function') {

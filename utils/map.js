@@ -337,10 +337,87 @@ function getRandomEmptyPosition(map) {
     };
 }
 
+/**
+ * Trouve une position vide suffisamment éloignée de tous les joueurs
+ * @param {Array<Array<number>>} map - La grille du labyrinthe
+ * @param {Array<{x: number, y: number}>} players - Liste des positions des joueurs (en pixels)
+ * @param {number} minDistance - Distance minimale en pixels (défaut: 200)
+ * @returns {{x: number, y: number}} Position en pixels
+ */
+function getRandomEmptyPositionFarFromPlayers(map, players = [], minDistance = 200) {
+    // Si pas de joueurs, utiliser la fonction standard
+    if (!players || players.length === 0) {
+        return getRandomEmptyPosition(map);
+    }
+
+    const maxAttempts = 200;
+    let bestPosition = null;
+    let bestMinDistance = 0;
+
+    // Collecter toutes les cases vides
+    const emptyCells = [];
+    for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[0].length; x++) {
+            if (map[y] && map[y][x] === 0) {
+                emptyCells.push({ x, y });
+            }
+        }
+    }
+
+    if (emptyCells.length === 0) {
+        return { x: TILE_SIZE + TILE_SIZE / 2, y: TILE_SIZE + TILE_SIZE / 2 };
+    }
+
+    // Mélanger les cases pour randomiser
+    for (let i = emptyCells.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [emptyCells[i], emptyCells[j]] = [emptyCells[j], emptyCells[i]];
+    }
+
+    const centerOffset = TILE_SIZE / 2;
+
+    // Essayer de trouver une position qui respecte la distance minimale
+    for (let attempt = 0; attempt < Math.min(maxAttempts, emptyCells.length); attempt++) {
+        const cell = emptyCells[attempt];
+        const pixelX = cell.x * TILE_SIZE + centerOffset;
+        const pixelY = cell.y * TILE_SIZE + centerOffset;
+
+        // Calculer la distance minimale avec tous les joueurs
+        let minDistToPlayers = Infinity;
+        for (const player of players) {
+            const dist = Math.hypot(pixelX - player.x, pixelY - player.y);
+            if (dist < minDistToPlayers) {
+                minDistToPlayers = dist;
+            }
+        }
+
+        // Si cette position respecte la distance minimale, la retourner
+        if (minDistToPlayers >= minDistance) {
+            return { x: pixelX, y: pixelY };
+        }
+
+        // Sinon, garder la meilleure position trouvée jusqu'ici
+        if (minDistToPlayers > bestMinDistance) {
+            bestMinDistance = minDistToPlayers;
+            bestPosition = { x: pixelX, y: pixelY };
+        }
+    }
+
+    // Si aucune position idéale trouvée, retourner la meilleure qu'on a
+    if (bestPosition) {
+        console.log(`⚠️ Gem placée à ${bestMinDistance.toFixed(0)}px du joueur le plus proche (min demandé: ${minDistance}px)`);
+        return bestPosition;
+    }
+
+    // Fallback: position aléatoire standard
+    return getRandomEmptyPosition(map);
+}
+
 module.exports = { 
     generateMaze,           // Algorithme original (Recursive Backtracker)
     generateMazePrim,       // Algorithme de Prim avec densité
     generateMazeAdvanced,   // Fonction unifiée pour choisir l'algorithme
-    getRandomEmptyPosition, 
+    getRandomEmptyPosition,
+    getRandomEmptyPositionFarFromPlayers,  // Position éloignée des joueurs
     TILE_SIZE 
 };

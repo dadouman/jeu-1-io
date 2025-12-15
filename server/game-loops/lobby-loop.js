@@ -1,7 +1,7 @@
 // server/game-loops/lobby-loop.js
 // Boucle de jeu pour modes classique et infini
 
-const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition, getRandomEmptyPositionFarFromPlayers } = require('../../utils/map');
 const { resetPlayerForNewLevel, addScore } = require('../../utils/player');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const { isShopLevel } = require('../../utils/shop');
@@ -121,14 +121,16 @@ function processLobbyGameLoop(lobbies, io, {
                     lobby.map = generateMaze(mazeSize.width, mazeSize.height);
                 }
                 
-                // 3. ON DÉPLACE LA PIÈCE
-                lobby.coin = getRandomEmptyPosition(lobby.map);
-
-                // 4. ON TÉLÉPORTE TOUS LES JOUEURS (Sécurité anti-mur)
+                // 3. ON TÉLÉPORTE TOUS LES JOUEURS D'ABORD (Sécurité anti-mur)
                 for (let pid in lobby.players) {
                     const safePos = getRandomEmptyPosition(lobby.map);
                     resetPlayerForNewLevel(lobby.players[pid], safePos);
                 }
+
+                // 4. ON PLACE LA GEMME LOIN DE TOUS LES JOUEURS
+                const playerPositions = Object.values(lobby.players).map(p => ({ x: p.x, y: p.y }));
+                const minGemDistance = mazeSize.width * 40 * 0.4; // 40% de la largeur de la map en pixels
+                lobby.coin = getRandomEmptyPositionFarFromPlayers(lobby.map, playerPositions, minGemDistance);
 
                 // Gestion Record
                 if (p.score > lobby.currentRecord.score) {

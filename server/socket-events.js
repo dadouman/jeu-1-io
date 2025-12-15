@@ -1,6 +1,6 @@
 // server/socket-events.js - Gestion des événements Socket.io
 
-const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition, getRandomEmptyPositionFarFromPlayers } = require('../utils/map');
 const { checkWallCollision } = require('../utils/collisions');
 const { initializePlayerForMode } = require('../utils/player');
 const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
@@ -95,9 +95,13 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 session.player.purchasedFeatures[unlockedFeature] = true;
                 console.log(`   ⚡ Feature débloquée gratuitement: ${unlockedFeature}`);
                 
-                // Générer la première map
-                session.map = generateMaze(15, 15);
-                session.coin = getRandomEmptyPosition(session.map);
+                // Générer la première map (taille du niveau 1 selon la config)
+                const firstLevelSize = soloConfig.levelConfig?.sizes?.[0] || 15;
+                session.map = generateMaze(firstLevelSize, firstLevelSize);
+                
+                // Placer la gemme loin du joueur (40% de la largeur de la map)
+                const minGemDistance = firstLevelSize * 40 * 0.4;
+                session.coin = getRandomEmptyPositionFarFromPlayers(session.map, [{ x: session.player.x, y: session.player.y }], minGemDistance);
                 
                 // Stocker la session
                 soloSessions[socket.id] = session;

@@ -1,7 +1,7 @@
 // server/game-loops/solo-loop.js
 // Boucle de jeu pour mode solo (20 niveaux)
 
-const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
+const { generateMaze, getRandomEmptyPosition, getRandomEmptyPositionFarFromPlayers } = require('../../utils/map');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const GameMode = require('../../utils/GameMode');
 const { ShopManager } = require('../../utils/ShopManager');
@@ -117,14 +117,17 @@ function processSoloGameLoop(soloSessions, io, {
                 // Générer le prochain niveau
                 const mazeSize = calculateMazeSize(session.currentLevel, 'solo');
                 session.map = generateMaze(mazeSize.width, mazeSize.height);
-                session.coin = getRandomEmptyPosition(session.map);
                 
-                // Téléporter le joueur à une position safe
+                // Téléporter le joueur à une position safe D'ABORD
                 const safePos = getRandomEmptyPosition(session.map);
                 player.x = safePos.x;
                 player.y = safePos.y;
                 player.checkpoint = null;  // Réinitialiser checkpoint
                 player.trail = [];          // Réinitialiser rope
+                
+                // ENSUITE placer la gemme loin du joueur
+                const minGemDistance = mazeSize.width * 40 * 0.4; // 40% de la largeur de la map
+                session.coin = getRandomEmptyPositionFarFromPlayers(session.map, [{ x: player.x, y: player.y }], minGemDistance);
                 
                 // Envoyer les nouvelles données (mapData ET levelUpdate)
                 const socket = io.sockets.sockets.get(playerId);
@@ -135,8 +138,7 @@ function processSoloGameLoop(soloSessions, io, {
                     // Vérifier si un shop s'ouvre après ce niveau complété
                     const completedLevel = session.currentLevel - 1;
                     if (shopManager.openShop(completedLevel)) {
-                        // ✅ ShopManager gère tout - pas besoin de gérer currentShopLevel
-                        session.coin = getRandomEmptyPosition(session.map);
+                        // ✅ ShopManager gère tout - la gemme est déjà placée loin du joueur
                         // Mémoriser le temps de fin du shop pour réinitialiser levelStartTime après
                         session.shopEndTime = Date.now() + SHOP_DURATION;
                         // ⚠️ NE PAS RÉINITIALISER levelStartTime ici - il sera réinitialisé quand le shop ferme

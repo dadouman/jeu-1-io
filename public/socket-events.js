@@ -55,6 +55,7 @@ socket.on('levelUpdate', (newLevel) => {
     if (newLevel !== lastLevel && lastLevel !== 0) {
         // Niveau a changé ! Déclencher la transition
         isInTransition = true;
+        inputsBlocked = true; // BLOQUER LES INPUTS PENDANT LA TRANSITION
         transitionStartTime = Date.now();
         // Calculer le temps SEULEMENT si le timer était actif (pas null pendant le shop)
         levelUpTime = levelStartTime ? (Date.now() - levelStartTime) / 1000 : 0;
@@ -71,6 +72,7 @@ socket.on('levelUpdate', (newLevel) => {
     } else if (newLevel === 1 && lastLevel === 0) {
         // Premier niveau : déclencher une transition spéciale
         isInTransition = true;
+        inputsBlocked = true; // BLOQUER LES INPUTS PENDANT LA TRANSITION
         isFirstLevel = true;
         transitionStartTime = Date.now();
         playerCountStart = Object.keys(currentPlayers).length;

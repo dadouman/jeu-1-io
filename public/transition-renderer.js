@@ -2,6 +2,44 @@
 // Rendu des écrans de transition et vote
 
 /**
+ * Récupère le nombre max de niveaux selon le mode actuel
+ * @returns {number} - Le nombre max de niveaux
+ */
+function getMaxLevelsForCurrentMode() {
+    // Essayer d'utiliser selectedMode d'abord (défini dans mode-selector.js)
+    if (typeof selectedMode !== 'undefined' && selectedMode) {
+        const mode = selectedMode;
+        if (mode === 'custom' && typeof customModeConfig !== 'undefined' && customModeConfig) {
+            return customModeConfig.maxLevels || 10;
+        } else if (mode === 'classic') {
+            return 10;  // Classic: 10 niveaux
+        } else if (mode === 'infinite') {
+            return 100; // Afficher jusqu'à 100 pour l'infini
+        } else if (mode === 'solo') {
+            return 10;  // Solo: 10 niveaux
+        }
+    }
+    
+    // Sinon, essayer d'utiliser currentGameMode (défini dans game-state.js)
+    if (typeof currentGameMode !== 'undefined' && currentGameMode) {
+        if (currentGameMode === 'custom') {
+            if (typeof customModeConfig !== 'undefined' && customModeConfig) {
+                return customModeConfig.maxLevels || 10;
+            }
+        } else if (currentGameMode === 'classic') {
+            return 10;
+        } else if (currentGameMode === 'infinite') {
+            return 100;
+        } else if (currentGameMode === 'solo') {
+            return 10;
+        }
+    }
+    
+    // Valeur par défaut
+    return 10;
+}
+
+/**
  * Affiche l'écran de transition entre les niveaux
  */
 function renderTransition(ctx, canvas, level, isFirstLevel, playerCountStart, levelUpPlayerSkin, levelUpTime, players, myId, transitionProgress) {
@@ -15,8 +53,9 @@ function renderTransition(ctx, canvas, level, isFirstLevel, playerCountStart, le
         renderNormalTransition(ctx, canvas, levelUpPlayerSkin, levelUpTime, players, myId);
     }
     
-    // Barre de chargement
-    renderProgressBar(ctx, canvas, level, transitionProgress);
+    // Barre de chargement et chronologie
+    const maxLevels = getMaxLevelsForCurrentMode();
+    renderProgressBar(ctx, canvas, level, transitionProgress, maxLevels);
 }
 
 /**
@@ -108,13 +147,124 @@ function renderPodium(ctx, canvas, players, myId) {
 }
 
 /**
- * Affiche la barre de progression de transition
+ * Affiche la barre de progression de transition avec chronologie
  */
-function renderProgressBar(ctx, canvas, level, transitionProgress) {
+function renderProgressBar(ctx, canvas, level, transitionProgress, maxLevels = 10) {
+    const completedLevel = Math.max(0, level - 1); // Le niveau qu'on vient de finir (min 0)
+    const progressBarX = canvas.width / 2 - 250;
+    const progressBarY = canvas.height - 120;
+    const progressBarWidth = 500;
+    const progressBarHeight = 40;
+    
+    // === AFFICHER LE NIVEAU COMPLÉTÉ ===
+    ctx.fillStyle = "white";
+    ctx.font = "bold 20px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    if (completedLevel === 0) {
+        // Premier niveau
+        ctx.fillText(`Niveau 1 en cours...`, canvas.width / 2, progressBarY - 20);
+    } else {
+        ctx.fillText(`Niveau ${completedLevel} complété !`, canvas.width / 2, progressBarY - 20);
+    }
+    
+    // === CHRONOLOGIE AVEC POINTS (TIMELINE) ===
+    const timelineY = progressBarY + 70;
+    const timelineX = progressBarX + 20;
+    const timelineWidth = progressBarWidth - 40;
+    const dotRadius = 6;
+    
+    // Éviter division par zéro
+    const numDots = Math.max(2, maxLevels);
+    const dotSpacing = numDots > 1 ? timelineWidth / (numDots - 1) : 0;
+    
+    // Récupérer les niveaux de shop
+    const shopLevels = [];
+    try {
+        if (typeof currentGameMode !== 'undefined' && currentGameMode === 'solo') {
+            shopLevels.push(5, 10);
+        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'classic') {
+            shopLevels.push(5, 10);
+        } else if (typeof customModeConfig !== 'undefined' && customModeConfig && customModeConfig.shop && customModeConfig.shop.levels) {
+            shopLevels.push(...customModeConfig.shop.levels);
+        }
+    } catch (e) {
+        // Ignorer les erreurs si les variables ne sont pas définies
+    }
+    
+    // Ligne horizontale de la chronologie
+    ctx.strokeStyle = "#555";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(timelineX, timelineY);
+    ctx.lineTo(timelineX + timelineWidth, timelineY);
+    ctx.stroke();
+    
+    // Dessiner les points pour chaque niveau
+    for (let i = 1; i <= numDots; i++) {
+        const dotX = timelineX + (i - 1) * dotSpacing;
+        const isCompleted = i <= completedLevel;
+        const isShopLevel = shopLevels.includes(i);
+        
+        // Couleur du point
+        if (isCompleted) {
+            if (isShopLevel) {
+                ctx.fillStyle = "#FFD700"; // Or pour les shops complétés
+            } else {
+                ctx.fillStyle = "#00FF00"; // Vert pour les niveaux normaux complétés
+            }
+        } else {
+            if (isShopLevel) {
+                ctx.fillStyle = "#FF8800"; // Orange pour les shops futurs
+            } else {
+                ctx.fillStyle = "#444444"; // Gris pour les niveaux futurs
+            }
+        }
+        
+        // Cercle du point
+        ctx.beginPath();
+        ctx.arc(dotX, timelineY, dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bordure
+        ctx.strokeStyle = isCompleted ? "#FFD700" : "#888";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Afficher le numéro du niveau (tous les niveaux si <= 10, sinon tous les 3)
+        const showLabel = numDots <= 10 || i % 3 === 1;
+        if (showLabel) {
+            ctx.fillStyle = "white";
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            ctx.fillText(i, dotX, timelineY + 20);
+        }
+        
+        // Symbole pour les shops
+        if (isShopLevel) {
+            ctx.fillStyle = "#FFD700";
+            ctx.font = "14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillText("🛍️", dotX, timelineY - 15);
+        }
+    }
+    
+    // === LIGNE D'ARRIVÉE ===
+    const finishLineX = timelineX + timelineWidth + 20;
+    ctx.fillStyle = "#FF6B6B";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🏁", finishLineX, timelineY);
+    
+    // === BARRE DE PROGRESSION ANIMÉE (Transition visuelle) ===
+    const barX = (canvas.width - 300) / 2;
+    const barY = progressBarY - 60;
     const barWidth = 300;
     const barHeight = 30;
-    const barX = (canvas.width - barWidth) / 2;
-    const barY = canvas.height - 100;
     
     // Fond
     ctx.fillStyle = "#444";
@@ -129,11 +279,12 @@ function renderProgressBar(ctx, canvas, level, transitionProgress) {
     ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
     
-    // Texte
+    // Texte de progression
     ctx.fillStyle = "white";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText(`Niveau ${level}`, canvas.width / 2, barY + barHeight + 25);
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${Math.round(transitionProgress * 100)}%`, canvas.width / 2, barY + barHeight / 2);
 }
 
 /**

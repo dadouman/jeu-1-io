@@ -84,12 +84,13 @@ socket.on('state', (gameState) => {
                 soloInactiveTime += TRANSITION_DURATION;
             }
             isInTransition = false;
+            inputsBlocked = false; // DÉBLOQUER LES INPUTS À LA FIN DE LA TRANSITION
             isFirstLevel = false;
             transitionStartTime = null;
             voteResult = null;
             
             // Redémarrer le timer du niveau (classique/infini seulement)
-            if (currentGameMode === 'classic' || currentGameMode === 'infinite') {
+            if (currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') {
                 levelStartTime = Date.now();
             }
         }

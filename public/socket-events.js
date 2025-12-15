@@ -234,16 +234,27 @@ socket.on('gameFinished', (data) => {
     if (currentGameMode === 'solo') {
         // Solo - l'état est géré via soloGameState
         console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
-    } else {
-        // Classique/Infini
-        console.log(`%c🏁 Jeu terminé! Vous avez atteint le niveau ${data.finalLevel} en mode ${data.mode}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
-    }
-});
-
-socket.on('soloLeaderboard', (data) => {
-    // Événement reçu du serveur avec le leaderboard
-    window.soloLeaderboard = data.scores || [];
-    console.log(`%c🏆 Leaderboard Solo reçu (${window.soloLeaderboard.length} entrées)`, 'color: #FFD700; font-weight: bold');
+    } else if (currentGameMode === 'classic' || currentGameMode === 'infinite') {
+        // Classique/Infini - Afficher l'écran de fin
+        console.log(`%c🏁 ${currentGameMode.toUpperCase()} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
+        
+        // Activer l'écran de fin
+        isClassicGameFinished = true;
+        classicEndScreenStartTime = Date.now();
+        
+        // Préparer les données finales avec les joueurs triés par score
+        const players = Object.values(gameState.players || {}).map(p => ({
+            skin: p.skin,
+            score: p.score,
+            id: p.id
+        }));
+        
+        finalClassicData = {
+            finalLevel: data.finalLevel,
+            mode: data.mode,
+            players: players,
+            record: currentHighScore ? { skin: currentHighScore.skin, score: currentHighScore.score } : null
+        };
 });
 
 socket.on('soloBestSplits', (data) => {

@@ -91,6 +91,11 @@ let classicPersonalBestScore = null; // Meilleur score personnel (localStorage)
 let classicLeaderboardBest = null; // Meilleur score du leaderboard (record mondial)
 let classicShowPersonalDelta = true; // Toggle: true = personnel, false = world record
 
+// --- FIN DU JEU CLASSIQUE/INFINI ---
+let isClassicGameFinished = false; // Le jeu classique/infini est terminé
+let finalClassicData = null; // Données finales: { finalLevel, mode, players, record }
+let classicEndScreenStartTime = null; // Timestamp du début de l'écran de fin
+
 // === FONCTION POUR DÉMARRER LE COUNTDOWN ===
 function startCountdown() {
     if (!soloStartCountdownActive && !cinematicCountdownActive) {

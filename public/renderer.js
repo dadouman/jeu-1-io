@@ -162,6 +162,25 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // Doit être APRÈS ctx.restore() pour éviter le clipping
     renderFeaturesHUD(ctx, canvas, purchasedFeatures);
     
+    // === AFFICHAGE DU MEILLEUR JOUEUR (Badge en haut à droite) ===
+    // Affiché en mode classique/infini, sauf pendant la fin du jeu (géré par renderClassicEndScreen)
+    if ((currentGameMode === 'classic' || currentGameMode === 'infinite') && 
+        !isClassicGameFinished && 
+        Object.keys(players).length > 0 &&
+        typeof renderBestPlayerBadge === 'function') {
+        const sortedPlayers = Object.values(players)
+            .filter(p => p && p.skin)
+            .sort((a, b) => (b.score || 0) - (a.score || 0));
+        
+        if (sortedPlayers.length > 0) {
+            const bestPlayer = {
+                skin: sortedPlayers[0].skin,
+                score: sortedPlayers[0].score || 0
+            };
+            renderBestPlayerBadge(ctx, canvas, bestPlayer);
+        }
+    }
+    
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen && typeof renderShop === 'function') {
         renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
@@ -180,6 +199,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         if (typeof renderSoloGemDelta === 'function' && soloLastGemTime && soloLastGemLevel) {
             renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
         }
+    }
+
+    // --- ÉCRAN DE FIN CLASSIQUE/INFINI ---
+    if (isClassicGameFinished && finalClassicData && typeof renderClassicEndScreen === 'function') {
+        renderClassicEndScreen(ctx, canvas, finalClassicData.players, finalClassicData.record, finalClassicData.finalLevel, finalClassicData.mode);
+        return; // Ne pas afficher le reste du jeu
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---

@@ -29,6 +29,14 @@ function selectMode(mode) {
             modeSelector.style.display = 'none';
         }
 
+        // === RÉINITIALISER LES ÉTATS DE FIN DE JEU POUR TOUS LES MODES ===
+        isClassicGameFinished = false;
+        finalClassicData = null;
+        classicEndScreenStartTime = null;
+        isSoloGameFinished = false;
+        soloTotalTime = 0;
+        soloSplitTimes = [];
+
         // === INITIALISATION SOLO (sans countdown client) ===
         if (mode === 'solo') {
             // Définir le mode AVANT le countdown

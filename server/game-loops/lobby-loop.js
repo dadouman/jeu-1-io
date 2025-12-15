@@ -16,7 +16,7 @@ function processLobbyGameLoop(lobbies, io, {
     HighScoreModel, 
     TRANSITION_DURATION, 
     SHOP_DURATION 
-}) {
+}, playerModes) {
     // --- TRAITEMENT DES LOBBIES CLASSIQUE, INFINI ET PERSONNALISÉ ---
     for (const mode of ['classic', 'infinite', 'custom']) {
         const lobby = lobbies[mode];
@@ -58,8 +58,39 @@ function processLobbyGameLoop(lobbies, io, {
 
                 // 2. VÉRIFIER SI LE JEU EST TERMINÉ (Selon le mode)
                 if (maxLevels !== Infinity && lobby.currentLevel > maxLevels) {
+                    // 🎯 LE JEU EST TERMINÉ!
+                    console.log(`\n🏁 ════════════════════════════════════\n   JEU TERMINÉ [${mode}] - Niveau ${maxLevels} complété\n════════════════════════════════════\n`);
+                    
+                    // 1. Envoyer l'événement de fin aux joueurs
                     emitToLobby(mode, 'gameFinished', { finalLevel: maxLevels, mode: mode }, io, lobbies);
-                    lobby.currentLevel = maxLevels; // Rester au max level
+                    
+                    // 2. Exclure TOUS les joueurs du lobby
+                    const playerIds = Object.keys(lobby.players);
+                    for (const playerId of playerIds) {
+                        delete lobby.players[playerId];
+                        
+                        // Nettoyer le tracking playerModes
+                        if (playerModes) {
+                            delete playerModes[playerId];
+                        }
+                        
+                        // Envoyer un événement pour renvoyer au sélecteur de mode
+                        const socket = io.sockets.sockets.get(playerId);
+                        if (socket && socket.connected) {
+                            socket.emit('modeSelectionRequired', { 
+                                message: 'Jeu terminé! Veuillez sélectionner un nouveau mode.',
+                                reason: 'gameEnded'
+                            });
+                        }
+                    }
+                    
+                    // 3. Réinitialiser le lobby pour la prochaine partie
+                    lobby.currentLevel = 1;
+                    lobby.currentRecord = { score: 0, skin: 'unknown' };
+                    lobby.map = generateMaze(calculateMazeSize(1, mode, lobby).width, calculateMazeSize(1, mode, lobby).height);
+                    lobby.coin = getRandomEmptyPosition(lobby.map);
+                    
+                    console.log(`🔄 Lobby [${mode}] réinitialisé et fermé. En attente de nouveaux joueurs.`);
                     break;
                 }
 

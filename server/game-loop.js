@@ -32,7 +32,7 @@ function startGameLoop(io, lobbies, soloSessions, playerModes, {
             HighScoreModel, 
             TRANSITION_DURATION, 
             SHOP_DURATION 
-        });
+        }, playerModes);
         
         // --- TRAITEMENT DES SESSIONS SOLO ---
         soloGameLoop.process();

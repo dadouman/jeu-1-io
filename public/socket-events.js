@@ -266,6 +266,41 @@ socket.on('soloBestSplits', (data) => {
     console.log(`%c📊 Meilleurs splits reçus: ${JSON.stringify(data.splits)}`, 'color: #00FF00; font-weight: bold');
 });
 
+socket.on('modeSelectionRequired', (data) => {
+    // Événement du serveur: jeu terminé ou session fermée, retour au sélecteur de mode
+    console.log(`%c🔄 ${data.message}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+    
+    if (data.reason === 'gameEnded') {
+        // Attendre 5 secondes pour laisser l'écran de fin s'afficher
+        console.log(`%c⏳ L'écran de fin s'affichera pendant 5 secondes...`, 'color: #FF6B6B; font-weight: bold');
+        setTimeout(() => {
+            // Réinitialiser l'état du jeu
+            isClassicGameFinished = false;
+            isSoloGameFinished = false;
+            currentGameMode = null;
+            
+            // Afficher le sélecteur de mode
+            const modeSelector = document.getElementById('modeSelector');
+            if (modeSelector) {
+                modeSelector.style.display = 'flex';
+            }
+            
+            console.log(`%c✅ Retour au sélecteur de mode!`, 'color: #00FF00; font-weight: bold');
+        }, 5000);
+    } else {
+        // Retour immédiat pour autres raisons
+        isClassicGameFinished = false;
+        isSoloGameFinished = false;
+        currentGameMode = null;
+        
+        // Afficher le sélecteur de mode
+        const modeSelector = document.getElementById('modeSelector');
+        if (modeSelector) {
+            modeSelector.style.display = 'flex';
+        }
+    }
+});
+
 socket.on('error', (data) => {
     console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
 });

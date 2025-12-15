@@ -426,6 +426,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 emitToLobby(mode, 'playersCountUpdate', {
                     count: Object.keys(lobby.players).length
                 }, io, lobbies);
+                
+                // Réinitialiser le lobby custom si vide
+                if (mode === 'custom' && Object.keys(lobby.players).length === 0) {
+                    delete lobbies['custom'];
+                    console.log(`🗑️ Lobby custom supprimé (aucun joueur)`);
+                }
             }
             delete playerModes[socket.id];
         });

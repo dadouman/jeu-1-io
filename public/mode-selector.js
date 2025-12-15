@@ -7,7 +7,7 @@ let selectedMode = null;
  * @param {string} mode - 'classic', 'infinite', 'solo', ou 'custom'
  */
 function selectMode(mode) {
-    if (mode === 'classic' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
+    if (mode === 'classic' || mode === 'classicPrim' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
         // Vérifier que le mode personnalisé existe
         if (mode === 'custom' && !customModeConfig) {
             alert('❌ Aucun mode personnalisé configuré. Appuyez sur @ pour configurer.');
@@ -16,7 +16,8 @@ function selectMode(mode) {
         
         selectedMode = mode;
         const modeNames = {
-            'classic': '10 Niveaux',
+            'classic': 'Couloirs (10 Niveaux)',
+            'classicPrim': 'Organique (10 Niveaux)',
             'infinite': 'Mode Infini',
             'solo': 'Mode Solo (10 niveaux)',
             'custom': customModeConfig ? customModeConfig.name + ' (' + customModeConfig.maxLevels + ' niveaux)' : 'Personnalisé'

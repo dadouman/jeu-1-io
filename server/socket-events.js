@@ -1,6 +1,6 @@
 // server/socket-events.js - Gestion des événements Socket.io
 
-const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
 const { checkWallCollision } = require('../utils/collisions');
 const { initializePlayerForMode } = require('../utils/player');
 const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
@@ -120,13 +120,27 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 // On utilise 'custom' comme clé, et on traite le mode comme classic
                 if (!lobbies['custom']) {
                     const firstLevelSize = data.customConfig.levelConfig.sizes[0];
+                    
+                    // Utiliser l'algorithme de génération configuré
+                    const mazeGenConfig = data.customConfig.mazeGeneration || { algorithm: 'backtracker', density: 0.5 };
+                    const generatedMap = generateMazeAdvanced(firstLevelSize, firstLevelSize, {
+                        algorithm: mazeGenConfig.algorithm,
+                        density: mazeGenConfig.density
+                    });
+                    
                     lobbies['custom'] = {
                         currentLevel: 1,
                         currentRecord: { score: 0, skin: '❓' },
                         players: {},
-                        map: generateMaze(firstLevelSize, firstLevelSize),
+                        map: generatedMap,
                         coin: null,
-                        customConfig: data.customConfig
+                        customConfig: data.customConfig,
+                        restartVote: {
+                            isActive: false,
+                            votes: {},
+                            startTime: null,
+                            VOTE_TIMEOUT: 10000
+                        }
                     };
                     // Initialiser le coin pour le premier niveau
                     lobbies['custom'].coin = getRandomEmptyPosition(lobbies['custom'].map);
@@ -157,7 +171,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 }
                 
                 const lobby = lobbies[mode];
-                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${mode === 'classic' ? '10 NIVEAUX' : 'INFINI'}`);
+                const modeDisplayNames = {
+                    'classic': 'COULOIRS (10 Niveaux)',
+                    'classicPrim': 'ORGANIQUE (10 Niveaux)',
+                    'infinite': 'INFINI'
+                };
+                console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${modeDisplayNames[mode] || mode}`);
                 
                 const playerIndex = Object.keys(lobby.players).length;
                 const startPos = getRandomEmptyPosition(lobby.map);
@@ -647,7 +666,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             if (result.success) {
                 const shouldRestart = checkRestartVote(mode, lobbies, io);
                 if (shouldRestart) {
-                    restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, initializePlayerForMode, playerModes);
+                    restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, initializePlayerForMode, playerModes, generateMazeAdvanced);
                 }
             }
         });

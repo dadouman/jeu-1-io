@@ -75,6 +75,28 @@ function createAdminPanel() {
                 <small style="color: #888;">1 = prix normal, 2 = 2x plus cher, 0.5 = 2x moins cher</small>
             </div>
             
+            <hr style="border: none; border-top: 1px solid #444; margin: 20px 0;">
+            
+            <div class="form-group">
+                <label for="mazeAlgorithm">🧩 Algorithme de génération du labyrinthe:</label>
+                <select id="mazeAlgorithm" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
+                    <option value="backtracker">🔀 Recursive Backtracker (classique)</option>
+                    <option value="prim">🌳 Prim's Algorithm (organique)</option>
+                </select>
+                <small style="color: #888;">Backtracker = longs couloirs, Prim = ramifications naturelles</small>
+            </div>
+            
+            <div class="form-group" id="densityGroup" style="display: none;">
+                <label for="mazeDensity">📊 Densité des murs (Prim uniquement):</label>
+                <input type="range" id="mazeDensity" min="0" max="100" value="50" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #888;">
+                    <span>Ouvert (0%)</span>
+                    <span id="densityValue">50%</span>
+                    <span>Fermé (100%)</span>
+                </div>
+                <small style="color: #888;">0% = beaucoup de passages, 100% = labyrinthe parfait</small>
+            </div>
+            
             <div class="preview-section">
                 <h3>📋 Aperçu:</h3>
                 <div id="preview-output" class="preview-output">
@@ -130,6 +152,8 @@ function applyCustomMode() {
     const decrement = parseInt(document.getElementById('decrement').value) || increment;
     const shopFrequency = parseInt(document.getElementById('shopFrequency').value) || 5;
     const itemPriceMultiplier = parseFloat(document.getElementById('itemPriceMultiplier').value) || 1;
+    const mazeAlgorithm = document.getElementById('mazeAlgorithm').value || 'backtracker';
+    const mazeDensity = parseInt(document.getElementById('mazeDensity').value) / 100 || 0.5;
     
     // Valider les entrées
     if (!numLevels || numLevels < 1 || numLevels > 100) {
@@ -193,16 +217,16 @@ function applyCustomMode() {
             }
             
             // Créer et sauvegarder la configuration
-            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier);
+            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm, mazeDensity);
         });
     } else {
         // Sans socket, créer et sauvegarder directement
-        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier);
+        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm, mazeDensity);
     }
 }
 
 // Fonction utilitaire pour créer et sauvegarder la configuration
-function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier) {
+function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm = 'backtracker', mazeDensity = 0.5) {
     // Calculer les niveaux de shop selon la fréquence
     const shopLevels = [];
     for (let i = shopFrequency; i <= numLevels; i += shopFrequency) {
@@ -245,7 +269,11 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
         startingFeatures: { dash: false, checkpoint: false, rope: false, speedBoost: 0 },
         movement: { baseSpeed: 3, speedBoostIncrement: 1, wallCollisionDistance: 30 },
         transitionDuration: 5000,
-        voting: { enabled: true, voteDuration: 10000 }
+        voting: { enabled: true, voteDuration: 10000 },
+        mazeGeneration: {
+            algorithm: mazeAlgorithm,  // 'backtracker' ou 'prim'
+            density: mazeDensity       // 0.0 à 1.0 (uniquement pour prim)
+        }
     };
     
     saveCustomModeConfig(config);
@@ -301,6 +329,27 @@ function openAdminPanel() {
         document.getElementById('increment').addEventListener('input', generatePreview);
         document.getElementById('peakLevel').addEventListener('input', generatePreview);
         document.getElementById('decrement').addEventListener('input', generatePreview);
+        
+        // Event listener pour afficher/masquer les options de densité
+        document.getElementById('mazeAlgorithm').addEventListener('change', function() {
+            const densityGroup = document.getElementById('densityGroup');
+            densityGroup.style.display = this.value === 'prim' ? 'block' : 'none';
+        });
+        
+        // Event listener pour mettre à jour l'affichage de la densité
+        document.getElementById('mazeDensity').addEventListener('input', function() {
+            document.getElementById('densityValue').textContent = this.value + '%';
+        });
+        
+        // Charger les valeurs de l'algorithme si disponibles
+        if (customModeConfig && customModeConfig.mazeGeneration) {
+            document.getElementById('mazeAlgorithm').value = customModeConfig.mazeGeneration.algorithm || 'backtracker';
+            document.getElementById('mazeDensity').value = (customModeConfig.mazeGeneration.density || 0.5) * 100;
+            document.getElementById('densityValue').textContent = Math.round((customModeConfig.mazeGeneration.density || 0.5) * 100) + '%';
+            if (customModeConfig.mazeGeneration.algorithm === 'prim') {
+                document.getElementById('densityGroup').style.display = 'block';
+            }
+        }
     }
 }
 

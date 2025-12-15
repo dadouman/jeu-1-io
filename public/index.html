@@ -25,16 +25,28 @@
     <div id="modeSelector">
         <h1>🎮 CHOISIS TON MODE 🎮</h1>
         <div class="modes-grid">
-            <!-- Mode 10 Niveaux -->
+            <!-- Mode Couloirs (Backtracker) -->
             <div class="mode-card">
-                <h2>📊 10 Niveaux</h2>
-                <p><strong>Montée et Descente</strong></p>
+                <h2>🔀 Couloirs</h2>
+                <p><strong>Longs Corridors</strong></p>
                 <p style="color: #FFD700; font-size: 12px;">
-                    🔼 5 niveaux (labyrinthes grandissent: 15→23)<br>
-                    🔽 5 niveaux (labyrinthes rétrécissent: 23→15)
+                    🔼 5 niveaux (15→23)<br>
+                    🔽 5 niveaux (23→15)
                 </p>
-                <p>Challenge progressif avec twist à mi-parcours!</p>
+                <p>Labyrinthes avec longs couloirs sinueux!</p>
                 <button onclick="selectMode('classic')">JOUER</button>
+            </div>
+
+            <!-- Mode Organique (Prim) -->
+            <div class="mode-card">
+                <h2>🌳 Organique</h2>
+                <p><strong>Ramifications Naturelles</strong></p>
+                <p style="color: #FFD700; font-size: 12px;">
+                    🔼 5 niveaux (15→23)<br>
+                    🔽 5 niveaux (23→15)
+                </p>
+                <p>Labyrinthes avec passages alternatifs!</p>
+                <button onclick="selectMode('classicPrim')">JOUER</button>
             </div>
 
             <!-- Mode Infini -->

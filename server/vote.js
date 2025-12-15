@@ -108,7 +108,7 @@ function finishRestartVote(mode, lobbies, io) {
     return shouldRestart;
 }
 
-function restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, initializePlayer, playerModes) {
+function restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, initializePlayer, playerModes, generateMazeAdvanced = null) {
     const lobby = lobbies[mode];
     if (!lobby) return;
     
@@ -116,7 +116,18 @@ function restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, in
     
     // Réinitialiser les variables du jeu
     lobby.currentLevel = 1;
-    lobby.map = generateMaze(15, 15);
+    
+    // Utiliser l'algorithme configuré pour le mode custom
+    if (mode === 'custom' && lobby.customConfig && lobby.customConfig.mazeGeneration && generateMazeAdvanced) {
+        const mazeGen = lobby.customConfig.mazeGeneration;
+        const firstLevelSize = lobby.customConfig.levelConfig?.sizes?.[0] || 15;
+        lobby.map = generateMazeAdvanced(firstLevelSize, firstLevelSize, {
+            algorithm: mazeGen.algorithm,
+            density: mazeGen.density
+        });
+    } else {
+        lobby.map = generateMaze(15, 15);
+    }
     lobby.coin = getRandomEmptyPosition(lobby.map);
     
     // Réinitialiser tous les joueurs de la lobby

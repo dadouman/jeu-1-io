@@ -1,7 +1,7 @@
 // server/game-loops/lobby-loop.js
 // Boucle de jeu pour modes classique et infini
 
-const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../../utils/map');
 const { resetPlayerForNewLevel, addScore } = require('../../utils/player');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const { isShopLevel } = require('../../utils/shop');
@@ -17,8 +17,8 @@ function processLobbyGameLoop(lobbies, io, {
     TRANSITION_DURATION, 
     SHOP_DURATION 
 }, playerModes) {
-    // --- TRAITEMENT DES LOBBIES CLASSIQUE, INFINI ET PERSONNALISÉ ---
-    for (const mode of ['classic', 'infinite', 'custom']) {
+    // --- TRAITEMENT DES LOBBIES CLASSIQUE, CLASSICPRIM, INFINI ET PERSONNALISÉ ---
+    for (const mode of ['classic', 'classicPrim', 'infinite', 'custom']) {
         const lobby = lobbies[mode];
         if (!lobby) continue; // Ignorer si le lobby n'existe pas
         
@@ -87,7 +87,19 @@ function processLobbyGameLoop(lobbies, io, {
                     // 3. Réinitialiser le lobby pour la prochaine partie
                     lobby.currentLevel = 1;
                     lobby.currentRecord = { score: 0, skin: 'unknown' };
-                    lobby.map = generateMaze(calculateMazeSize(1, mode, lobby).width, calculateMazeSize(1, mode, lobby).height);
+                    
+                    // Utiliser l'algorithme configuré pour le mode custom ou classicPrim
+                    const resetMazeSize = calculateMazeSize(1, mode, lobby);
+                    if ((mode === 'custom' && lobby.customConfig && lobby.customConfig.mazeGeneration) || 
+                        (mode === 'classicPrim' && lobby.mazeGeneration)) {
+                        const mazeGen = mode === 'custom' ? lobby.customConfig.mazeGeneration : lobby.mazeGeneration;
+                        lobby.map = generateMazeAdvanced(resetMazeSize.width, resetMazeSize.height, {
+                            algorithm: mazeGen.algorithm,
+                            density: mazeGen.density
+                        });
+                    } else {
+                        lobby.map = generateMaze(resetMazeSize.width, resetMazeSize.height);
+                    }
                     lobby.coin = getRandomEmptyPosition(lobby.map);
                     
                     console.log(`🔄 Lobby [${mode}] réinitialisé et fermé. En attente de nouveaux joueurs.`);
@@ -96,7 +108,18 @@ function processLobbyGameLoop(lobbies, io, {
 
                 // 3. ON AGRANDIT LE LABYRINTHE SELON LE MODE
                 const mazeSize = calculateMazeSize(lobby.currentLevel, mode, lobby);
-                lobby.map = generateMaze(mazeSize.width, mazeSize.height);
+                
+                // Utiliser l'algorithme configuré pour le mode custom ou classicPrim
+                if ((mode === 'custom' && lobby.customConfig && lobby.customConfig.mazeGeneration) ||
+                    (mode === 'classicPrim' && lobby.mazeGeneration)) {
+                    const mazeGen = mode === 'custom' ? lobby.customConfig.mazeGeneration : lobby.mazeGeneration;
+                    lobby.map = generateMazeAdvanced(mazeSize.width, mazeSize.height, {
+                        algorithm: mazeGen.algorithm,
+                        density: mazeGen.density
+                    });
+                } else {
+                    lobby.map = generateMaze(mazeSize.width, mazeSize.height);
+                }
                 
                 // 3. ON DÉPLACE LA PIÈCE
                 lobby.coin = getRandomEmptyPosition(lobby.map);

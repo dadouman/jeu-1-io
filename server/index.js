@@ -70,9 +70,11 @@ emailService.initialize().then(success => {
 app.use('/api/bugs', bugRoutes);
 
 // --- INITIALISATION DU LABYRINTHE INITIAL ---
-const { generateMaze, getRandomEmptyPosition } = require('../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
 lobbies.classic.map = generateMaze(15, 15);
 lobbies.classic.coin = getRandomEmptyPosition(lobbies.classic.map);
+lobbies.classicPrim.map = generateMazeAdvanced(15, 15, { algorithm: 'prim', density: 0.5 });
+lobbies.classicPrim.coin = getRandomEmptyPosition(lobbies.classicPrim.map);
 lobbies.infinite.map = generateMaze(15, 15);
 lobbies.infinite.coin = getRandomEmptyPosition(lobbies.infinite.map);
 

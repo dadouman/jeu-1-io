@@ -64,6 +64,24 @@ const lobbies = {
             VOTE_TIMEOUT: 60000
         }
     },
+    classicPrim: {
+        players: {},
+        currentLevel: 1,
+        levelStartTime: Date.now(),
+        map: null,
+        coin: null,
+        currentRecord: { score: 0, skin: "❓" },
+        restartVote: {
+            isActive: false,
+            votes: {},
+            startTime: null,
+            VOTE_TIMEOUT: 60000
+        },
+        mazeGeneration: {
+            algorithm: 'prim',
+            density: 0.5
+        }
+    },
     infinite: {
         players: {},
         currentLevel: 1,

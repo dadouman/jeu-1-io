@@ -93,14 +93,19 @@ function generateSizesArray(startSize, increment, numLevels, highlevel, decroiss
 
 const GAME_MODES_CONFIG = {
     classic: {
-        name: 'Classic',
-        description: 'Mode classique multijoueur',
+        name: 'Couloirs',
+        description: 'Mode classique - Longs couloirs',
         maxPlayers: 8,
         maxLevels: 10,  // 10 niveaux
         levelConfig: {
             // Départ taille 15, augmentation de 2 par niveau jusqu'au niveau 5, puis diminution
             // Génère: 15, 17, 19, 21, 23, 21, 19, 17, 15, 13
             sizes: generateSizesArray(15, 2, 10, 5, 2)
+        },
+        
+        mazeGeneration: {
+            algorithm: 'backtracker',
+            density: 1.0
         },
         
         shop: {
@@ -176,6 +181,46 @@ const GAME_MODES_CONFIG = {
             enabled: true,
             voteDuration: 10000
         }
+    },
+
+    classicPrim: {
+        name: 'Organique',
+        description: 'Mode classique - Labyrinthes organiques',
+        maxPlayers: 8,
+        maxLevels: 10,  // 10 niveaux
+        levelConfig: {
+            sizes: generateSizesArray(15, 2, 10, 5, 2)
+        },
+        
+        mazeGeneration: {
+            algorithm: 'prim',
+            density: 0.5
+        },
+        
+        shop: {
+            enabled: true,
+            levels: [5, 10],
+            duration: 15000,
+        },
+
+        shopItems: [
+            { id: 'dash', name: 'Dash', price: 5, description: 'Accélération rapide', type: 'feature' },
+            { id: 'checkpoint', name: 'Checkpoint', price: 3, description: 'Sauvegarde ta position', type: 'feature' },
+            { id: 'rope', name: 'Rope', price: 1, description: 'Trace une corde derrière toi', type: 'feature' },
+            { id: 'speedBoost', name: 'Vitesse +1', price: 2, description: 'Augmente ta vitesse', type: 'speedBoost', stackable: true }
+        ],
+
+        gemsPerLevel: {
+            baseValue: 10,
+            linearIncrement: 5,
+            peakLevel: null,
+            calculateGems: (level) => calculateLinearProgression(level, 10, 5, null)
+        },
+
+        startingFeatures: { dash: false, checkpoint: false, rope: false, speedBoost: 0 },
+        movement: { baseSpeed: 3, speedBoostIncrement: 1, wallCollisionDistance: 30 },
+        transitionDuration: 5000,
+        voting: { enabled: true, voteDuration: 10000 }
     },
 
     infinite: {

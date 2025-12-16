@@ -15,12 +15,13 @@ function getShopClickAreas(canvasWidth, canvasHeight) {
     const itemList = [
         { id: 'dash', name: 'Dash ⚡', price: 5 },
         { id: 'checkpoint', name: 'Checkpoint 🚩', price: 3 },
+        { id: 'compass', name: 'Boussole 🧭', price: 4 },
         { id: 'rope', name: 'Corde 🪢', price: 1 },
         { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
     ];
     
     const BOX_SIZE = 90;
-    const BOX_SPACING = 130;
+    const BOX_SPACING = 110;
     const ITEMS_Y = shopY + 130;
     const TOTAL_WIDTH = (itemList.length * BOX_SPACING) - BOX_SPACING + BOX_SIZE;
     const CENTER_X = shopX + (shopWidth - TOTAL_WIDTH) / 2;
@@ -53,6 +54,49 @@ function getRanking(players) {
     
     // Trier par score décroissant, l'ordre d'insertion dans l'objet gère l'égalité
     return playersList.sort((a, b) => b.score - a.score);
+}
+
+function renderCompassIndicator(ctx, player, target) {
+    if (!player || !target) return;
+    const playerCenterX = player.x + TILE_SIZE / 2;
+    const playerCenterY = player.y + TILE_SIZE / 2;
+    const targetCenterX = target.x + TILE_SIZE / 2;
+    const targetCenterY = target.y + TILE_SIZE / 2;
+    const dx = targetCenterX - playerCenterX;
+    const dy = targetCenterY - playerCenterY;
+    if (dx === 0 && dy === 0) return;
+
+    const angle = Math.atan2(dy, dx);
+    const offset = TILE_SIZE * 0.7;
+    const arrowLength = TILE_SIZE * 0.9;
+    const baseX = playerCenterX + Math.cos(angle) * offset;
+    const baseY = playerCenterY + Math.sin(angle) * offset;
+    const tipX = playerCenterX + Math.cos(angle) * (offset + arrowLength);
+    const tipY = playerCenterY + Math.sin(angle) * (offset + arrowLength);
+
+    const wingAngle = Math.PI / 6;
+    const wingLength = 14;
+    const leftX = tipX - Math.cos(angle - wingAngle) * wingLength;
+    const leftY = tipY - Math.sin(angle - wingAngle) * wingLength;
+    const rightX = tipX - Math.cos(angle + wingAngle) * wingLength;
+    const rightY = tipY - Math.sin(angle + wingAngle) * wingLength;
+
+    ctx.save();
+    ctx.strokeStyle = '#2ECC71';
+    ctx.fillStyle = '#2ECC71';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(playerCenterX, playerCenterY);
+    ctx.lineTo(baseX, baseY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(leftX, leftY);
+    ctx.lineTo(rightX, rightY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 }
 
 function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0) {
@@ -133,6 +177,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     // 7. Players rendering
     if (typeof renderPlayers === 'function') {
         renderPlayers(ctx, players, currentGameMode);
+    }
+
+    if (purchasedFeatures && purchasedFeatures.compass && myPlayer) {
+        renderCompassIndicator(ctx, myPlayer, coin);
     }
 
     ctx.restore(); // Fin Caméra + Fin clipping

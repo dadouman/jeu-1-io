@@ -54,6 +54,7 @@ function initializePlayer(startPos, playerIndex) {
         purchasedFeatures: {
             dash: false,
             checkpoint: false,
+            compass: false,
             rope: false,
             speedBoost: 0
         }

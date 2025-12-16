@@ -13,6 +13,12 @@ const SHOP_ITEMS = {
         price: 3,
         description: 'Marquer et téléporter'
     },
+    compass: {
+        id: 'compass',
+        name: 'Boussole 🧭',
+        price: 4,
+        description: 'Indique la gemme la plus proche'
+    },
     rope: {
         id: 'rope',
         name: 'Corde 🪢',

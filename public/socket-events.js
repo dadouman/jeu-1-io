@@ -114,7 +114,7 @@ socket.on('shopOpen', (data) => {
         shopReadyCount = 0;
         
         const shopNumber = Math.floor(data.level / 5);
-        console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+        console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4,5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
     }
 });
 

@@ -147,6 +147,7 @@ describe('Mode Selection System', () => {
             const allItems = {
                 dash: { id: 'dash', name: 'Dash ⚡', price: 5 },
                 checkpoint: { id: 'checkpoint', name: 'Checkpoint 🚩', price: 3 },
+                compass: { id: 'compass', name: 'Boussole 🧭', price: 4 },
                 rope: { id: 'rope', name: 'Corde 🪢', price: 1 },
                 speedBoost: { id: 'speedBoost', name: 'Vitesse+ 💨', price: 2 }
             };
@@ -159,9 +160,10 @@ describe('Mode Selection System', () => {
 
         test('Mode classique: tous les items disponibles', () => {
             const items = getShopItemsForMode('classic');
-            expect(Object.keys(items)).toHaveLength(4);
+            expect(Object.keys(items)).toHaveLength(5);
             expect(items.dash).toBeDefined();
             expect(items.checkpoint).toBeDefined();
+            expect(items.compass).toBeDefined();
             expect(items.rope).toBeDefined();
             expect(items.speedBoost).toBeDefined();
         });

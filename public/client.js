@@ -44,6 +44,7 @@ canvas.addEventListener('click', (event) => {
     const defaultShopItems = {
         dash: { id: 'dash', name: 'Dash', price: 5 },
         checkpoint: { id: 'checkpoint', name: 'Checkpoint', price: 3 },
+        compass: { id: 'compass', name: 'Boussole', price: 4 },
         rope: { id: 'rope', name: 'Rope', price: 1 },
         speedBoost: { id: 'speedBoost', name: 'Speed+', price: 2, stackable: true }
     };

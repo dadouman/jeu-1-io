@@ -66,6 +66,7 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     const defaultItems = [
         { id: 'dash', name: 'Dash', emoji: '⚡', price: 5, color: '#FF6B6B' },
         { id: 'checkpoint', name: 'Checkpoint', emoji: '🚩', price: 3, color: '#00D4FF' },
+        { id: 'compass', name: 'Boussole', emoji: '🧭', price: 4, color: '#2ECC71' },
         { id: 'rope', name: 'Rope', emoji: '🪢', price: 1, color: '#9B59B6' },
         { id: 'speedBoost', name: 'Speed+', emoji: '💨', price: 2, color: '#FFD700', isStackable: true }
     ];
@@ -92,7 +93,7 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     ctx.fillStyle = "#888";
     ctx.font = "14px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("Cliquez sur un item pour acheter | Appuyez sur 1,2,3,4 pour acheter", canvas.width / 2, shopY + shopHeight - 50);
+    ctx.fillText("Cliquez sur un item pour acheter | Appuyez sur 1,2,3,4,5 pour acheter", canvas.width / 2, shopY + shopHeight - 50);
     
     // Bouton "Continuer" pour fermer le shop
     const continueButtonWidth = 150;
@@ -128,7 +129,7 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
  */
 function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems) {
     const BOX_SIZE = 90;
-    const BOX_SPACING = 130;
+    const BOX_SPACING = 110;
     const ITEMS_Y = shopY + 130;
     
     // Centrer les items horizontalement

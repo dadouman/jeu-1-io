@@ -246,6 +246,12 @@ function getShopItemsForMode() {
                 price: 3,
                 description: 'Marquer et téléporter'
             },
+            compass: {
+                id: 'compass',
+                name: 'Boussole 🧭',
+                price: 4,
+                description: 'Indique la gemme la plus proche'
+            },
             rope: {
                 id: 'rope',
                 name: 'Corde 🪢',
@@ -273,6 +279,12 @@ function getShopItemsForMode() {
                 name: 'Checkpoint 🚩',
                 price: 3,
                 description: 'Marquer et téléporter'
+            },
+            compass: {
+                id: 'compass',
+                name: 'Boussole 🧭',
+                price: 4,
+                description: 'Indique la gemme la plus proche'
             },
             rope: {
                 id: 'rope',
@@ -302,6 +314,7 @@ function getInitialPurchasedFeaturesForMode() {
         return {
             dash: true,
             checkpoint: true,
+            compass: false,
             rope: true,
             speedBoost: 0
         };
@@ -310,6 +323,7 @@ function getInitialPurchasedFeaturesForMode() {
         return {
             dash: false,
             checkpoint: false,
+            compass: false,
             rope: false,
             speedBoost: 0
         };
@@ -318,6 +332,7 @@ function getInitialPurchasedFeaturesForMode() {
         return {
             dash: false,
             checkpoint: false,
+            compass: false,
             rope: false,
             speedBoost: 0
         };

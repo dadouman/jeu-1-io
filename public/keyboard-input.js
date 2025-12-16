@@ -87,8 +87,8 @@ document.addEventListener('keydown', (e) => {
     }
     
     // --- SHOP : Achats avec touches numériques ---
-    if (isShopOpen && e.key.match(/^[1-4]$/)) {
-        const itemOrder = ['dash', 'checkpoint', 'rope', 'speedBoost'];
+    if (isShopOpen && e.key.match(/^[1-5]$/)) {
+        const itemOrder = ['dash', 'checkpoint', 'compass', 'rope', 'speedBoost'];
         const itemId = itemOrder[parseInt(e.key) - 1];
         if (itemId && shopItems[itemId]) {
             socket.emit('shopPurchase', { itemId });

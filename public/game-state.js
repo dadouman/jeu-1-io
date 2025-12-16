@@ -18,6 +18,14 @@ let inputsMomentum = { up: 0, down: 0, left: 0, right: 0 }; // Inertie pour les 
 const MOMENTUM_DECAY = 0.85; // 85% de l'inertie persiste par frame
 let currentHighScore = null;
 let myPlayerId = null;
+let isPaused = false; // Pause globale
+let pauseMenuVisible = false; // Overlay pause affiché
+let lastPauseToggleSource = null; // keyboard-escape, gamepad-start, etc.
+let gamepadEnabled = false; // Autoriser la manette à piloter les inputs
+let isGamepadConnected = false; // Présence d'une manette détectée
+let activeGamepadName = '';
+let gamepadStatusMessage = '';
+let gamepadStatusMessageTime = 0;
 
 // --- VARIABLES NIVEAU ---
 let level = 1;

@@ -276,6 +276,57 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         renderVoteResult(ctx, canvas, voteResult);
     }
 
+    // --- OVERLAY PAUSE + OPTION MANETTE ---
+    if (pauseMenuVisible) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        ctx.font = '32px "Bebas Neue", Arial';
+        ctx.fillText('PAUSE', centerX, centerY - 90);
+
+        ctx.font = '18px Arial';
+        const gamepadLabel = gamepadEnabled ? 'Manette: ON' : 'Manette: OFF';
+        const connectionLabel = isGamepadConnected ? 'Connectée' : 'Non détectée';
+        ctx.fillText(`${gamepadLabel} • ${connectionLabel}`, centerX, centerY - 40);
+
+        if (activeGamepadName) {
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#CCCCCC';
+            ctx.fillText(activeGamepadName, centerX, centerY - 16);
+            ctx.fillStyle = '#FFFFFF';
+        }
+
+        ctx.font = '16px Arial';
+        ctx.fillText('Entrée / A : activer ou désactiver la manette', centerX, centerY + 24);
+        ctx.fillText('Échap / Start : reprendre', centerX, centerY + 52);
+        ctx.restore();
+    } else if (gamepadStatusMessage && (Date.now() - gamepadStatusMessageTime) < 2800) {
+        // Toast léger en jeu pour indiquer l’état de la manette
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+        const padding = 12;
+        ctx.font = '14px Arial';
+        const textWidth = ctx.measureText(gamepadStatusMessage).width;
+        const boxWidth = textWidth + padding * 2;
+        const boxHeight = 32;
+        const x = canvas.width - boxWidth - 24;
+        const y = canvas.height - boxHeight - 24;
+        ctx.fillRect(x, y, boxWidth, boxHeight);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(gamepadStatusMessage, x + padding, y + boxHeight / 2);
+        ctx.restore();
+    }
+
     // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)
     // Toute la logique reste intacte pour restauration future
     /*

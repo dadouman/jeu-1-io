@@ -34,6 +34,20 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
+    if (e.code === 'Escape') {
+        togglePause('keyboard-escape');
+        e.preventDefault();
+        return;
+    }
+
+    if (pauseMenuVisible) {
+        if (e.code === 'Enter') {
+            toggleGamepadSupport('keyboard-enter');
+            e.preventDefault();
+        }
+        return; // Ne pas traiter d'autres inputs pendant la pause
+    }
+
     // ⚠️ BLOQUER TOUS LES INPUTS JUSQU'À 3000ms DU COUNTDOWN
     if (inputsBlocked) {
         return; // Complètement bloquer
@@ -117,6 +131,10 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keyup', (e) => {
+    if (pauseMenuVisible) {
+        return;
+    }
+
     // ⚠️ IGNORER LES TOUCHES SI LA MODAL DE BUG EST OUVERTE
     if (window.bugReporter && window.bugReporter.isOpen) {
         return;
@@ -134,6 +152,11 @@ document.addEventListener('keyup', (e) => {
 
 // --- BOUCLE D'ENVOI DES MOUVEMENTS (60 FPS) ---
 setInterval(() => {
+    if (isPaused) {
+        socket.emit('movement', { up: false, down: false, left: false, right: false });
+        return;
+    }
+
     // Appliquer l'inertie
     if (!inputs.up) inputsMomentum.up *= MOMENTUM_DECAY;
     if (!inputs.down) inputsMomentum.down *= MOMENTUM_DECAY;

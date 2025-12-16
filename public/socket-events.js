@@ -109,8 +109,8 @@ socket.on('shopOpen', (data) => {
         shopTimerStart = Date.now();
         levelStartTime = null;
         
-        // Initialiser le nombre total de joueurs (depuis gameState.players)
-        shopTotalPlayers = Object.keys(gameState.players).length || 1;
+        // Initialiser le nombre total de joueurs (depuis l'état courant côté client)
+        shopTotalPlayers = currentPlayers ? Object.keys(currentPlayers).length : 1;
         shopReadyCount = 0;
         
         const shopNumber = Math.floor(data.level / 5);
@@ -243,7 +243,7 @@ socket.on('gameFinished', (data) => {
         classicEndScreenStartTime = Date.now();
         
         // Préparer les données finales avec les joueurs triés par score
-        const players = Object.values(gameState.players || {}).map(p => ({
+        const players = Object.values(currentPlayers || {}).map(p => ({
             skin: p.skin,
             score: p.score,
             id: p.id

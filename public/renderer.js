@@ -99,14 +99,22 @@ function renderCompassIndicator(ctx, player, target) {
     ctx.restore();
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0) {
-    
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0, viewport = null) {
+    const viewWidth = viewport?.width || canvas.width;
+    const viewHeight = viewport?.height || canvas.height;
+    const viewOffsetX = viewport?.x || 0;
+    const viewOffsetY = viewport?.y || 0;
+
+    const viewCanvas = { width: viewWidth, height: viewHeight };
+
     // INITIALISER LE CONTEXTE POUR ÊTRE SÛR
+    ctx.save();
+    ctx.translate(viewOffsetX, viewOffsetY);
     ctx.globalAlpha = 1.0;
     
     // 1. Fond noir
     ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, viewWidth, viewHeight);
 
     // === AFFICHER LE COUNTDOWN MULTI-PHASE (SUR LE JEU) ===
     // Le jeu est rendu en dessous, le countdown est un overlay transparent
@@ -122,7 +130,8 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.font = "20px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("Chargement du jeu...", canvas.width / 2, canvas.height / 2);
+        ctx.fillText("Chargement du jeu...", viewWidth / 2, viewHeight / 2);
+        ctx.restore();
         return; // On arrête là et on attend la prochaine frame
     }
     // ----------------------------------------
@@ -136,16 +145,16 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     // 2. Brouillard (Masque rond)
     ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, 180, 0, Math.PI * 2);
+    ctx.arc(viewWidth / 2, viewHeight / 2, 180, 0, Math.PI * 2);
     ctx.clip();
 
     // 3. Sol
     ctx.fillStyle = "#222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, viewWidth, viewHeight);
 
     // 4. Caméra (Centrée sur le joueur)
-    const camX = canvas.width / 2 - myPlayer.x;
-    const camY = canvas.height / 2 - myPlayer.y;
+    const camX = viewWidth / 2 - myPlayer.x;
+    const camY = viewHeight / 2 - myPlayer.y;
     ctx.translate(camX, camY);
     
     // 4.5 Zoom progressif (miniaturisation progressive du monde)
@@ -197,10 +206,10 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         ctx.textBaseline = "middle";
         
         if (myPlayer && myPlayer.skin) {
-            ctx.fillText(myPlayer.skin, canvas.width / 2, canvas.height / 2);
+            ctx.fillText(myPlayer.skin, viewWidth / 2, viewHeight / 2);
         } else {
             // Fallback si pas de skin
-            ctx.fillText("😊", canvas.width / 2, canvas.height / 2);
+            ctx.fillText("😊", viewWidth / 2, viewHeight / 2);
         }
         
         ctx.restore();
@@ -208,7 +217,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
     // === AFFICHAGE HUD DES FEATURES (Au-dessus du brouillard) ===
     // Doit être APRÈS ctx.restore() pour éviter le clipping
-    renderFeaturesHUD(ctx, canvas, purchasedFeatures);
+    renderFeaturesHUD(ctx, viewCanvas, purchasedFeatures);
     
     // === AFFICHAGE DU MEILLEUR JOUEUR (Badge en haut à droite) ===
     // Affiché en mode classique/infini/custom, sauf pendant la fin du jeu (géré par renderClassicEndScreen)
@@ -231,7 +240,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen && typeof renderShop === 'function') {
-        renderShop(ctx, canvas, level, playerGems, shopTimeRemaining);
+        renderShop(ctx, viewCanvas, level, playerGems, shopTimeRemaining);
     }
 
     // --- AFFICHAGE DU HUD SOLO (temps total, delta, niveau) ---
@@ -241,49 +250,49 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             personalBestSplits: soloPersonalBestSplits || {},
             bestSplits: soloBestSplits || {}
         };
-        renderSoloHUD(ctx, canvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
+        renderSoloHUD(ctx, viewCanvas, soloRunTotalTime, level, soloCurrentLevelTime, isSoloGameFinished, soloSplitTimes, preferences, soloMaxLevel || 10);
         
         // --- AFFICHAGE DU DELTA TEMPORAIRE (après prise de gem) ---
         if (typeof renderSoloGemDelta === 'function' && soloLastGemTime && soloLastGemLevel) {
-            renderSoloGemDelta(ctx, canvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
+            renderSoloGemDelta(ctx, viewCanvas, soloLastGemTime, soloLastGemLevel, levelUpTime, preferences);
         }
     }
 
     // --- ÉCRAN DE FIN CLASSIQUE/INFINI ---
     if (isClassicGameFinished && finalClassicData && typeof renderClassicEndScreen === 'function') {
-        renderClassicEndScreen(ctx, canvas, finalClassicData.players, finalClassicData.record, finalClassicData.finalLevel, finalClassicData.mode);
+        renderClassicEndScreen(ctx, viewCanvas, finalClassicData.players, finalClassicData.record, finalClassicData.finalLevel, finalClassicData.mode);
         return; // Ne pas afficher le reste du jeu
     }
 
     // --- ÉCRAN DE RÉSULTATS SOLO ---
     if (isSoloGameFinished && typeof renderSoloResults === 'function') {
-        renderSoloResults(ctx, canvas, soloTotalTime, soloPersonalBestTime, soloSplitTimes);
+        renderSoloResults(ctx, viewCanvas, soloTotalTime, soloPersonalBestTime, soloSplitTimes);
         return; // Ne pas afficher le reste du jeu
     }
 
     // --- ÉCRAN DE TRANSITION ---
     if (isInTransition && transitionProgress < 1.0 && soloRunTotalTime === 0 && typeof renderTransition === 'function') {
-        renderTransition(ctx, canvas, level, isFirstLevel, playerCountStart, levelUpPlayerSkin, levelUpTime, players, myId, transitionProgress);
+        renderTransition(ctx, viewCanvas, level, isFirstLevel, playerCountStart, levelUpPlayerSkin, levelUpTime, players, myId, transitionProgress);
     }
 
     // --- AFFICHAGE DU VOTE EN BAS ---
     if (isVoteActive && typeof renderVoting === 'function') {
-        renderVoting(ctx, canvas, voteTimeRemaining);
+        renderVoting(ctx, viewCanvas, voteTimeRemaining);
     }
 
     // --- AFFICHAGE DU RÉSULTAT DU VOTE ---
     if (voteResult && typeof renderVoteResult === 'function') {
-        renderVoteResult(ctx, canvas, voteResult);
+        renderVoteResult(ctx, viewCanvas, voteResult);
     }
 
     // --- OVERLAY PAUSE + OPTION MANETTE ---
     if (pauseMenuVisible) {
         ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, viewWidth, viewHeight);
 
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
+        const centerX = viewWidth / 2;
+        const centerY = viewHeight / 2;
 
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'center';
@@ -304,9 +313,52 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             ctx.fillStyle = '#FFFFFF';
         }
 
+        const buttonWidth = 260;
+        const buttonHeight = 44;
+        const buttonSpacing = 14;
+        const buttonStartY = centerY + 6;
+
+        const gamepadRect = {
+            x: centerX - buttonWidth / 2,
+            y: buttonStartY,
+            width: buttonWidth,
+            height: buttonHeight
+        };
+
+        const splitRect = {
+            x: centerX - buttonWidth / 2,
+            y: buttonStartY + buttonHeight + buttonSpacing,
+            width: buttonWidth,
+            height: buttonHeight
+        };
+
+        if (pauseMenuClickAreas) {
+            pauseMenuClickAreas.gamepad = gamepadRect;
+            pauseMenuClickAreas.split = splitRect;
+        }
+
+        const drawButton = (rect, label, active) => {
+            ctx.fillStyle = active ? 'rgba(0, 200, 120, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+            ctx.strokeStyle = active ? '#00C878' : '#AAAAAA';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.rect(rect.x, rect.y, rect.width, rect.height);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(label, rect.x + rect.width / 2, rect.y + rect.height / 2);
+        };
+
+        drawButton(gamepadRect, gamepadEnabled ? 'Manette : ON (Entrée/A)' : 'Manette : OFF (Entrée/A)', gamepadEnabled);
+        drawButton(splitRect, splitScreenEnabled ? 'Split-screen : ON (S)' : 'Split-screen : OFF (S)', splitScreenEnabled);
+
         ctx.font = '16px Arial';
-        ctx.fillText('Entrée / A : activer ou désactiver la manette', centerX, centerY + 24);
-        ctx.fillText('Échap / Start : reprendre', centerX, centerY + 52);
+        ctx.fillText('Clique ou utilise les raccourcis pour basculer', centerX, splitRect.y + splitRect.height + 22);
+        ctx.fillText('Échap / Start : reprendre', centerX, splitRect.y + splitRect.height + 44);
         ctx.restore();
     } else if (gamepadStatusMessage && (Date.now() - gamepadStatusMessageTime) < 2800) {
         // Toast léger en jeu pour indiquer l’état de la manette
@@ -317,14 +369,21 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         const textWidth = ctx.measureText(gamepadStatusMessage).width;
         const boxWidth = textWidth + padding * 2;
         const boxHeight = 32;
-        const x = canvas.width - boxWidth - 24;
-        const y = canvas.height - boxHeight - 24;
+        const x = viewWidth - boxWidth - 24;
+        const y = viewHeight - boxHeight - 24;
         ctx.fillRect(x, y, boxWidth, boxHeight);
         ctx.fillStyle = '#FFFFFF';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
         ctx.fillText(gamepadStatusMessage, x + padding, y + boxHeight / 2);
         ctx.restore();
+        if (pauseMenuClickAreas) {
+            pauseMenuClickAreas.gamepad = null;
+            pauseMenuClickAreas.split = null;
+        }
+    } else if (pauseMenuClickAreas) {
+        pauseMenuClickAreas.gamepad = null;
+        pauseMenuClickAreas.split = null;
     }
 
     // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)
@@ -374,7 +433,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
                 // Afficher le toggle info
                 ctx.fillStyle = "#888";
                 ctx.font = "12px Arial";
-                ctx.fillText("Press T to toggle", canvas.width - 20, 74);
+                ctx.fillText("Press T to toggle", viewWidth - 20, 74);
             } else {
                 ctx.fillStyle = "#FFD700";
                 ctx.font = "bold 20px Arial";
@@ -431,6 +490,9 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     if (soloStartCountdownActive && typeof renderCountdownMultiPhase === 'function') {
         renderCountdownMultiPhase(ctx, canvas, soloStartCountdownElapsed, soloStartCountdownActive);
     }
+
+    // Restaure le contexte du viewport
+    ctx.restore();
 }
 
 /**

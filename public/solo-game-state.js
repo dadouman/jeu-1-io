@@ -201,14 +201,25 @@ socket.on('soloGameState', (state) => {
  * Recevoir la confirmation que le jeu est fini
  */
 socket.on('gameFinished', (data) => {
+    // Ignorer si on reçoit un gameFinished d'un autre mode (classic/custom) ou sans totalTime
+    if (currentGameMode !== 'solo') {
+        return;
+    }
+
     if (data.error) {
         console.error(`❌ [SOLO] Erreur jeu: ${data.error}`);
         return;
     }
-    
+
+    if (typeof data.totalTime !== 'number' || Number.isNaN(data.totalTime)) {
+        console.warn('⚠️ [SOLO] gameFinished reçu sans totalTime valide; ignoré');
+        return;
+    }
+
+    const total = data.totalTime;
     soloGameState.isGameFinished = true;
     isSoloGameFinished = true;
-    console.log(`🎉 [SOLO] Jeu terminé! Temps total: ${data.totalTime.toFixed(2)}s`);
+    console.log(`🎉 [SOLO] Jeu terminé! Temps total: ${total.toFixed(2)}s`);
     
     // === SAUVEGARDER LES MEILLEURS SPLITS PERSONNELS DANS LOCALSTORAGE ===
     if (data.splitTimes && Array.isArray(data.splitTimes)) {
@@ -227,6 +238,10 @@ socket.on('gameFinished', (data) => {
         let hasNewBest = false;
         data.splitTimes.forEach((splitTime, index) => {
             const level = index + 1;
+            if (typeof splitTime !== 'number' || Number.isNaN(splitTime)) {
+                console.warn(`⚠️ [SOLO] Split invalide ignoré (level ${level})`);
+                return;
+            }
             if (!savedSplits[level] || splitTime < savedSplits[level]) {
                 savedSplits[level] = splitTime;
                 hasNewBest = true;

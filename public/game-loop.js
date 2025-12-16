@@ -1,7 +1,8 @@
 // game-loop.js - Boucle de rendu et gestion de l'état du jeu
 
-socket.on('state', (gameState) => {
+function handleServerState(gameState) {
     const finalId = myPlayerId || socket.id;
+    const secondaryId = splitScreenEnabled ? myPlayerIdSecondary : null;
 
     // Sauvegarder les joueurs pour la transition
     if (gameState.players) {
@@ -17,18 +18,26 @@ socket.on('state', (gameState) => {
     if (gameState.players) {
         for (let playerId in gameState.players) {
             const player = gameState.players[playerId];
-            
-            // Récupérer gems et purchasedFeatures du joueur actuel
+
+            // Sauvegarder gems/features par joueur (split-screen)
+            playerGemsById[playerId] = player.gems || 0;
+            purchasedFeaturesById[playerId] = { ...(player.purchasedFeatures || {}) };
+            if (typeof purchasedFeaturesById[playerId].speedBoost !== 'number') {
+                purchasedFeaturesById[playerId].speedBoost = purchasedFeaturesById[playerId].speedBoost ? 1 : 0;
+            }
+
+            // Récupérer gems/features du joueur principal
             if (playerId === finalId) {
                 playerGems = player.gems || 0;
-                purchasedFeatures = player.purchasedFeatures || {};
-                
-                // Normaliser les données: speedBoost doit être un nombre, pas un booléen
-                if (typeof purchasedFeatures.speedBoost !== 'number') {
-                    purchasedFeatures.speedBoost = purchasedFeatures.speedBoost ? 1 : 0;
-                }
+                purchasedFeatures = purchasedFeaturesById[playerId];
             }
-            
+
+            // Récupérer gems/features du joueur secondaire (split-screen)
+            if (secondaryId && playerId === secondaryId) {
+                playerGemsP2 = player.gems || 0;
+                purchasedFeaturesP2 = purchasedFeaturesById[playerId];
+            }
+
             // Afficher la trace SEULEMENT si la feature "rope" est achetée
             if (player.trail && player.color && player.purchasedFeatures && player.purchasedFeatures.rope) {
                 trails[playerId] = {
@@ -181,9 +190,36 @@ socket.on('state', (gameState) => {
         
         const transitionProgress = isInTransition && transitionStartTime ? (Date.now() - transitionStartTime) / TRANSITION_DURATION : 0;
         
-        renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        if (splitScreenEnabled && myPlayerIdSecondary && gameState.players && gameState.players[myPlayerIdSecondary]) {
+            const halfW = canvas.width / 2;
+            const viewportLeft = { x: 0, y: 0, width: halfW, height: canvas.height };
+            const viewportRight = { x: halfW, y: 0, width: halfW, height: canvas.height };
+
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportLeft);
+
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpen, playerGemsP2, purchasedFeaturesP2, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportRight);
+        } else {
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        }
     }
-});
+}
+
+socket.on('state', handleServerState);
+
+let secondaryStateListenerAttached = false;
+function attachSecondaryStateListener() {
+    if (socketSecondary && !secondaryStateListenerAttached && typeof socketSecondary.on === 'function') {
+        socketSecondary.on('state', handleServerState);
+        secondaryStateListenerAttached = true;
+    }
+}
+
+function detachSecondaryStateListener() {
+    if (socketSecondary && secondaryStateListenerAttached && typeof socketSecondary.off === 'function') {
+        socketSecondary.off('state', handleServerState);
+    }
+    secondaryStateListenerAttached = false;
+}
 
 // --- BOUCLE DE RENDU CONTINUE (pour l'écran de fin solo et transitions) ---
 function continuousRender() {
@@ -270,7 +306,18 @@ function continuousRender() {
             }
         }
         
-        renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerId || socket.id, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        const primaryId = myPlayerId || socket.id;
+        if (splitScreenEnabled && myPlayerIdSecondary && currentPlayers && currentPlayers[myPlayerIdSecondary]) {
+            const halfW = canvas.width / 2;
+            const viewportLeft = { x: 0, y: 0, width: halfW, height: canvas.height };
+            const viewportRight = { x: halfW, y: 0, width: halfW, height: canvas.height };
+
+            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportLeft);
+
+            renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpen, playerGemsP2, purchasedFeaturesP2, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportRight);
+        } else {
+            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+        }
     }
     
     // Continuer la boucle de rendu seulement si les conditions sont met

@@ -35,3 +35,24 @@ function toggleGamepadSupport(source = 'unknown') {
     lastPauseToggleSource = source;
     return gamepadEnabled;
 }
+
+function handlePauseMenuClick(mouseX, mouseY) {
+    if (!pauseMenuVisible || !pauseMenuClickAreas) return false;
+
+    const isInside = (rect) => rect && mouseX >= rect.x && mouseX <= rect.x + rect.width && mouseY >= rect.y && mouseY <= rect.y + rect.height;
+
+    if (isInside(pauseMenuClickAreas.gamepad)) {
+        toggleGamepadSupport('mouse-click');
+        return true;
+    }
+
+    if (isInside(pauseMenuClickAreas.split)) {
+        const enabled = toggleSplitScreen();
+        if (enabled && typeof attachSecondaryStateListener === 'function') {
+            attachSecondaryStateListener();
+        }
+        return true;
+    }
+
+    return false;
+}

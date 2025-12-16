@@ -45,6 +45,11 @@ document.addEventListener('keydown', (e) => {
             toggleGamepadSupport('keyboard-enter');
             e.preventDefault();
         }
+        // Toggle split-screen depuis le menu pause (touche S)
+        if (e.code === 'KeyS') {
+            toggleSplitScreen();
+            e.preventDefault();
+        }
         return; // Ne pas traiter d'autres inputs pendant la pause
     }
 
@@ -62,6 +67,14 @@ document.addEventListener('keydown', (e) => {
     if(e.code === 'ArrowDown') { inputs.down = true; inputsMomentum.down = 1; }
     if(e.code === 'ArrowLeft') { inputs.left = true; inputsMomentum.left = 1; }
     if(e.code === 'ArrowRight') { inputs.right = true; inputsMomentum.right = 1; }
+
+    // Joueur 2 (split-screen) : ZQSD
+    if (splitScreenEnabled) {
+        if (e.code === 'KeyZ') { inputsP2.up = true; inputsMomentumP2.up = 1; }
+        if (e.code === 'KeyS') { inputsP2.down = true; inputsMomentumP2.down = 1; }
+        if (e.code === 'KeyQ') { inputsP2.left = true; inputsMomentumP2.left = 1; }
+        if (e.code === 'KeyD') { inputsP2.right = true; inputsMomentumP2.right = 1; }
+    }
     
     // Checkpoint avec Espace
     if(e.code === 'Space') {
@@ -79,6 +92,13 @@ document.addEventListener('keydown', (e) => {
     if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
         actions.dash = true;
         e.preventDefault();
+    }
+
+    // Joueur 2 (split-screen) : actions dédiées
+    if (splitScreenEnabled) {
+        if (e.code === 'KeyF') { actionsP2.setCheckpoint = true; e.preventDefault(); }
+        if (e.code === 'KeyG') { actionsP2.teleportCheckpoint = true; e.preventDefault(); }
+        if (e.code === 'KeyC') { actionsP2.dash = true; e.preventDefault(); }
     }
     
     // --- SYSTÈME DE VOTE POUR REDÉMARRER ---
@@ -144,10 +164,25 @@ document.addEventListener('keyup', (e) => {
     if(e.code === 'ArrowDown') inputs.down = false;
     if(e.code === 'ArrowLeft') inputs.left = false;
     if(e.code === 'ArrowRight') inputs.right = false;
+
+    // Joueur 2 (split-screen) : ZQSD
+    if (splitScreenEnabled) {
+        if (e.code === 'KeyZ') inputsP2.up = false;
+        if (e.code === 'KeyS') inputsP2.down = false;
+        if (e.code === 'KeyQ') inputsP2.left = false;
+        if (e.code === 'KeyD') inputsP2.right = false;
+    }
     
     if(e.code === 'Space') actions.setCheckpoint = false;
     if(e.code === 'KeyR') actions.teleportCheckpoint = false;
     if(e.code === 'ShiftLeft' || e.code === 'ShiftRight') actions.dash = false;
+
+    // Joueur 2 (split-screen)
+    if (splitScreenEnabled) {
+        if (e.code === 'KeyF') actionsP2.setCheckpoint = false;
+        if (e.code === 'KeyG') actionsP2.teleportCheckpoint = false;
+        if (e.code === 'KeyC') actionsP2.dash = false;
+    }
 });
 
 // --- BOUCLE D'ENVOI DES MOUVEMENTS (60 FPS) ---
@@ -176,5 +211,26 @@ setInterval(() => {
     // Envoi des actions (checkpoint et dash)
     if (actions.setCheckpoint || actions.teleportCheckpoint || actions.dash) {
         socket.emit('checkpoint', actions);
+    }
+
+    // === JOUEUR 2 (split-screen) ===
+    if (splitScreenEnabled && socketSecondary && myPlayerIdSecondary) {
+        if (!inputsP2.up) inputsMomentumP2.up *= MOMENTUM_DECAY;
+        if (!inputsP2.down) inputsMomentumP2.down *= MOMENTUM_DECAY;
+        if (!inputsP2.left) inputsMomentumP2.left *= MOMENTUM_DECAY;
+        if (!inputsP2.right) inputsMomentumP2.right *= MOMENTUM_DECAY;
+
+        const inputsWithMomentumP2 = {
+            up: inputsP2.up || inputsMomentumP2.up > 0.1,
+            down: inputsP2.down || inputsMomentumP2.down > 0.1,
+            left: inputsP2.left || inputsMomentumP2.left > 0.1,
+            right: inputsP2.right || inputsMomentumP2.right > 0.1
+        };
+
+        socketSecondary.emit('movement', inputsWithMomentumP2);
+
+        if (actionsP2.setCheckpoint || actionsP2.teleportCheckpoint || actionsP2.dash) {
+            socketSecondary.emit('checkpoint', actionsP2);
+        }
     }
 }, 1000 / 60);

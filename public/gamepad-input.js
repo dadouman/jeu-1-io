@@ -4,26 +4,36 @@ const GAMEPAD_DEADZONE = 0.2;
 let activeGamepadIndex = null;
 let lastButtonState = {};
 
+function getGamepadTargets() {
+    // En split-screen, la manette pilote le joueur 2 par défaut
+    if (splitScreenEnabled) {
+        return { inputs: inputsP2, momentum: inputsMomentumP2, actions: actionsP2 };
+    }
+    return { inputs, momentum: inputsMomentum, actions };
+}
+
 function applyDeadzone(value, deadzone = GAMEPAD_DEADZONE) {
     return Math.abs(value) < deadzone ? 0 : value;
 }
 
 function setAxisInput(value, positiveKey, negativeKey) {
+    const { inputs: targetInputs, momentum } = getGamepadTargets();
     const isPositive = value > 0;
     const isNegative = value < 0;
-    inputs[positiveKey] = isPositive;
-    inputs[negativeKey] = isNegative;
-    inputsMomentum[positiveKey] = isPositive ? 1 : inputsMomentum[positiveKey] * MOMENTUM_DECAY;
-    inputsMomentum[negativeKey] = isNegative ? 1 : inputsMomentum[negativeKey] * MOMENTUM_DECAY;
+    targetInputs[positiveKey] = isPositive;
+    targetInputs[negativeKey] = isNegative;
+    momentum[positiveKey] = isPositive ? 1 : momentum[positiveKey] * MOMENTUM_DECAY;
+    momentum[negativeKey] = isNegative ? 1 : momentum[negativeKey] * MOMENTUM_DECAY;
 }
 
 function setButtonAxis(negativeButton, positiveButton, negativeKey, positiveKey) {
+    const { inputs: targetInputs, momentum } = getGamepadTargets();
     const negPressed = negativeButton && negativeButton.pressed;
     const posPressed = positiveButton && positiveButton.pressed;
-    inputs[negativeKey] = negPressed;
-    inputs[positiveKey] = posPressed;
-    inputsMomentum[negativeKey] = negPressed ? 1 : inputsMomentum[negativeKey] * MOMENTUM_DECAY;
-    inputsMomentum[positiveKey] = posPressed ? 1 : inputsMomentum[positiveKey] * MOMENTUM_DECAY;
+    targetInputs[negativeKey] = negPressed;
+    targetInputs[positiveKey] = posPressed;
+    momentum[negativeKey] = negPressed ? 1 : momentum[negativeKey] * MOMENTUM_DECAY;
+    momentum[positiveKey] = posPressed ? 1 : momentum[positiveKey] * MOMENTUM_DECAY;
 }
 
 function handleButtonPress(gamepad, index, onPress) {
@@ -82,14 +92,20 @@ function pollGamepad() {
     setButtonAxis(gamepad.buttons[12], gamepad.buttons[13], 'up', 'down');
 
     if (isPaused) {
-        inputsMomentum = { up: 0, down: 0, left: 0, right: 0 };
-        inputs = { up: false, down: false, left: false, right: false };
+        if (splitScreenEnabled) {
+            inputsMomentumP2 = { up: 0, down: 0, left: 0, right: 0 };
+            inputsP2 = { up: false, down: false, left: false, right: false };
+        } else {
+            inputsMomentum = { up: 0, down: 0, left: 0, right: 0 };
+            inputs = { up: false, down: false, left: false, right: false };
+        }
     }
 
     // Actions (maintenues)
-    actions.dash = gamepad.buttons[0] && gamepad.buttons[0].pressed;
-    actions.setCheckpoint = gamepad.buttons[2] && gamepad.buttons[2].pressed;
-    actions.teleportCheckpoint = gamepad.buttons[1] && gamepad.buttons[1].pressed;
+    const { actions: targetActions } = getGamepadTargets();
+    targetActions.dash = gamepad.buttons[0] && gamepad.buttons[0].pressed;
+    targetActions.setCheckpoint = gamepad.buttons[2] && gamepad.buttons[2].pressed;
+    targetActions.teleportCheckpoint = gamepad.buttons[1] && gamepad.buttons[1].pressed;
 
     requestAnimationFrame(pollGamepad);
 }

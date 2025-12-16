@@ -14,12 +14,17 @@ window.addEventListener('resize', () => {
 
 // --- GESTION DES CLICS SOURIS POUR LE SHOP ---
 canvas.addEventListener('click', (event) => {
-    console.log(`🖱️ Click détecté | isShopOpen=${isShopOpen}`);
-    if (!isShopOpen) return;
-    
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
+
+    if (pauseMenuVisible && typeof handlePauseMenuClick === 'function') {
+        const handled = handlePauseMenuClick(mouseX, mouseY);
+        if (handled) return;
+    }
+
+    console.log(`🖱️ Click détecté | isShopOpen=${isShopOpen}`);
+    if (!isShopOpen) return;
     
     console.log(`🖱️ Position: (${mouseX}, ${mouseY}) | Gems: ${playerGems}`);
     

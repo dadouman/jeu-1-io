@@ -223,6 +223,6 @@ function startCountdown() {
 }
 
 // --- VARIABLES MENU PRINCIPAL ---
-let mainMenuVisible = true; // Afficher le menu principal au démarrage
+// mainMenuVisible est défini dans main-menu.js
 let mainMenuSelectedIndex = 0; // Index du bouton sélectionné à la manette
 let lastGamepadYInput = 0; // Dernière valeur Y du stick gauche (pour éviter les inputs répétés)

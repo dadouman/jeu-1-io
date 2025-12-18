@@ -1,6 +1,6 @@
 // main-menu.js - Menu principal avec options manette et split-screen
 
-let mainMenuVisible = false;
+let mainMenuVisible = true; // Afficher le menu principal au démarrage
 let mainMenuOptions = {
     startGame: false,
     gamepadEnabled: false,

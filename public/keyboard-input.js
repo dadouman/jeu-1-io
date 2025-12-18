@@ -35,6 +35,24 @@ document.addEventListener('click', (e) => {
 
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Escape') {
+        // Debug: afficher l'état actuel
+        console.log('Échap pressé - État:', { mainMenuVisible, selectedMode, currentGameMode });
+        
+        // Si on est sur le menu principal, ne rien faire
+        if (mainMenuVisible) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Si on est sur le mode selector (pas de mode sélectionné), retourner au menu principal
+        if (selectedMode === null && currentGameMode === null) {
+            console.log('Retour au menu principal depuis le mode selector');
+            showMainMenu();
+            e.preventDefault();
+            return;
+        }
+        
+        // Sinon, toggle la pause (en jeu)
         togglePause('keyboard-escape');
         e.preventDefault();
         return;

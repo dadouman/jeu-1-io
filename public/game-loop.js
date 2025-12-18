@@ -57,24 +57,39 @@ function handleServerState(gameState) {
 
     // --- FERMETURE AUTOMATIQUE DU MAGASIN APRÈS 15 SECONDES (classique/infini/custom) ---
     if (!currentGameMode || currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') {
-        if (isShopOpen && shopTimerStart) {
-            const elapsed = Date.now() - shopTimerStart;
+        const anyShopOpen = isShopOpen || (splitScreenEnabled && isShopOpenP2);
+        const startPrimary = typeof shopTimerStart === 'number' ? shopTimerStart : Number.POSITIVE_INFINITY;
+        const startSecondary = typeof shopTimerStartP2 === 'number' ? shopTimerStartP2 : Number.POSITIVE_INFINITY;
+        const effectiveStart = Math.min(startPrimary, startSecondary);
+
+        if (anyShopOpen && Number.isFinite(effectiveStart)) {
+            const elapsed = Date.now() - effectiveStart;
             if (elapsed >= SHOP_DURATION) {
                 if (soloSessionStartTime) {
                     soloInactiveTime += SHOP_DURATION;
                 }
+
+                // Fermer localement (P1 + P2 si split)
                 isShopOpen = false;
                 isPlayerReadyToContinue = false;
                 shopTimerStart = null;
+                shopItems = {};
+
+                if (splitScreenEnabled) {
+                    isShopOpenP2 = false;
+                    isPlayerReadyToContinueP2 = false;
+                    shopTimerStartP2 = null;
+                    shopItemsP2 = {};
+                }
+
                 shopReadyCount = 0;
                 shopTotalPlayers = 0;
-                
-                // Envoyer l'événement de fermeture au serveur
+
+                // Envoyer l'événement au serveur une seule fois (socket principal)
                 if (socket) {
                     socket.emit('shopClosedByTimeout');
                 }
-                
-                // Redémarrer le timer du niveau
+
                 levelStartTime = Date.now();
             }
         }
@@ -121,6 +136,7 @@ function handleServerState(gameState) {
     // --- RENDU ---
     if (typeof renderGame === "function") {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
+        const shopTimeRemainingP2 = isShopOpenP2 && shopTimerStartP2 ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStartP2)) / 1000)) : 0;
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
@@ -195,11 +211,11 @@ function handleServerState(gameState) {
             const viewportLeft = { x: 0, y: 0, width: halfW, height: canvas.height };
             const viewportRight = { x: halfW, y: 0, width: halfW, height: canvas.height };
 
-            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportLeft);
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItems, animations: shopAnimations, isPlayerReadyToContinue, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers }, viewportLeft);
 
-            renderGame(ctx, canvas, map, gameState.players, gameState.coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpen, playerGemsP2, purchasedFeaturesP2, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportRight);
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpenP2, playerGemsP2, purchasedFeaturesP2, shopTimeRemainingP2, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItemsP2, animations: shopAnimationsP2, isPlayerReadyToContinue: isPlayerReadyToContinueP2, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers }, viewportRight);
         } else {
-            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+            renderGame(ctx, canvas, map, gameState.players, gameState.coin, finalId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItems, animations: shopAnimations, isPlayerReadyToContinue, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers });
         }
     }
 }
@@ -226,6 +242,7 @@ function continuousRender() {
     // Vérifier que tous les éléments nécessaires sont disponibles
     if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
+        const shopTimeRemainingP2 = isShopOpenP2 && shopTimerStartP2 ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStartP2)) / 1000)) : 0;
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;
         const voteTimeRemaining = isVoteActive && voteStartTime ? Math.max(0, Math.ceil((VOTE_TIMEOUT - (Date.now() - voteStartTime)) / 1000)) : 0;
         
@@ -312,11 +329,11 @@ function continuousRender() {
             const viewportLeft = { x: 0, y: 0, width: halfW, height: canvas.height };
             const viewportRight = { x: halfW, y: 0, width: halfW, height: canvas.height };
 
-            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportLeft);
+            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItems, animations: shopAnimations, isPlayerReadyToContinue, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers }, viewportLeft);
 
-            renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpen, playerGemsP2, purchasedFeaturesP2, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, viewportRight);
+            renderGame(ctx, canvas, map, currentPlayers, coin, myPlayerIdSecondary, currentHighScore, level, checkpoint, trails, isShopOpenP2, playerGemsP2, purchasedFeaturesP2, shopTimeRemainingP2, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItemsP2, animations: shopAnimationsP2, isPlayerReadyToContinue: isPlayerReadyToContinueP2, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers }, viewportRight);
         } else {
-            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed);
+            renderGame(ctx, canvas, map, currentPlayers, coin, primaryId, currentHighScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime, isFirstLevel, playerCountStart, isVoteActive, voteTimeRemaining, voteResult, soloRunTotalTime, soloDeltaTime, soloDeltaReference, soloPersonalBestTime, soloLeaderboardBest, isSoloGameFinished, soloCurrentLevelTime, currentGameMode, soloStartCountdownActive, soloStartCountdownElapsed, { items: shopItems, animations: shopAnimations, isPlayerReadyToContinue, readyCount: shopReadyCount, totalPlayers: shopTotalPlayers });
         }
     }
     

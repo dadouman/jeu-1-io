@@ -99,7 +99,7 @@ function renderCompassIndicator(ctx, player, target) {
     ctx.restore();
 }
 
-function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0, viewport = null) {
+function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, checkpoint, trails, isShopOpen, playerGems, purchasedFeatures, shopTimeRemaining, zoomLevel, isInTransition, transitionProgress, levelUpPlayerSkin, levelUpTime, currentLevelTime = 0, isFirstLevel = false, playerCountStart = 0, isVoteActive = false, voteTimeRemaining = 0, voteResult = null, soloRunTotalTime = 0, soloDeltaTime = null, soloDeltaReference = null, soloPersonalBestTime = null, soloLeaderboardBest = null, isSoloGameFinished = false, soloCurrentLevelTime = 0, currentGameMode = null, soloStartCountdownActive = false, soloStartCountdownElapsed = 0, shopUi = null, viewport = null) {
     const viewWidth = viewport?.width || canvas.width;
     const viewHeight = viewport?.height || canvas.height;
     const viewOffsetX = viewport?.x || 0;
@@ -240,7 +240,7 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
     
     // --- AFFICHAGE DU SHOP ---
     if (isShopOpen && typeof renderShop === 'function') {
-        renderShop(ctx, viewCanvas, level, playerGems, shopTimeRemaining);
+        renderShop(ctx, viewCanvas, level, playerGems, shopTimeRemaining, shopUi);
     }
 
     // --- AFFICHAGE DU HUD SOLO (temps total, delta, niveau) ---

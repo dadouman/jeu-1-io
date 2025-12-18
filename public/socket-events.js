@@ -121,29 +121,54 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
     // --- ÉVÉNEMENTS SHOP ---
     targetSocket.on('shopOpen', (data) => {
-        if (currentGameMode !== 'solo') {
+        if (currentGameMode === 'solo') return;
+
+        const now = Date.now();
+        const isSecondary = source === 'secondary';
+
+        if (isSecondary) {
+            isShopOpenP2 = true;
+            isPlayerReadyToContinueP2 = false;
+            shopItemsP2 = data.items;
+            shopTimerStartP2 = now;
+        } else {
             isShopOpen = true;
             isPlayerReadyToContinue = false;
             shopItems = data.items;
-            shopTimerStart = Date.now();
-            levelStartTime = null;
-            
-            shopTotalPlayers = currentPlayers ? Object.keys(currentPlayers).length : 1;
-            shopReadyCount = 0;
-            
-            const shopNumber = Math.floor(data.level / 5);
-            console.log(`%c🏪 SHOP ${shopNumber} OUVERT | Appuyez sur 1,2,3,4,5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+            shopTimerStart = now;
         }
+
+        levelStartTime = null;
+
+        // Compteur global (même lobby)
+        shopTotalPlayers = currentPlayers ? Object.keys(currentPlayers).length : 1;
+        shopReadyCount = 0;
+
+        const shopNumber = Math.floor(data.level / 5);
+        const who = isSecondary ? 'P2' : 'P1';
+        console.log(`%c🏪 [${who}] SHOP ${shopNumber} OUVERT | 1-5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
     });
 
     targetSocket.on('shopPurchaseSuccess', (data) => {
+        const isSecondary = source === 'secondary';
+        const targetFeatures = isSecondary ? purchasedFeaturesP2 : purchasedFeatures;
+
         if (data.itemId === 'speedBoost') {
-            purchasedFeatures[data.itemId] = (purchasedFeatures[data.itemId] || 0) + 1;
+            targetFeatures[data.itemId] = (targetFeatures[data.itemId] || 0) + 1;
         } else {
-            purchasedFeatures[data.itemId] = true;
+            targetFeatures[data.itemId] = true;
         }
-        playerGems = data.gemsLeft;
-        console.log(`%c✅ ${data.item.name} acheté! | ${data.gemsLeft}💎 restants`, 'color: #00FF00; font-weight: bold');
+
+        if (isSecondary) {
+            purchasedFeaturesP2 = targetFeatures;
+            playerGemsP2 = data.gemsLeft;
+        } else {
+            purchasedFeatures = targetFeatures;
+            playerGems = data.gemsLeft;
+        }
+
+        const who = isSecondary ? 'P2' : 'P1';
+        console.log(`%c✅ [${who}] ${data.item.name} acheté! | ${data.gemsLeft}💎`, 'color: #00FF00; font-weight: bold');
     });
 
     targetSocket.on('shopPurchaseFailed', (data) => {
@@ -152,11 +177,20 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
     targetSocket.on('shopClosed', () => {
         if (currentGameMode !== 'solo') {
-            isShopOpen = false;
-            isPlayerReadyToContinue = false;
+            const isSecondary = source === 'secondary';
+            if (isSecondary) {
+                isShopOpenP2 = false;
+                isPlayerReadyToContinueP2 = false;
+                shopTimerStartP2 = null;
+                shopItemsP2 = {};
+            } else {
+                isShopOpen = false;
+                isPlayerReadyToContinue = false;
+                shopTimerStart = null;
+                shopItems = {};
+            }
             shopReadyCount = 0;
             shopTotalPlayers = 0;
-            shopItems = {};
             console.log(`%c🏪 SHOP FERMÉ | Retour au niveau`, 'color: #FFD700; font-weight: bold');
             levelStartTime = Date.now();
         }
@@ -170,11 +204,20 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
     targetSocket.on('shopClosedAutomatically', () => {
         if (currentGameMode !== 'solo') {
-            isShopOpen = false;
-            isPlayerReadyToContinue = false;
+            const isSecondary = source === 'secondary';
+            if (isSecondary) {
+                isShopOpenP2 = false;
+                isPlayerReadyToContinueP2 = false;
+                shopTimerStartP2 = null;
+                shopItemsP2 = {};
+            } else {
+                isShopOpen = false;
+                isPlayerReadyToContinue = false;
+                shopTimerStart = null;
+                shopItems = {};
+            }
             shopReadyCount = 0;
             shopTotalPlayers = 0;
-            shopItems = {};
             console.log(`%c🏪 SHOP FERMÉ (TIMEOUT) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
             levelStartTime = Date.now();
         }

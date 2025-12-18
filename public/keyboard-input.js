@@ -121,19 +121,45 @@ document.addEventListener('keydown', (e) => {
     }
     
     // --- SHOP : Achats avec touches numériques ---
-    if (isShopOpen && e.key.match(/^[1-5]$/)) {
+    const activeSide = (splitScreenEnabled && socketSecondary && myPlayerIdSecondary) ? (activeShopSide || 'primary') : 'primary';
+    const activeIsShopOpen = activeSide === 'secondary' ? isShopOpenP2 : isShopOpen;
+    const activeShopItems = activeSide === 'secondary' ? shopItemsP2 : shopItems;
+    const activeSocket = activeSide === 'secondary' ? socketSecondary : socket;
+    const activeGems = activeSide === 'secondary' ? playerGemsP2 : playerGems;
+    const activeFeatures = activeSide === 'secondary' ? purchasedFeaturesP2 : purchasedFeatures;
+
+    if (activeIsShopOpen && e.key.match(/^[1-5]$/)) {
         const itemOrder = ['dash', 'checkpoint', 'compass', 'rope', 'speedBoost'];
         const itemId = itemOrder[parseInt(e.key) - 1];
-        if (itemId && shopItems[itemId]) {
-            socket.emit('shopPurchase', { itemId });
+        if (itemId && activeShopItems && activeShopItems[itemId]) {
+            // Optionnel: ne pas spam si pas assez de gems ou déjà acheté (non-stackable)
+            const item = activeShopItems[itemId];
+            const hasEnough = (activeGems || 0) >= (item.price || 0);
+            const already = (itemId !== 'speedBoost' && activeFeatures && activeFeatures[itemId] === true);
+
+            if (hasEnough && !already && activeSocket) {
+                activeSocket.emit('shopPurchase', { itemId });
+            }
             e.preventDefault();
         }
     }
     
     // --- SHOP : Quitter le shop avec Entrée ---
-    if (isShopOpen && e.code === 'Enter') {
-        socket.emit('validateShop');
-        console.log(`%c⌨️ Touche Entrée: fermeture du shop`, 'color: #00FF00; font-weight: bold');
+    if (activeIsShopOpen && e.code === 'Enter') {
+        // Solo: validateShop, Multi: playerReadyToContinueShop
+        if (activeSocket) {
+            if (currentGameMode === 'solo') {
+                activeSocket.emit('validateShop');
+            } else {
+                activeSocket.emit('playerReadyToContinueShop');
+                if (activeSide === 'secondary') {
+                    isPlayerReadyToContinueP2 = true;
+                } else {
+                    isPlayerReadyToContinue = true;
+                }
+            }
+        }
+        console.log(`%c⌨️ Entrée: action shop (${activeSide})`, 'color: #00FF00; font-weight: bold');
         e.preventDefault();
     }
     

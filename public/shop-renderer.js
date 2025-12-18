@@ -27,6 +27,27 @@ function getShopContinueButtonArea(canvasWidth, canvasHeight) {
  * Affiche l'interface du shop
  */
 function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
+    // shopUi (split-screen): { items, animations, isPlayerReadyToContinue, readyCount, totalPlayers }
+    const effectiveShopItems = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object')
+        ? (arguments[5].items || {})
+        : (typeof shopItems !== 'undefined' ? shopItems : {});
+
+    const effectiveAnimations = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object')
+        ? (arguments[5].animations || { hoveredItemId: null, purchaseAnimations: {} })
+        : (typeof shopAnimations !== 'undefined' ? shopAnimations : { hoveredItemId: null, purchaseAnimations: {} });
+
+    const effectiveIsReady = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object' && typeof arguments[5].isPlayerReadyToContinue === 'boolean')
+        ? arguments[5].isPlayerReadyToContinue
+        : (typeof isPlayerReadyToContinue !== 'undefined' ? isPlayerReadyToContinue : false);
+
+    const effectiveReadyCount = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object' && typeof arguments[5].readyCount === 'number')
+        ? arguments[5].readyCount
+        : (typeof shopReadyCount !== 'undefined' ? shopReadyCount : 0);
+
+    const effectiveTotalPlayers = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object' && typeof arguments[5].totalPlayers === 'number')
+        ? arguments[5].totalPlayers
+        : (typeof shopTotalPlayers !== 'undefined' ? shopTotalPlayers : 0);
+
     // Overlay semi-transparent
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -73,9 +94,9 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     
     // Utiliser les items du serveur si disponibles
     let itemList = defaultItems;
-    if (typeof shopItems !== 'undefined' && shopItems && Object.keys(shopItems).length > 0) {
+    if (effectiveShopItems && Object.keys(effectiveShopItems).length > 0) {
         itemList = defaultItems.map(defaultItem => {
-            const serverItem = shopItems[defaultItem.id];
+            const serverItem = effectiveShopItems[defaultItem.id];
             if (serverItem) {
                 return {
                     ...defaultItem,
@@ -87,7 +108,7 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
         });
     }
     
-    renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems);
+    renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems, effectiveAnimations);
     
     // Instructions et bouton continuer
     ctx.fillStyle = "#888";
@@ -118,8 +139,8 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     
     // Si le joueur est prêt, afficher "x/y ont terminé"
     let buttonText = 'Continuer';
-    if (isPlayerReadyToContinue) {
-        buttonText = `${shopReadyCount}/${shopTotalPlayers} ont terminé`;
+    if (effectiveIsReady) {
+        buttonText = `${effectiveReadyCount}/${effectiveTotalPlayers} ont terminé`;
     }
     ctx.fillText(buttonText, canvas.width / 2, continueButtonY + continueButtonHeight / 2);
 }
@@ -127,7 +148,8 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
 /**
  * Affiche les items du shop sous forme de carré (comme le HUD features)
  */
-function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems) {
+function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, playerGems, animations = null) {
+    const effectiveAnimations = animations || (typeof shopAnimations !== 'undefined' ? shopAnimations : { hoveredItemId: null, purchaseAnimations: {} });
     const BOX_SIZE = 90;
     const BOX_SPACING = 110;
     const ITEMS_Y = shopY + 130;
@@ -153,10 +175,10 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
     
     // Mettre à jour les animations (nettoyer celles qui ont terminé)
     const now = Date.now();
-    for (const itemId in shopAnimations.purchaseAnimations) {
-        const anim = shopAnimations.purchaseAnimations[itemId];
+    for (const itemId in effectiveAnimations.purchaseAnimations) {
+        const anim = effectiveAnimations.purchaseAnimations[itemId];
         if (now - anim.startTime > 800) { // Animation de 800ms
-            delete shopAnimations.purchaseAnimations[itemId];
+            delete effectiveAnimations.purchaseAnimations[itemId];
         }
     }
     
@@ -165,8 +187,8 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
         const y = ITEMS_Y;
         
         const canBuy = playerGems >= item.price;
-        const isHovered = shopAnimations.hoveredItemId === item.id;
-        const isPurchasing = shopAnimations.purchaseAnimations[item.id];
+        const isHovered = effectiveAnimations.hoveredItemId === item.id;
+        const isPurchasing = effectiveAnimations.purchaseAnimations[item.id];
         
         // === BOÎTE DE FOND ===
         if (canBuy) {

@@ -23,26 +23,50 @@ canvas.addEventListener('click', (event) => {
         if (handled) return;
     }
 
-    console.log(`🖱️ Click détecté | isShopOpen=${isShopOpen}`);
-    if (!isShopOpen) return;
-    
-    console.log(`🖱️ Position: (${mouseX}, ${mouseY}) | Gems: ${playerGems}`);
+    // Déterminer quel écran (P1/P2) est ciblé en split-screen
+    const isSplit = splitScreenEnabled && socketSecondary && myPlayerIdSecondary;
+    const halfW = isSplit ? canvas.width / 2 : canvas.width;
+    const side = isSplit && mouseX >= halfW ? 'secondary' : 'primary';
+    activeShopSide = side;
+
+    const isOpen = side === 'secondary' ? isShopOpenP2 : isShopOpen;
+    if (!isOpen) return;
+
+    const localX = side === 'secondary' ? (mouseX - halfW) : mouseX;
+    const localY = mouseY;
+    const localGems = side === 'secondary' ? playerGemsP2 : playerGems;
+    const localFeatures = side === 'secondary' ? purchasedFeaturesP2 : purchasedFeatures;
+    const localShopItems = (side === 'secondary' ? shopItemsP2 : shopItems) || {};
+    const localAnimations = side === 'secondary' ? shopAnimationsP2 : shopAnimations;
+    const targetSocket = side === 'secondary' ? socketSecondary : socket;
+    const localIsReadyRef = side === 'secondary' ? 'P2' : 'P1';
+
+    console.log(`🖱️ Click détecté | ${localIsReadyRef} shopOpen=${isOpen}`);
+    console.log(`🖱️ Position(${localIsReadyRef}): (${localX}, ${localY}) | Gems: ${localGems}`);
     
     // === VÉRIFIER LE BOUTON CONTINUER ===
     if (typeof getShopContinueButtonArea === 'function') {
-        const continueButton = getShopContinueButtonArea(canvas.width, canvas.height);
-        if (mouseX >= continueButton.x && mouseX <= continueButton.x + continueButton.width &&
-            mouseY >= continueButton.y && mouseY <= continueButton.y + continueButton.height) {
-            console.log(`✅ Bouton Continuer cliqué!`);
-            // Marquer le joueur comme prêt et envoyer l'événement
-            isPlayerReadyToContinue = true;
-            socket.emit('playerReadyToContinueShop');
+        const continueButton = getShopContinueButtonArea(halfW, canvas.height);
+        if (localX >= continueButton.x && localX <= continueButton.x + continueButton.width &&
+            localY >= continueButton.y && localY <= continueButton.y + continueButton.height) {
+            console.log(`✅ Bouton Continuer cliqué! (${localIsReadyRef})`);
+
+            // Marquer le joueur comme prêt et envoyer l'événement (multi)
+            if (side === 'secondary') {
+                isPlayerReadyToContinueP2 = true;
+            } else {
+                isPlayerReadyToContinue = true;
+            }
+
+            if (targetSocket) {
+                targetSocket.emit('playerReadyToContinueShop');
+            }
             return;
         }
     }
     
     // Obtenir les zones cliquables du shop
-    const clickAreas = getShopClickAreas(canvas.width, canvas.height);
+    const clickAreas = getShopClickAreas(halfW, canvas.height);
     console.log(`📦 Zones cliquables:`, clickAreas);
     
     // Items par défaut si shopItems est vide
@@ -55,32 +79,34 @@ canvas.addEventListener('click', (event) => {
     };
     
     // Utiliser shopItems du serveur ou les valeurs par défaut
-    const effectiveShopItems = (shopItems && Object.keys(shopItems).length > 0) ? shopItems : defaultShopItems;
+    const effectiveShopItems = (localShopItems && Object.keys(localShopItems).length > 0) ? localShopItems : defaultShopItems;
     
     // Vérifier si un item a été cliqué
     for (const area of clickAreas) {
         const { x, y, width, height } = area.rect;
-        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
+        if (localX >= x && localX <= x + width && localY >= y && localY <= y + height) {
             const item = effectiveShopItems[area.id];
             if (item) {
                 // Vérifier si le joueur a assez de gems
-                const hasEnoughGems = playerGems >= item.price;
+            const hasEnoughGems = localGems >= item.price;
                 
                 // Vérifier si l'item est déjà acheté (non-stackable)
-                const isAlreadyPurchased = (item.id !== 'speedBoost' && !item.stackable && purchasedFeatures[item.id] === true);
+            const isAlreadyPurchased = (item.id !== 'speedBoost' && !item.stackable && localFeatures[item.id] === true);
                 
                 console.log(`🎯 Item cliqué: ${area.id} | Assez de gems: ${hasEnoughGems} | Déjà acheté: ${isAlreadyPurchased}`);
                 
                 // Ne pas acheter si pas assez d'argent ou si déjà acheté
                 if (hasEnoughGems && !isAlreadyPurchased) {
                     console.log(`📤 Envoi shopPurchase: ${area.id}`);
-                    socket.emit('shopPurchase', { itemId: area.id });
+                    if (targetSocket) {
+                        targetSocket.emit('shopPurchase', { itemId: area.id });
+                    }
                     // Déclencher l'animation d'achat
-                    shopAnimations.purchaseAnimations[area.id] = {
+                    localAnimations.purchaseAnimations[area.id] = {
                         startTime: Date.now()
                     };
                 } else {
-                    console.log(`❌ Achat refusé: gems=${playerGems}, price=${item.price}, purchased=${purchasedFeatures[area.id]}`);
+                    console.log(`❌ Achat refusé(${localIsReadyRef}): gems=${localGems}, price=${item.price}, purchased=${localFeatures[area.id]}`);
                 }
             }
             break;
@@ -90,22 +116,34 @@ canvas.addEventListener('click', (event) => {
 
 // --- GESTION DU HOVER POUR LE SHOP ---
 canvas.addEventListener('mousemove', (event) => {
-    if (!isShopOpen) {
-        shopAnimations.hoveredItemId = null;
-        return;
-    }
-    
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
+
+    // Déterminer le viewport actif
+    const isSplit = splitScreenEnabled && socketSecondary && myPlayerIdSecondary;
+    const halfW = isSplit ? canvas.width / 2 : canvas.width;
+    const side = isSplit && mouseX >= halfW ? 'secondary' : 'primary';
+    activeShopSide = side;
+
+    const isOpen = side === 'secondary' ? isShopOpenP2 : isShopOpen;
+    const localAnimations = side === 'secondary' ? shopAnimationsP2 : shopAnimations;
+
+    if (!isOpen) {
+        localAnimations.hoveredItemId = null;
+        return;
+    }
+
+    const localX = side === 'secondary' ? (mouseX - halfW) : mouseX;
+    const localY = mouseY;
     
-    const clickAreas = getShopClickAreas(canvas.width, canvas.height);
+    const clickAreas = getShopClickAreas(halfW, canvas.height);
     
-    shopAnimations.hoveredItemId = null;
+    localAnimations.hoveredItemId = null;
     for (const area of clickAreas) {
         const { x, y, width, height } = area.rect;
-        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height) {
-            shopAnimations.hoveredItemId = area.id;
+        if (localX >= x && localX <= x + width && localY >= y && localY <= y + height) {
+            localAnimations.hoveredItemId = area.id;
             break;
         }
     }

@@ -68,6 +68,16 @@ let purchasedFeaturesById = {};
 let shopTimerStart = null;
 let shopAnimations = { hoveredItemId: null, purchaseAnimations: {} }; // Animations du shop
 let isPlayerReadyToContinue = false; // Joueur prêt à continuer du shop
+
+// Split-screen: état shop séparé pour le joueur 2
+let isShopOpenP2 = false;
+let shopItemsP2 = {};
+let shopTimerStartP2 = null;
+let shopAnimationsP2 = { hoveredItemId: null, purchaseAnimations: {} };
+let isPlayerReadyToContinueP2 = false;
+
+// Routing clavier: quel écran/shop est actif (mis à jour via mousemove/click)
+let activeShopSide = 'primary'; // 'primary' | 'secondary'
 let shopReadyCount = 0; // Nombre de joueurs prêts à continuer
 let shopTotalPlayers = 0; // Nombre total de joueurs dans le shop
 const SHOP_DURATION = 15000; // 15 secondes

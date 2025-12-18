@@ -1,8 +1,8 @@
 // client.js - Point d'entrée principal
 
-// Configuration du canvas
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+// Configuration du canvas (var pour accès global depuis game-loop.js)
+var canvas = document.getElementById('gameCanvas');
+var ctx = canvas.getContext('2d');
 
 // Ajuster le canvas à la taille de l'écran
 canvas.width = window.innerWidth;
@@ -159,6 +159,17 @@ canvas.addEventListener('mousemove', (event) => {
 canvas.addEventListener('mouseleave', () => {
     shopAnimations.hoveredItemId = null;
 });
+
+// === INITIALISATION DU MENU PRINCIPAL ===
+// S'assurer que le mode selector est caché et le menu principal est visible au démarrage
+(function initMainMenu() {
+    const modeSelector = document.getElementById('modeSelector');
+    if (modeSelector) {
+        modeSelector.style.display = 'none';
+    }
+    mainMenuVisible = true;
+    console.log('%c🎮 Menu principal initialisé', 'color: #FFD700; font-weight: bold');
+})();
 
 // Les modules sont chargés dans l'ordre suivant via les balises <script> dans index.html:
 // 1. game-state.js - Variables d'état globales

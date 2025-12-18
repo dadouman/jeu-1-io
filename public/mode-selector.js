@@ -1,6 +1,6 @@
 // mode-selector.js - Gestion de la sélection du mode de jeu
 
-let selectedMode = null;
+var selectedMode = null; // var pour accès global
 
 /**
  * Sélectionne un mode de jeu

@@ -238,7 +238,20 @@ function detachSecondaryStateListener() {
 }
 
 // --- BOUCLE DE RENDU CONTINUE (pour l'écran de fin solo et transitions) ---
+let debugLogged = false;
 function continuousRender() {
+    // Debug: afficher l'état une seule fois
+    if (!debugLogged) {
+        console.log('🔄 continuousRender - Debug:', {
+            renderGame: typeof renderGame,
+            ctx: typeof ctx,
+            canvas: typeof canvas,
+            mainMenuVisible: typeof mainMenuVisible !== 'undefined' ? mainMenuVisible : 'undefined',
+            renderMainMenu: typeof renderMainMenu
+        });
+        debugLogged = true;
+    }
+    
     // Vérifier que tous les éléments nécessaires sont disponibles
     if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
         // === AFFICHER LE MENU PRINCIPAL AVANT LA SÉLECTION DU MODE ===

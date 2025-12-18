@@ -106,7 +106,7 @@ let soloSplitTimes = [];
 let isSoloGameFinished = false;
 let soloFinishedTime = null;
 let soloSessionStartTime = null; // Temps de démarrage de la session solo
-let currentGameMode = null; // 'classic', 'infinite', 'solo'
+var currentGameMode = null; // 'classic', 'infinite', 'solo' (var pour accès global)
 let currentGameEndType = 'multi'; // 'multi' (podium) | 'solo' (speedrun)
 let soloMaxLevel = 10; // Solo: toujours 10 niveaux
 let soloCurrentLevelTime = 0; // Temps du niveau actuel
@@ -223,6 +223,5 @@ function startCountdown() {
 }
 
 // --- VARIABLES MENU PRINCIPAL ---
-// mainMenuVisible est défini dans main-menu.js
-let mainMenuSelectedIndex = 0; // Index du bouton sélectionné à la manette
-let lastGamepadYInput = 0; // Dernière valeur Y du stick gauche (pour éviter les inputs répétés)
+// mainMenuVisible et mainMenuSelectedIndex sont définis dans main-menu.js
+var lastGamepadYInput = 0; // Dernière valeur Y du stick gauche (pour éviter les inputs répétés)

@@ -1,18 +1,18 @@
 // main-menu.js - Menu principal avec options manette et split-screen
 
-let mainMenuVisible = true; // Afficher le menu principal au démarrage
-let mainMenuOptions = {
+var mainMenuVisible = true; // Afficher le menu principal au démarrage (var pour accès global)
+var mainMenuOptions = {
     startGame: false,
     gamepadEnabled: false,
     splitScreenEnabled: false
 };
 
 // Zones cliquables du menu principal
-let mainMenuClickAreas = null;
+var mainMenuClickAreas = null;
 
 // Navigation à la manette
-let mainMenuSelectedIndex = 0; // 0 = manette, 1 = split-screen, 2 = commencer
-let mainMenuGamepadYInputDebounce = 0; // Évite les inputs répétés
+var mainMenuSelectedIndex = 0; // 0 = manette, 1 = split-screen, 2 = commencer (var pour accès global)
+var mainMenuGamepadYInputDebounce = 0; // Évite les inputs répétés
 
 /**
  * Affiche le menu principal
@@ -246,8 +246,6 @@ function handleModeSelectGamepadNavigation(gamepad) {
 /**
  * Gère la navigation à la manette sur le menu principal
  */
-let mainMenuSelectedIndex = 0; // 0 = manette, 1 = split-screen, 2 = commencer
-
 function handleMainMenuGamepadNavigation(gamepad) {
     // Mouvement vertical du D-Pad ou du stick gauche
     const axisY = applyDeadzone(gamepad.axes[1] || 0);

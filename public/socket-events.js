@@ -331,12 +331,20 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
         console.log(`%c🔄 ${data.message}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
+        // Si le menu principal est visible, ne pas afficher le mode selector
+        // L'utilisateur doit d'abord cliquer sur "Commencer"
+        if (mainMenuVisible) {
+            console.log('%c🎮 Menu principal affiché - mode selector masqué', 'color: #00BFFF');
+            return;
+        }
+        
         if (data.reason === 'gameEnded') {
             console.log(`%c⏳ L'écran de fin s'affichera pendant 5 secondes...`, 'color: #FF6B6B; font-weight: bold');
             setTimeout(() => {
                 isClassicGameFinished = false;
                 isSoloGameFinished = false;
                 currentGameMode = null;
+                selectedMode = null; // Réinitialiser pour permettre Échap → menu principal
                 
                 const modeSelector = document.getElementById('modeSelector');
                 if (modeSelector) {
@@ -349,6 +357,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             isClassicGameFinished = false;
             isSoloGameFinished = false;
             currentGameMode = null;
+            selectedMode = null; // Réinitialiser pour permettre Échap → menu principal
             
             const modeSelector = document.getElementById('modeSelector');
             if (modeSelector) {

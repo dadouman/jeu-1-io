@@ -35,7 +35,7 @@ let activeGamepadName = '';
 let gamepadStatusMessage = '';
 let gamepadStatusMessageTime = 0;
 // Zones cliquables du menu pause (renseignées par le renderer)
-const pauseMenuClickAreas = { gamepad: null, split: null };
+const pauseMenuClickAreas = { gamepad: null, split: null, returnToMode: null };
 
 // --- VARIABLES NIVEAU ---
 let level = 1;
@@ -221,3 +221,8 @@ function startCountdown() {
         }, currentGameMode);
     }
 }
+
+// --- VARIABLES MENU PRINCIPAL ---
+let mainMenuVisible = true; // Afficher le menu principal au démarrage
+let mainMenuSelectedIndex = 0; // Index du bouton sélectionné à la manette
+let lastGamepadYInput = 0; // Dernière valeur Y du stick gauche (pour éviter les inputs répétés)

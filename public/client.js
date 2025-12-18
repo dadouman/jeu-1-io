@@ -12,11 +12,17 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
 });
 
-// --- GESTION DES CLICS SOURIS POUR LE SHOP ---
+// --- GESTION DES CLICS SOURIS POUR LE MENU ET LE SHOP ---
 canvas.addEventListener('click', (event) => {
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
+
+    // Priorité 1: Menu principal
+    if (mainMenuVisible && typeof handleMainMenuClick === 'function') {
+        const handled = handleMainMenuClick(mouseX, mouseY);
+        if (handled) return;
+    }
 
     if (pauseMenuVisible && typeof handlePauseMenuClick === 'function') {
         const handled = handlePauseMenuClick(mouseX, mouseY);

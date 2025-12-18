@@ -357,6 +357,46 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         }
     });
 
+    // --- ÉVÉNEMENTS VOTE RETOUR AU MODE ---
+    targetSocket.on('returnToModeVoteStarted', (data) => {
+        if (source === 'secondary') return;
+        
+        returnToModeVoteActive = true;
+        returnToModeVoteTime = Date.now();
+        console.log(`%c🗳️ Vote pour retour au mode commencé! Durée: ${data.timeoutSeconds || 30}s`, 'color: #FFD700; font-weight: bold');
+    });
+
+    targetSocket.on('returnToModeVoteFinished', (data) => {
+        if (source === 'secondary') return;
+        
+        returnToModeVoteActive = false;
+        returnToModeVoteTime = null;
+        
+        if (data.success) {
+            console.log(`%c✅ Vote réussi! Retour au mode sélection...`, 'color: #00FF00; font-weight: bold');
+            
+            // Réinitialiser l'état du jeu
+            isClassicGameFinished = false;
+            isSoloGameFinished = false;
+            isPaused = false;
+            pauseMenuVisible = false;
+            currentGameMode = null;
+            selectedMode = null;
+            map = [];
+            currentPlayers = {};
+            
+            // Afficher le sélecteur de mode
+            const modeSelector = document.getElementById('modeSelector');
+            if (modeSelector) {
+                modeSelector.style.display = 'flex';
+            }
+            
+            mainMenuVisible = false;
+        } else {
+            console.log(`%c❌ Vote échoué. Poursuite du jeu...`, 'color: #FF6B6B; font-weight: bold');
+        }
+    });
+
     targetSocket.on('error', (data) => {
         console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
     });

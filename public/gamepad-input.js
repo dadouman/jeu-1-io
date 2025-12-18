@@ -70,10 +70,30 @@ function pollGamepad() {
     activeGamepadIndex = gamepad.index;
     activeGamepadName = gamepad.id || 'Manette';
 
+    // === GESTION DU MENU PRINCIPAL ===
+    if (mainMenuVisible && typeof handleMainMenuGamepadNavigation === 'function') {
+        handleMainMenuGamepadNavigation(gamepad);
+        requestAnimationFrame(pollGamepad);
+        return;
+    }
+
+    // === GESTION DU MODE SELECTOR ===
+    if (!mainMenuVisible && !selectedMode && typeof handleModeSelectGamepadNavigation === 'function') {
+        handleModeSelectGamepadNavigation(gamepad);
+        requestAnimationFrame(pollGamepad);
+        return;
+    }
+
     // Pause accessible même si la manette est désactivée côté inputs
     handleButtonPress(gamepad, 9, () => togglePause('gamepad-start'));
     if (pauseMenuVisible) {
         handleButtonPress(gamepad, 0, () => toggleGamepadSupport('gamepad-a'));
+    }
+
+    // === GESTION DU SHOP À LA MANETTE ===
+    if (isShopOpen && typeof handleShopGamepadNavigation === 'function') {
+        handleShopGamepadNavigation(gamepad);
+        // Ne pas bloquer les déplacements si le shop est ouvert (mouvement du curseur)
     }
 
     if (!gamepadEnabled) {

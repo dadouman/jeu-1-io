@@ -241,6 +241,13 @@ function detachSecondaryStateListener() {
 function continuousRender() {
     // Vérifier que tous les éléments nécessaires sont disponibles
     if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
+        // === AFFICHER LE MENU PRINCIPAL AVANT LA SÉLECTION DU MODE ===
+        if (mainMenuVisible && typeof renderMainMenu === 'function') {
+            renderMainMenu(ctx, canvas);
+            requestAnimationFrame(continuousRender);
+            return;
+        }
+
         const shopTimeRemaining = isShopOpen && shopTimerStart ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000)) : 0;
         const shopTimeRemainingP2 = isShopOpenP2 && shopTimerStartP2 ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStartP2)) / 1000)) : 0;
         const currentLevelTime = levelStartTime ? Math.max(0, (Date.now() - levelStartTime) / 1000) : 0;

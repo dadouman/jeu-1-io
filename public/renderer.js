@@ -332,9 +332,17 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
             height: buttonHeight
         };
 
+        const returnToModeRect = {
+            x: centerX - buttonWidth / 2,
+            y: buttonStartY + (buttonHeight + buttonSpacing) * 2,
+            width: buttonWidth,
+            height: buttonHeight
+        };
+
         if (pauseMenuClickAreas) {
             pauseMenuClickAreas.gamepad = gamepadRect;
             pauseMenuClickAreas.split = splitRect;
+            pauseMenuClickAreas.returnToMode = returnToModeRect;
         }
 
         const drawButton = (rect, label, active) => {
@@ -355,10 +363,11 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
 
         drawButton(gamepadRect, gamepadEnabled ? 'Manette : ON (Entrée/A)' : 'Manette : OFF (Entrée/A)', gamepadEnabled);
         drawButton(splitRect, splitScreenEnabled ? 'Split-screen : ON (S)' : 'Split-screen : OFF (S)', splitScreenEnabled);
+        drawButton(returnToModeRect, 'Retourner au Mode (M)', false);
 
         ctx.font = '16px Arial';
-        ctx.fillText('Clique ou utilise les raccourcis pour basculer', centerX, splitRect.y + splitRect.height + 22);
-        ctx.fillText('Échap / Start : reprendre', centerX, splitRect.y + splitRect.height + 44);
+        ctx.fillText('Clique ou utilise les raccourcis pour basculer', centerX, returnToModeRect.y + returnToModeRect.height + 22);
+        ctx.fillText('Échap / Start : reprendre', centerX, returnToModeRect.y + returnToModeRect.height + 44);
         ctx.restore();
     } else if (gamepadStatusMessage && (Date.now() - gamepadStatusMessageTime) < 2800) {
         // Toast léger en jeu pour indiquer l’état de la manette
@@ -380,10 +389,12 @@ function renderGame(ctx, canvas, map, players, coin, myId, highScore, level, che
         if (pauseMenuClickAreas) {
             pauseMenuClickAreas.gamepad = null;
             pauseMenuClickAreas.split = null;
+            pauseMenuClickAreas.returnToMode = null;
         }
     } else if (pauseMenuClickAreas) {
         pauseMenuClickAreas.gamepad = null;
         pauseMenuClickAreas.split = null;
+        pauseMenuClickAreas.returnToMode = null;
     }
 
     // 9. Record - COMMENTÉ (affichage supprimé pour UI propre)

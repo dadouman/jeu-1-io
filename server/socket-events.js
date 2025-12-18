@@ -679,6 +679,98 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
+        // --- VOTE POUR RETOURNER AU MODE SÉLECTION ---
+        socket.on('proposeReturnToMode', () => {
+            const mode = playerModes[socket.id];
+            if (!mode) return;
+            
+            // Solo: retour direct
+            if (mode === 'solo') {
+                socket.emit('returnToModeVoteFinished', { success: true });
+                return;
+            }
+            
+            // Multijoueur: démarrer le vote
+            const lobby = lobbies[mode];
+            if (!lobby) return;
+            const player = lobby.players[socket.id];
+            if (!player) return;
+            
+            // Initialiser le vote s'il n'existe pas
+            if (!lobby.returnToModeVote) {
+                lobby.returnToModeVote = {
+                    isActive: false,
+                    votes: {},
+                    startTime: null,
+                    VOTE_TIMEOUT: 30000
+                };
+            }
+            
+            // Si un vote est déjà en cours, refuser
+            if (lobby.returnToModeVote.isActive) {
+                socket.emit('error', { message: 'Un vote est déjà en cours' });
+                return;
+            }
+            
+            // Démarrer le vote
+            lobby.returnToModeVote.isActive = true;
+            lobby.returnToModeVote.votes = { [socket.id]: true };
+            lobby.returnToModeVote.startTime = Date.now();
+            
+            // Notifier tous les joueurs
+            emitToLobby(mode, 'returnToModeVoteStarted', { timeoutSeconds: Math.ceil(lobby.returnToModeVote.VOTE_TIMEOUT / 1000) }, io, lobbies);
+            
+            console.log(`🗳️ [VOTE] Mode ${mode}: Vote pour retour au mode lancé par ${player.skin}`);
+        });
+
+        socket.on('voteReturnToMode', (data) => {
+            const mode = playerModes[socket.id];
+            if (!mode || mode === 'solo') return;
+            
+            const lobby = lobbies[mode];
+            if (!lobby || !lobby.returnToModeVote) return;
+            
+            if (!lobby.returnToModeVote.isActive) return;
+            
+            const voteValue = data.vote === true;
+            lobby.returnToModeVote.votes[socket.id] = voteValue;
+            
+            const totalPlayers = Object.keys(lobby.players).length;
+            const votesYes = Object.values(lobby.returnToModeVote.votes).filter(v => v === true).length;
+            
+            // Vérifier si le vote est approuvé (>50%)
+            if (votesYes > totalPlayers / 2) {
+                // Vote approuvé!
+                lobby.returnToModeVote.isActive = false;
+                
+                // Supprimer la lobby
+                delete lobbies[mode];
+                
+                // Envoyer le message de retour à tous les joueurs
+                emitToLobby(mode, 'returnToModeVoteFinished', { success: true }, io, lobbies);
+                
+                // Rediriger vers la sélection du mode après 1 seconde
+                setTimeout(() => {
+                    for (const playerId in lobby.players) {
+                        const playerSocket = io.sockets.sockets.get(playerId);
+                        if (playerSocket) {
+                            playerSocket.emit('modeSelectionRequired', { message: 'Retour au sélecteur de mode' });
+                        }
+                        delete playerModes[playerId];
+                    }
+                }, 1000);
+                
+                console.log(`✅ [VOTE] Mode ${mode}: Vote approuvé! Retour au mode...`);
+            } else if (Date.now() - lobby.returnToModeVote.startTime > lobby.returnToModeVote.VOTE_TIMEOUT) {
+                // Timeout du vote
+                lobby.returnToModeVote.isActive = false;
+                
+                emitToLobby(mode, 'returnToModeVoteFinished', { success: false }, io, lobbies);
+                
+                console.log(`❌ [VOTE] Mode ${mode}: Vote échoué (timeout)`);
+            }
+        });
+
         // --- SYSTÈME DE SHOP ---
         socket.on('shopPurchase', (data) => {
             const mode = playerModes[socket.id];

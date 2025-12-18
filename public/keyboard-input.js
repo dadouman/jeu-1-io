@@ -50,6 +50,11 @@ document.addEventListener('keydown', (e) => {
             toggleSplitScreen();
             e.preventDefault();
         }
+        // Retourner au mode (touche M)
+        if (e.code === 'KeyM') {
+            proposeReturnToModeVote();
+            e.preventDefault();
+        }
         return; // Ne pas traiter d'autres inputs pendant la pause
     }
 

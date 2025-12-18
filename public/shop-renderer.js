@@ -123,16 +123,17 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     const continueButtonY = shopY + shopHeight - 35;
     
     // Fond du bouton
-    ctx.fillStyle = '#FFD700';
+    const isContinueButtonSelected = shopGamepadNavigationEnabled && shopContinueButtonSelected;
+    ctx.fillStyle = isContinueButtonSelected ? '#FF6B6B' : '#FFD700';
     ctx.fillRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
     
-    // Bordure du bouton
-    ctx.strokeStyle = '#FFA500';
-    ctx.lineWidth = 2;
+    // Bordure du bouton (plus épais si sélectionné)
+    ctx.strokeStyle = isContinueButtonSelected ? '#FF0000' : '#FFA500';
+    ctx.lineWidth = isContinueButtonSelected ? 3 : 2;
     ctx.strokeRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
     
     // Texte du bouton
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = isContinueButtonSelected ? '#FFF' : '#000';
     ctx.font = 'bold 16px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -188,6 +189,7 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
         
         const canBuy = playerGems >= item.price;
         const isHovered = effectiveAnimations.hoveredItemId === item.id;
+        const isGamepadSelected = shopGamepadNavigationEnabled && shopSelectedItemIndex === index && !shopContinueButtonSelected;
         const isPurchasing = effectiveAnimations.purchaseAnimations[item.id];
         
         // === BOÎTE DE FOND ===
@@ -198,9 +200,9 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
                 const b = parseInt(hex.slice(5, 7), 16);
                 return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             };
-            ctx.fillStyle = isHovered ? hexToRgba(item.color, 0.4) : hexToRgba(item.color, 0.2);
+            ctx.fillStyle = isHovered || isGamepadSelected ? hexToRgba(item.color, 0.4) : hexToRgba(item.color, 0.2);
             ctx.strokeStyle = item.color;
-            ctx.lineWidth = isHovered ? 3 : 2;
+            ctx.lineWidth = isHovered || isGamepadSelected ? 3 : 2;
         } else {
             ctx.fillStyle = 'rgba(100, 100, 100, 0.2)';
             ctx.strokeStyle = '#666666';
@@ -210,6 +212,16 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
         drawRoundRect(x, y, BOX_SIZE, BOX_SIZE, 8);
         ctx.fill();
         ctx.stroke();
+        
+        // === INDICATEUR DE SÉLECTION MANETTE ===
+        if (isGamepadSelected) {
+            ctx.strokeStyle = '#FF6B6B';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([5, 5]);
+            drawRoundRect(x - 5, y - 5, BOX_SIZE + 10, BOX_SIZE + 10, 10);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
         
         // === EMOJI ===
         ctx.font = "40px Arial";
@@ -226,7 +238,7 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
         ctx.fillText(`${item.price}💎`, x + BOX_SIZE / 2, y + BOX_SIZE - 12);
         
         // === CADENAS FERMÉ (si not canBuy et not hovered) ===
-        if (!canBuy && !isHovered) {
+        if (!canBuy && !isHovered && !isGamepadSelected) {
             ctx.save();
             ctx.globalAlpha = 0.7;
             ctx.font = "32px Arial";
@@ -235,8 +247,8 @@ function renderShopItems(ctx, shopX, shopY, shopWidth, shopHeight, itemList, pla
             ctx.restore();
         }
         
-        // === CADENAS DÉVERROUILLÉ (si not canBuy mais hovered) ===
-        if (!canBuy && isHovered) {
+        // === CADENAS DÉVERROUILLÉ (si not canBuy mais hovered/gamepad) ===
+        if (!canBuy && (isHovered || isGamepadSelected)) {
             ctx.save();
             ctx.globalAlpha = 0.8;
             ctx.font = "48px Arial"; // Plus gros que le cadenas fermé

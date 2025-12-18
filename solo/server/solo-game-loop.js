@@ -141,7 +141,8 @@ class SoloGameLoop {
         if (!session.validateSplits(splitTimes)) {
             console.error(`❌ [SOLO] Splits invalides pour ${playerId}, sauvegarde refusée`);
             session.socket.emit('gameFinished', {
-                error: 'Données de jeu invalides - splits incorrects'
+                error: 'Données de jeu invalides - splits incorrects',
+                endType: 'solo'
             });
             
             // Nettoyer la session
@@ -165,7 +166,8 @@ class SoloGameLoop {
                         gems: player.gems,
                         splits: splitTimes,
                         saved: false,
-                        warning: 'Modèles non disponibles'
+                        warning: 'Modèles non disponibles',
+                        endType: 'solo'
                     });
                     delete this.soloSessions[playerId];
                     return;
@@ -216,7 +218,8 @@ class SoloGameLoop {
                     totalTime,
                     gems: player.gems,
                     splits: splitTimes,
-                    saved: true
+                    saved: true,
+                    endType: 'solo'
                 });
                 
                 saved = true;
@@ -234,7 +237,8 @@ class SoloGameLoop {
                         totalTime,
                         gems: player.gems,
                         splits: splitTimes,
-                        saved: false
+                        saved: false,
+                        endType: 'solo'
                     });
                 } else {
                     // Attendre avant de réessayer (200ms * tentative)

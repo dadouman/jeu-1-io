@@ -6,6 +6,7 @@ const { initializePlayerForMode } = require('../utils/player');
 const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
 const { purchaseItem } = require('../utils/shop');
 const { emitToLobby } = require('./utils');
+const gameModes = require('../config/gameModes');
 const SoloSession = require('./utils/SoloSession');
 const { 
     startRestartVote, 
@@ -80,7 +81,6 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 console.log(`🎮 Joueur ${socket.id} sélectionne le mode: SOLO (10 niveaux)`);
                 
                 // Récupérer la configuration du mode solo
-                const gameModes = require('../config/gameModes');
                 const soloConfig = gameModes.getGameModeConfig('solo');
                 
                 // Créer une nouvelle session solo avec la configuration
@@ -106,6 +106,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 // Stocker la session
                 soloSessions[socket.id] = session;
                 
+                socket.emit('gameModSelected', { mode: 'solo', endType: soloConfig?.endType || 'solo' });
                 // Envoyer l'état initial au client
                 session.sendGameState();
                 
@@ -160,7 +161,8 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 socket.emit('mapData', lobby.map);
                 socket.emit('levelUpdate', lobby.currentLevel);
                 socket.emit('highScoreUpdate', lobby.currentRecord);
-                socket.emit('gameModSelected', { mode: 'custom' });
+                const endType = data.customConfig.endType || 'multi';
+                socket.emit('gameModSelected', { mode: 'custom', endType });
                 socket.emit('coinUpdate', lobby.coin);
                 
                 emitToLobby('custom', 'playersCountUpdate', {
@@ -181,6 +183,8 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     'infinite': 'INFINI'
                 };
                 console.log(`🎮 Joueur ${socket.id} sélectionne le mode: ${modeDisplayNames[mode] || mode}`);
+                const modeConfig = gameModes.getGameModeConfig(mode);
+                const endType = modeConfig?.endType || 'multi';
                 
                 const playerIndex = Object.keys(lobby.players).length;
                 const startPos = getRandomEmptyPosition(lobby.map);
@@ -189,7 +193,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 socket.emit('mapData', lobby.map);
                 socket.emit('levelUpdate', lobby.currentLevel);
                 socket.emit('highScoreUpdate', lobby.currentRecord);
-                socket.emit('gameModSelected', { mode: mode });
+                socket.emit('gameModSelected', { mode: mode, endType });
                 socket.emit('coinUpdate', lobby.coin);
                 
                 emitToLobby(mode, 'playersCountUpdate', {

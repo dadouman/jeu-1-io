@@ -240,14 +240,19 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
     targetSocket.on('gameModSelected', (data) => {
         currentGameMode = data.mode;
+        currentGameEndType = data.endType || 'multi';
         soloMaxLevel = data.mode === 'solo' ? 10 : 20;
     });
 
     targetSocket.on('gameFinished', (data) => {
-        if (currentGameMode === 'solo') {
+        const endType = data.endType || currentGameEndType || 'multi';
+
+        if (endType === 'solo') {
             console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
-        } else if (currentGameMode === 'classic' || currentGameMode === 'infinite' || currentGameMode === 'custom') {
-            console.log(`%c🏁 ${currentGameMode.toUpperCase()} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
+            // Le flux solo complet est déjà géré ailleurs (soloGameState)
+        } else {
+            const modeLabel = (data.mode || currentGameMode || 'GAME').toUpperCase();
+            console.log(`%c🏁 ${modeLabel} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
             
             isClassicGameFinished = true;
             classicEndScreenStartTime = Date.now();
@@ -258,11 +263,14 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
                 id: p.id
             }));
             
+            const recordFallback = currentHighScore ? { skin: currentHighScore.skin, score: currentHighScore.score } : { skin: '❓', score: 0 };
+            
             finalClassicData = {
                 finalLevel: data.finalLevel,
                 mode: data.mode,
                 players: players,
-                record: currentHighScore ? { skin: currentHighScore.skin, score: currentHighScore.score } : null
+                record: data.record || recordFallback,
+                endType
             };
         }
     });

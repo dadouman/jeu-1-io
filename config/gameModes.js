@@ -97,6 +97,7 @@ const GAME_MODES_CONFIG = {
         description: 'Mode classique - Longs couloirs',
         maxPlayers: 8,
         maxLevels: 10,  // 10 niveaux
+        endType: 'multi',
         levelConfig: {
             // Départ taille 15, augmentation de 2 par niveau jusqu'au niveau 5, puis diminution
             // Génère: 15, 17, 19, 21, 23, 21, 19, 17, 15, 13
@@ -188,6 +189,7 @@ const GAME_MODES_CONFIG = {
         description: 'Mode classique - Labyrinthes organiques',
         maxPlayers: 8,
         maxLevels: 10,  // 10 niveaux
+        endType: 'multi',
         levelConfig: {
             sizes: generateSizesArray(15, 2, 10, 5, 2)
         },
@@ -228,6 +230,7 @@ const GAME_MODES_CONFIG = {
         description: 'Mode infini - niveaux générés aléatoirement',
         maxPlayers: 4,
         maxLevels: Infinity,
+        endType: 'multi',
         levelConfig: {
             // Génère: 21, 23, 25, 27, 29, 31, 33 (7 tailles)
             sizes: generateSizesArray(21, 2, 7)
@@ -304,6 +307,7 @@ const GAME_MODES_CONFIG = {
         description: 'Dan est le plus fort',
         maxPlayers: 1,
         maxLevels: 10,  // ← FACILE À CHANGER À 20, 30, etc
+        endType: 'solo',
         levelConfig: {
             // Croisance 15->23 (niveaux 1-5), puis décroissance 21->13 (niveaux 6-10)
             sizes: generateSizesArray(15, 2, 10, 5, 2)
@@ -389,6 +393,7 @@ const GAME_MODES_CONFIG = {
         description: 'Mode solo - 20 niveaux speedrun',
         maxPlayers: 1,
         maxLevels: 20,  // ← À la place de changer partout dans le code
+        endType: 'solo',
         levelConfig: {
             // Génère: 15, 17, 19, 21, 23, 25, 27, 29, 31, 33 (10 tailles)
             sizes: generateSizesArray(15, 2, 10)

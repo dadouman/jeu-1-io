@@ -15,6 +15,7 @@ function selectMode(mode) {
         }
         
         selectedMode = mode;
+        currentGameEndType = mode === 'solo' ? 'solo' : 'multi';
         const modeNames = {
             'classic': 'Couloirs (10 Niveaux)',
             'classicPrim': 'Organique (10 Niveaux)',

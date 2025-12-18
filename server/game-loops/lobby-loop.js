@@ -25,12 +25,16 @@ function processLobbyGameLoop(lobbies, io, {
         let recordChanged = false;
         let levelChanged = false;
         
-        // Récupérer les limites du mode depuis la configuration
+        // Récupérer les limites et le type de fin depuis la configuration
         let maxLevels;
+        const modeConfig = getGameModeConfig(mode);
+        const endType = mode === 'custom'
+            ? (lobby.customConfig?.endType || 'multi')
+            : (modeConfig?.endType || 'multi');
+
         if (mode === 'custom' && lobby.customConfig) {
             maxLevels = lobby.customConfig.maxLevels;
         } else {
-            const modeConfig = getGameModeConfig(mode);
             maxLevels = modeConfig && modeConfig.maxLevels ? modeConfig.maxLevels : Infinity;
         }
 
@@ -62,7 +66,7 @@ function processLobbyGameLoop(lobbies, io, {
                     console.log(`\n🏁 ════════════════════════════════════\n   JEU TERMINÉ [${mode}] - Niveau ${maxLevels} complété\n════════════════════════════════════\n`);
                     
                     // 1. Envoyer l'événement de fin aux joueurs
-                    emitToLobby(mode, 'gameFinished', { finalLevel: maxLevels, mode: mode }, io, lobbies);
+                    emitToLobby(mode, 'gameFinished', { finalLevel: maxLevels, mode: mode, endType }, io, lobbies);
                     
                     // 2. Exclure TOUS les joueurs du lobby
                     const playerIds = Object.keys(lobby.players);

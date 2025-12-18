@@ -97,6 +97,7 @@ let isSoloGameFinished = false;
 let soloFinishedTime = null;
 let soloSessionStartTime = null; // Temps de démarrage de la session solo
 let currentGameMode = null; // 'classic', 'infinite', 'solo'
+let currentGameEndType = 'multi'; // 'multi' (podium) | 'solo' (speedrun)
 let soloMaxLevel = 10; // Solo: toujours 10 niveaux
 let soloCurrentLevelTime = 0; // Temps du niveau actuel
 let soloPersonalBestTime = null; // Meilleur temps personnel (localStorage)

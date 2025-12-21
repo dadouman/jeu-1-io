@@ -185,6 +185,18 @@ function processLobbyGameLoop(lobbies, io, {
                     if (!itemsById || Object.keys(itemsById).length === 0) {
                         itemsById = getShopItemsForMode('classic', lobby);
                     }
+
+                    // Garantir que les 5 upgrades “core” sont toujours proposés au moins en tant qu'options possibles.
+                    // (utile si un customConfig a été sauvegardé sans certains items)
+                    const requiredItemIds = ['dash', 'checkpoint', 'compass', 'rope', 'speedBoost'];
+                    const fallbackItems = getShopItemsForMode('classic', lobby) || {};
+                    for (const itemId of requiredItemIds) {
+                        if (!itemsById?.[itemId] && fallbackItems[itemId]) {
+                            itemsById[itemId] = fallbackItems[itemId];
+                        }
+                    }
+
+                    console.log(`⏱️ [DUTCH AUCTION] Mode ${mode}: ${Object.keys(itemsById || {}).length} item(s) -> ${Object.keys(itemsById || {}).join(', ')}`);
                     const auctionConfig = (mode === 'custom')
                         ? (lobby.customConfig?.shop?.auction || {})
                         : (modeConfig?.shop?.auction || {});
@@ -210,19 +222,19 @@ function processLobbyGameLoop(lobbies, io, {
                         if (!lobbies[mode] || !lobbies[mode].dutchAuction) return;
                         tickDutchAuctionState(lobbies[mode].dutchAuction);
 
-                        // Condition de fermeture: si tous les lots restants sont passés sous 1 gem.
+                        // Condition de fermeture: si tous les lots restants ont atteint leur prix minimum.
                         // (ou si tous les lots sont vendus)
                         const lots = Array.isArray(lobbies[mode].dutchAuction.lots) ? lobbies[mode].dutchAuction.lots : [];
                         const unsoldLots = lots.filter(l => !l.sold);
                         const allSold = unsoldLots.length === 0;
-                        const allBelowOne = unsoldLots.length > 0 && unsoldLots.every(l => Number(l.currentPrice) < 1);
-                        if (allSold || allBelowOne) {
+                        const allAtMin = unsoldLots.length > 0 && unsoldLots.every(l => Number(l.currentPrice) <= Number(l.minPrice));
+                        if (allSold || allAtMin) {
                             try { clearInterval(lobbies[mode].dutchAuction._intervalId); } catch (e) {}
                             delete lobbies[mode].dutchAuction;
                             if (lobbies[mode].shopPlayersReady && typeof lobbies[mode].shopPlayersReady.clear === 'function') {
                                 lobbies[mode].shopPlayersReady.clear();
                             }
-                            emitToLobby(mode, 'shopClosedAutomatically', { reason: allSold ? 'allSold' : 'priceBelowOne' }, io, lobbies);
+                            emitToLobby(mode, 'shopClosedAutomatically', { reason: allSold ? 'allSold' : 'minReached' }, io, lobbies);
                             return;
                         }
 
@@ -242,7 +254,10 @@ function processLobbyGameLoop(lobbies, io, {
                         shopType
                     }, io, lobbies);
                 }
-                console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
+                const shopLogLine = (shopType === 'dutchAuction')
+                    ? "Boutique Enchères: pas de limite de temps (∞). Fin: tous prêts OU prix minimum atteint"
+                    : "Les joueurs ont 15 secondes pour acheter!";
+                console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   ${shopLogLine}\n════════════════════════════════════\n`);
             } else {
                 // Afficher la vraie taille depuis la configuration
                 const mazeSize = calculateMazeSize(lobby.currentLevel, mode, lobby);

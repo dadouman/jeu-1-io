@@ -10,6 +10,26 @@ function loadCustomModeConfig() {
         try {
             customModeConfig = JSON.parse(saved);
             console.log('✅ Mode personnalisé chargé:', customModeConfig);
+
+            // Migration légère: s'assurer que les 5 upgrades existent (dont la boussole)
+            if (customModeConfig && Array.isArray(customModeConfig.shopItems)) {
+                const hasCompass = customModeConfig.shopItems.some(i => i && i.id === 'compass');
+                if (!hasCompass) {
+                    // Déduire un multiplicateur de prix si possible (dash base=5)
+                    const dash = customModeConfig.shopItems.find(i => i && i.id === 'dash');
+                    const mult = dash && Number.isFinite(Number(dash.price)) ? (Number(dash.price) / 5) : 1;
+                    const compassPrice = Math.max(1, Math.round(4 * mult));
+                    customModeConfig.shopItems.push({
+                        id: 'compass',
+                        name: 'Boussole',
+                        price: compassPrice,
+                        description: 'Indique la gemme la plus proche',
+                        type: 'feature'
+                    });
+                    // Persist pour éviter de refaire la migration à chaque chargement
+                    localStorage.setItem('customModeConfig', JSON.stringify(customModeConfig));
+                }
+            }
         } catch (e) {
             console.warn('⚠️ Erreur lors du chargement du mode personnalisé');
             customModeConfig = null;
@@ -325,6 +345,7 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
     const baseShopItems = [
         { id: 'dash', name: 'Dash', basePrice: 5, description: 'Accélération rapide', type: 'feature' },
         { id: 'checkpoint', name: 'Checkpoint', basePrice: 3, description: 'Sauvegarde ta position', type: 'feature' },
+        { id: 'compass', name: 'Boussole', basePrice: 4, description: 'Indique la gemme la plus proche', type: 'feature' },
         { id: 'rope', name: 'Rope', basePrice: 1, description: 'Trace une corde derrière toi', type: 'feature' },
         { id: 'speedBoost', name: 'Vitesse +1', basePrice: 2, description: 'Augmente ta vitesse', type: 'speedBoost', stackable: true }
     ];

@@ -78,13 +78,21 @@ function getShopItemsForMode(mode = 'classic', lobbyConfig = null) {
     const allItems = getShopItems();
     
     // Si c'est un mode custom avec sa propre configuration de shop items
-    if (mode === 'custom' && lobbyConfig && lobbyConfig.customConfig && lobbyConfig.customConfig.shopItems) {
-        // Retourner les items définis dans la configuration personnalisée
-        const customItems = {};
-        for (const item of lobbyConfig.customConfig.shopItems) {
-            customItems[item.id] = item;
+    if (mode === 'custom' && lobbyConfig && lobbyConfig.customConfig) {
+        const customList = lobbyConfig.customConfig.shopItems;
+        // Retourner les items définis dans la configuration personnalisée si valides,
+        // sinon fallback sur les items par défaut.
+        if (Array.isArray(customList) && customList.length > 0) {
+            const customItems = {};
+            for (const item of customList) {
+                if (!item || !item.id) continue;
+                customItems[item.id] = item;
+            }
+            if (Object.keys(customItems).length > 0) {
+                return customItems;
+            }
         }
-        return customItems;
+        return allItems;
     }
     
     if (mode === 'infinite') {

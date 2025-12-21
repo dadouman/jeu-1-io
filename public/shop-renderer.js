@@ -145,6 +145,21 @@ function renderDutchAuctionShop(ctx, canvas, level, playerGems, shopTimeRemainin
     const cellW = Math.floor((gridW - (cellGap * (gridSize - 1))) / gridSize);
     const cellH = Math.floor((gridH - (cellGap * (gridSize - 1))) / gridSize);
 
+    const drawTextOutlined = (text, x, y, fillStyle, font, align = 'center', baseline = 'middle') => {
+        ctx.save();
+        ctx.font = font;
+        ctx.textAlign = align;
+        ctx.textBaseline = baseline;
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
+        ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+        ctx.lineWidth = 4;
+        ctx.fillStyle = fillStyle;
+        ctx.strokeText(text, x, y);
+        ctx.fillText(text, x, y);
+        ctx.restore();
+    };
+
     const drawRoundRect = (x, y, width, height, radius) => {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
@@ -167,6 +182,9 @@ function renderDutchAuctionShop(ctx, canvas, level, playerGems, shopTimeRemainin
         ctx.fillText('Aucun lot disponible', shopX + shopWidth / 2, gridY + gridH / 2);
     }
 
+    // Déterminer si la boutique est en phase de fermeture auto (tous les lots restants à leur min)
+    const allAtMin = lots.length > 0 && lots.every(l => l.sold || Number(l.currentPrice) <= Number(l.minPrice));
+
     for (let i = 0; i < Math.min(lots.length, gridSize * gridSize); i++) {
         const lot = lots[i];
         const row = Math.floor(i / gridSize);
@@ -176,40 +194,60 @@ function renderDutchAuctionShop(ctx, canvas, level, playerGems, shopTimeRemainin
 
         const visuals = getAuctionItemVisuals(lot.itemId);
         const canBuy = !lot.sold && (playerGems >= (lot.currentPrice || 0));
+        const isLocked = !lot.sold && Number(lot.currentPrice) <= Number(lot.minPrice) && (!canBuy || allAtMin);
         const isHovered = shopUi?.animations?.hoveredItemId === lot.lotId;
 
+        ctx.save();
+        ctx.globalAlpha = isLocked ? 0.45 : 1.0;
         ctx.fillStyle = canBuy ? 'rgba(255, 215, 0, 0.10)' : 'rgba(100, 100, 100, 0.20)';
+        if (isLocked) ctx.fillStyle = 'rgba(80,80,80,0.25)';
         ctx.strokeStyle = isHovered ? '#FFD700' : '#666666';
         ctx.lineWidth = isHovered ? 3 : 1;
         drawRoundRect(x, y, cellW, cellH, 10);
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
 
-        // Emoji
-        ctx.font = '34px Arial';
+        // Layout (proportionnel) pour éviter que le texte dépasse quand les cellules sont petites.
+        const cx = x + cellW / 2;
+        const emojiY = y + Math.max(18, Math.floor(cellH * 0.28));
+        const nameY = y + Math.floor(cellH * 0.55);
+        const priceY = y + Math.floor(cellH * 0.72);
+        const actionY = y + Math.floor(cellH * 0.88);
+
+        // Emoji ou cadenas si verrouillé
+        const emojiFontSize = Math.max(18, Math.min(34, Math.floor(cellH * 0.42)));
+        ctx.save();
+        ctx.font = `${emojiFontSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = visuals.color;
-        ctx.globalAlpha = lot.sold ? 0.35 : 1.0;
-        ctx.fillText(visuals.emoji, x + cellW / 2, y + 30);
+        if (isLocked) {
+            ctx.fillStyle = '#888';
+            ctx.fillText('🔒', cx, emojiY);
+        } else {
+            ctx.fillStyle = visuals.color;
+            ctx.globalAlpha = lot.sold ? 0.35 : 1.0;
+            ctx.fillText(visuals.emoji, cx, emojiY);
+        }
+        ctx.restore();
         ctx.globalAlpha = 1.0;
 
         // Nom
-        ctx.font = 'bold 12px Arial';
-        ctx.fillStyle = '#FFFFFF';
         const displayName = (lot.name || visuals.label || '').toString();
-        ctx.fillText(displayName.slice(0, 18), x + cellW / 2, y + 62);
+        const nameFontSize = Math.max(10, Math.min(13, Math.floor(cellH * 0.18)));
+        drawTextOutlined(displayName.slice(0, 18), cx, nameY, '#FFFFFF', `bold ${nameFontSize}px Arial`);
 
         // Prix
-        ctx.font = 'bold 14px Arial';
-        ctx.fillStyle = lot.sold ? '#888888' : (canBuy ? '#FFD700' : '#CCCCCC');
         const price = Number.isFinite(Number(lot.currentPrice)) ? Number(lot.currentPrice) : '?';
-        ctx.fillText(`Prix: ${price} 💎`, x + cellW / 2, y + 88);
+        const priceFontSize = Math.max(10, Math.min(14, Math.floor(cellH * 0.18)));
+        const priceColor = lot.sold ? '#888888' : (canBuy ? '#FFD700' : '#CCCCCC');
+        drawTextOutlined(`Prix: ${price} 💎`, cx, priceY, priceColor, `bold ${priceFontSize}px Arial`);
 
-        // Bouton acheter (visuel uniquement, la zone cliquable est la carte)
-        ctx.font = 'bold 12px Arial';
-        ctx.fillStyle = lot.sold ? '#777777' : (canBuy ? '#00FF00' : '#AAAAAA');
-        ctx.fillText(lot.sold ? 'VENDU' : 'ACHETER', x + cellW / 2, y + cellH - 16);
+        // Action
+        const actionFontSize = Math.max(10, Math.min(12, Math.floor(cellH * 0.16)));
+        let actionLabel = lot.sold ? 'VENDU' : (isLocked ? 'INDISPONIBLE' : 'ACHETER');
+        const actionColor = lot.sold ? '#777777' : (isLocked ? '#888888' : (canBuy ? '#00FF00' : '#AAAAAA'));
+        drawTextOutlined(actionLabel, cx, actionY, actionColor, `bold ${actionFontSize}px Arial`);
     }
 
     // Instruction + bouton continuer (réutilise l'existant)

@@ -26,6 +26,29 @@ function pickItemIdsForLots(itemIds, count) {
     return out;
 }
 
+function pickUniqueItemIds(itemIds, preferredOrder, maxCount) {
+    const unique = new Set(itemIds || []);
+    const out = [];
+    // Priorité: ordre d'upgrades "officiels"
+    if (Array.isArray(preferredOrder)) {
+        for (const id of preferredOrder) {
+            if (unique.has(id)) {
+                out.push(id);
+                unique.delete(id);
+                if (out.length >= maxCount) return out;
+            }
+        }
+    }
+    // Compléter avec le reste (ordre stable)
+    for (const id of itemIds || []) {
+        if (!unique.has(id)) continue;
+        out.push(id);
+        unique.delete(id);
+        if (out.length >= maxCount) break;
+    }
+    return out;
+}
+
 function getDefaultDutchAuctionConfig() {
     return {
         gridSize: 3,
@@ -39,8 +62,8 @@ function getDefaultDutchAuctionConfig() {
 function getLotPricing(item, config) {
     const base = clampInt(item?.price ?? 1, 1, 9999);
     const startPrice = clampInt(Math.ceil(base * (Number(config.startPriceMultiplier) || 2)), 1, 9999);
-    // Autoriser un plancher à 0 pour supporter une fermeture automatique quand le prix passe sous 1 gem.
-    const minPrice = clampInt(Math.floor(base * (Number(config.minPriceMultiplier) || 0.5)), 0, 9999);
+    // Plancher: jamais en dessous de 1💎 (0 n'est pas un prix valide)
+    const minPrice = clampInt(Math.floor(base * (Number(config.minPriceMultiplier) || 0.5)), 1, 9999);
     return {
         startPrice: Math.max(startPrice, minPrice),
         minPrice
@@ -64,10 +87,18 @@ function createDutchAuctionState(itemsById, options = {}) {
     };
 
     const startedAt = Date.now();
-    const lotsCount = config.gridSize * config.gridSize;
 
     const itemIds = Object.keys(itemsById || {});
-    const lotItemIds = pickItemIdsForLots(itemIds, lotsCount);
+    // Exigence: proposer 5 upgrades uniques (une fois chacun) à chaque shop.
+    // Si moins de 5 items disponibles, on en propose autant que possible.
+    const desiredUniqueCount = Math.min(5, itemIds.length);
+    const preferred = ['dash', 'checkpoint', 'compass', 'rope', 'speedBoost'];
+    const lotItemIds = pickUniqueItemIds(itemIds, preferred, desiredUniqueCount);
+
+    // Ajuster la grille pour afficher tous les lots (minimum)
+    const minGrid = Math.max(1, Math.ceil(Math.sqrt(lotItemIds.length || 1)));
+    const gridSize = normalizeGridSize(Math.max(config.gridSize, minGrid));
+    const lotsCount = gridSize * gridSize;
 
     const lots = lotItemIds.map((itemId, idx) => {
         const baseItem = itemsById[itemId] || { id: itemId, name: itemId, price: 1 };
@@ -90,7 +121,7 @@ function createDutchAuctionState(itemsById, options = {}) {
         startedAt,
         tickMs: config.tickMs,
         decrement: config.decrement,
-        gridSize: config.gridSize,
+        gridSize,
         lots
     };
 }

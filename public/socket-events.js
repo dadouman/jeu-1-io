@@ -133,6 +133,13 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             shopTypeP2 = data.shopType || 'classic';
             dutchAuctionStateP2 = (shopTypeP2 === 'dutchAuction' && data.auction) ? data.auction : null;
             shopTimerStartP2 = now;
+
+            if (shopTypeP2 === 'dutchAuction') {
+                const itemKeys = data?.items ? Object.keys(data.items) : [];
+                const lotsCount = Array.isArray(data?.auction?.lots) ? data.auction.lots.length : 0;
+                console.log(`%c🧩 [P2] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
+                    'color:#FFD700; font-weight:bold');
+            }
         } else {
             isShopOpen = true;
             isPlayerReadyToContinue = false;
@@ -140,6 +147,13 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             shopType = data.shopType || 'classic';
             dutchAuctionState = (shopType === 'dutchAuction' && data.auction) ? data.auction : null;
             shopTimerStart = now;
+
+            if (shopType === 'dutchAuction') {
+                const itemKeys = data?.items ? Object.keys(data.items) : [];
+                const lotsCount = Array.isArray(data?.auction?.lots) ? data.auction.lots.length : 0;
+                console.log(`%c🧩 [P1] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
+                    'color:#FFD700; font-weight:bold');
+            }
         }
 
         levelStartTime = null;
@@ -159,9 +173,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         if (isSecondary) {
             dutchAuctionStateP2 = auction;
             dutchAuctionTickAnchorP2 = Date.now();
+
+            const lotsCount = Array.isArray(auction?.lots) ? auction.lots.length : 0;
+            console.log(`%c📡 [P2] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
         } else {
             dutchAuctionState = auction;
             dutchAuctionTickAnchor = Date.now();
+
+            const lotsCount = Array.isArray(auction?.lots) ? auction.lots.length : 0;
+            console.log(`%c📡 [P1] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
         }
     });
 
@@ -234,7 +254,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         console.log(`%c🏪 Joueurs prêts: ${shopReadyCount}/${shopTotalPlayers}`, 'color: #FFD700; font-weight: bold');
     });
 
-    targetSocket.on('shopClosedAutomatically', () => {
+    targetSocket.on('shopClosedAutomatically', (data) => {
         if (currentGameMode !== 'solo') {
             const isSecondary = source === 'secondary';
             if (isSecondary) {
@@ -254,7 +274,8 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             }
             shopReadyCount = 0;
             shopTotalPlayers = 0;
-            console.log(`%c🏪 SHOP FERMÉ (TIMEOUT) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
+            const reason = data?.reason ? String(data.reason) : 'auto';
+            console.log(`%c🏪 SHOP FERMÉ (${reason}) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
             levelStartTime = Date.now();
         }
     });

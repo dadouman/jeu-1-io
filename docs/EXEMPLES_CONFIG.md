@@ -27,9 +27,9 @@ Le code entier utilise `gameMode.config.maxLevels` ou `gameMode.isGameFinished(l
 
 ---
 
-### Exemple 2: Créer un mode "Solo Hardcore" avec des règles différentes
+### Exemple 2: Créer un mode "Solo sans shop" avec des règles différentes
 
-**Nouveau mode: Solo Hardcore**
+**Nouveau mode: Solo sans shop**
 - 15 niveaux (au lieu de 10)
 - Pas de shop (plus difficile)
 - Plus de gems par niveau
@@ -38,9 +38,9 @@ Le code entier utilise `gameMode.config.maxLevels` ou `gameMode.isGameFinished(l
 **Dans `config/gameModes.js`, ajoute:**
 
 ```javascript
-soloHardcore: {
-    name: 'Solo Hardcore',
-    description: 'Mode solo difficile - 15 niveaux, pas de shop',
+soloNoShop: {
+    name: 'Solo (sans shop)',
+    description: 'Mode solo - 15 niveaux, pas de shop',
     maxPlayers: 1,
     maxLevels: 15,  // ← Plus de niveaux
     levelConfig: {
@@ -320,7 +320,8 @@ multiplayerRace: {
 ### Dans socket-events.js:
 
 ```javascript
-socket.on('selectMode', (mode) => {
+socket.on('selectGameMode', (data) => {
+    const mode = data.mode;
     // Le système fonctionne EXACTEMENT PAREIL pour TOUS les modes!
     const sessionManager = io.sessionManager;
     const session = sessionManager.createSession(sessionId, mode);

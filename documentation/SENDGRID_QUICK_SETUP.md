@@ -5,7 +5,7 @@
 - [x] Package `@sendgrid/mail` installé
 - [x] Code `server/email-service.js` reécrit pour SendGrid
 - [x] Variables d'environnement `.env` mises à jour
-- [x] Tests: **349/349 passing** ✅
+- [x] Tests: `npm test` ✅
 - [x] Code pushé sur GitHub
 - [x] Documentation créée
 

@@ -64,12 +64,12 @@ Mon jeu .io/
 │   ├── ui-elements.html            # Éléments UI
 │   └── ... (autres fichiers front)
 │
-├── 🧪 tests/                       # Tests (349 tests)
+├── 🧪 tests/                       # Tests (Jest)
 │   ├── architecture-refactoring.test.js
 │   ├── shop-manager.test.js
 │   ├── solo-*.test.js              # Tests mode solo
 │   ├── socket-*.test.js            # Tests sockets
-│   └── ... (39 fichiers tests)
+│   └── ...
 │
 ├── 📦 Fichiers Racine
 │   ├── README.md                   # ← Vous êtes ici! Guide principal
@@ -94,14 +94,14 @@ Mon jeu .io/
 | **utils/** | 🛠️ Logique partagée | 15+ fichiers |
 | **server/** | 🖥️ Backend Node.js | 10+ fichiers |
 | **Public/** | 🌐 Frontend client | 12+ fichiers |
-| **tests/** | 🧪 Tests (349 tests ✅) | 31 fichiers |
+| **tests/** | 🧪 Tests (Jest) | - |
 
 ## 🎯 Points Clés
 
 ### Nouvelle Architecture
 - **Centralisée** - Une logique = Un endroit
 - **Flexible** - Changer les règles = 1 ligne
-- **Testée** - 349 tests pour valider
+- **Testée** - Suite de tests Jest pour valider
 
 ### Structure Logique
 - **docs/** - TOUT ce que vous devez savoir

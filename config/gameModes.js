@@ -87,6 +87,40 @@ function generateSizesArray(startSize, increment, numLevels, highlevel, decroiss
 }
 
 /**
+ * Génère les niveaux de shop (ex: [5, 10] ou [3, 6, 9, 12, 15]) pour éviter les tableaux hardcodés.
+ * @param {number} interval - Intervalle entre 2 shops (ex: 5 => tous les 5 niveaux)
+ * @param {number} maxLevel - Niveau max inclus
+ * @returns {number[]}
+ */
+function generateShopLevelsByMax(interval, maxLevel) {
+    if (!Number.isFinite(interval) || interval <= 0) return [];
+    if (!Number.isFinite(maxLevel) || maxLevel <= 0) return [];
+
+    const levels = [];
+    for (let level = interval; level <= maxLevel; level += interval) {
+        levels.push(level);
+    }
+    return levels;
+}
+
+/**
+ * Génère une liste de niveaux de shop basée sur un nombre d'occurrences.
+ * @param {number} interval - Intervalle entre 2 shops
+ * @param {number} count - Nombre de niveaux à générer
+ * @returns {number[]}
+ */
+function generateShopLevelsByCount(interval, count) {
+    if (!Number.isFinite(interval) || interval <= 0) return [];
+    if (!Number.isFinite(count) || count <= 0) return [];
+
+    const levels = [];
+    for (let i = 1; i <= count; i++) {
+        levels.push(interval * i);
+    }
+    return levels;
+}
+
+/**
  * Configuration flexible pour chaque mode de jeu
  * Permet de varier: niveaux, shops, prix, joueurs max, objets, etc
  */
@@ -112,8 +146,10 @@ const GAME_MODES_CONFIG = {
         shop: {
             enabled: true,
             // Niveaux où le shop apparaît
-            levels: [5, 10],
+            levels: generateShopLevelsByMax(5, 10),
             duration: 15000,  // 15 secondes
+            // Type de boutique: 'classic' (boutique actuelle) | 'dutchAuction' (enchères dégressives)
+            type: 'classic'
         },
 
         // Objets achetables avec leurs propriétés
@@ -201,8 +237,9 @@ const GAME_MODES_CONFIG = {
         
         shop: {
             enabled: true,
-            levels: [5, 10],
+            levels: generateShopLevelsByMax(5, 10),
             duration: 15000,
+            type: 'classic'
         },
 
         shopItems: [
@@ -238,8 +275,9 @@ const GAME_MODES_CONFIG = {
 
         shop: {
             enabled: true,
-            levels: [3, 6, 9, 12, 15],  // Shop plus fréquent
+            levels: generateShopLevelsByCount(3, 5),  // Shop plus fréquent
             duration: 15000,
+            type: 'classic'
         },
 
         shopItems: [
@@ -315,8 +353,9 @@ const GAME_MODES_CONFIG = {
 
         shop: {
             enabled: true,
-            levels: [5, 10],  // Shop aux niveaux 5 et 10
+            levels: generateShopLevelsByMax(5, 10),  // Shop aux niveaux 5 et 10
             duration: 15000,
+            type: 'classic'
         },
 
         shopItems: [
@@ -401,8 +440,9 @@ const GAME_MODES_CONFIG = {
 
         shop: {
             enabled: true,
-            levels: [5, 10, 15, 20],
+            levels: generateShopLevelsByMax(5, 20),
             duration: 15000,
+            type: 'classic'
         },
 
         shopItems: [
@@ -518,5 +558,7 @@ module.exports = {
     getGameModeConfigCopy,
     calculateLinearProgression,
     calculateMazeSize,
-    generateSizesArray
+    generateSizesArray,
+    generateShopLevelsByMax,
+    generateShopLevelsByCount
 };

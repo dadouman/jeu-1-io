@@ -34,10 +34,10 @@ c'est facile? Je veux tout réécrire pour bien pouvoir faire varier les règles
 ```
 config/gameModes.js
 ├─ classic: { maxPlayers, maxLevels, shop, shopItems, gems, features... }
+├─ classicPrim: { ... }
 ├─ infinite: { ... }
 ├─ solo: { ... }
 ├─ solo20: { ... }
-├─ soloHardcore: { ... }
 └─ ... (facile d'en ajouter)
 
 utils/GameMode.js (classe)
@@ -73,14 +73,11 @@ server/unified-game-loop.js
 - Beaucoup de duplication dans les tests
 
 **Après:**
-- 333 tests (307 existants + 26 nouveaux pour l'architecture)
 - Tests génériques qui marchent pour tous les modes
-- **TOUS LES TESTS PASSENT ✅**
+- **Tous les tests passent ✅**
 
 ```bash
 npm test
-# Test Suites: 30 passed
-# Tests:       333 passed
 ```
 
 ---
@@ -108,7 +105,7 @@ solo: {
 // C'est tout! Tout le reste se fait automatiquement.
 ```
 
-### Ajouter un mode "Solo Hardcore"
+### Ajouter un mode "Solo sans shop" (exemple)
 
 **Avant:**
 ```javascript
@@ -121,8 +118,8 @@ solo: {
 **Après:**
 ```javascript
 // Dans config/gameModes.js, ajouter:
-soloHardcore: {
-    name: 'Solo Hardcore',
+soloNoShop: {
+    name: 'Solo (sans shop)',
     maxLevels: 15,
     shop: { enabled: false },
     gemsPerLevel: { calculateGems: (level) => 25 + level * 10 },
@@ -208,7 +205,7 @@ Voir `MIGRATION_PLAN.md` pour le plan détaillé.
 
 ```javascript
 // 1. Client sélectionne 'solo'
-socket.emit('selectMode', 'solo');
+socket.emit('selectGameMode', { mode: 'solo' });
 
 // 2. Server crée une session
 const session = sessionManager.createSession('session-1', 'solo');
@@ -320,7 +317,7 @@ edcc80e - Docs: README_ARCHITECTURE.md - Guide de démarrage complet
 
 1. **Lire en 5 min:** `ARCHITECTURE_SUMMARY.md`
 2. **Voir des exemples (15 min):** `EXEMPLES_CONFIG.md`
-3. **Tester:** `npm test` (vérifier que 333/333 passent)
+3. **Tester:** `npm test`
 4. **Expérimenter:** Créer un nouveau mode dans `config/gameModes.js`
 5. **Intégrer progressivement:** Suivre `MIGRATION_PLAN.md`
 

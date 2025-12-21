@@ -10,7 +10,7 @@
 ### Dépendances
 - ✅ `package.json` - `nodemailer` **supprimé**
 - ✅ `package.json` - `@sendgrid/mail: ^8.1.6` **présent**
-- ✅ **Tests: 349/349 ✅**
+- ✅ **Tests: `npm test` ✅**
 
 ### Documentation
 - ✅ `docs/BUG_REPORTING_QUICK_START.md` - **Mis à jour** pour SendGrid
@@ -46,7 +46,7 @@
   - docs/BUG_REPORTING_QUICK_START.md ✅
   - docs/BUG_REPORTING.md ✅
   - package.json ✅
-  - Tests: 349/349 ✅
+   - Tests: `npm test` ✅
 
 ca52890 - docs: Ajouter guide rapide pour configurer SendGrid sur Render
 b671fca - docs: Ajouter résumé complet de la migration SendGrid
@@ -96,7 +96,7 @@ sgMail.send(msg);
 - [x] Aucune référence à Gmail SMTP dans le code
 - [x] Documentation mise à jour (BUG_REPORTING.md/QUICK_START)
 - [x] Guides SendGrid créés (SETUP, MIGRATION, QUICK_SETUP)
-- [x] Tests: 349/349 ✅
+- [x] Tests: `npm test` ✅
 - [x] Commits pushés sur GitHub
 - [ ] Mise à jour Render.com (reste à faire)
 - [ ] Test email SendGrid en production (reste à faire)

@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "jest --forceExit",
-    "reset-score": "node resetScore.js"
+    "reset-score": "node scripts/resetScore.js"
   },
   "keywords": [],
   "author": "",

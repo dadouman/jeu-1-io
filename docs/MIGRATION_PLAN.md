@@ -17,7 +17,7 @@ La migration se fait **progressivement**, en parallèle avec le code existant.
 **État:**
 - Les anciens tests passent toujours ✅
 - 26 nouveaux tests pour la nouvelle architecture ✅
-- 333/333 tests au total ✅
+- Tous les tests passent ✅
 
 **Prochaine action:** Utiliser GameMode pour les constants
 
@@ -218,7 +218,7 @@ Même pattern pour toutes les actions.
 - [ ] Tester que solo fonctionne toujours
 - [ ] Remplacer les constantes classic/infinite
 - [ ] Tester que classic/infinite fonctionnent toujours
-- [ ] Tous les tests passent (333/333)
+- [ ] Tous les tests passent
 - [ ] PR Review
 - [ ] Merge et commit
 

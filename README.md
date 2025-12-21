@@ -36,7 +36,7 @@ Mon jeu .io/
 ├── utils/                   🛠️ Utilitaires partagés
 ├── server/                  🖥️ Code serveur
 ├── Public/                  🌐 Code client
-├── tests/                   🧪 Tests (349 tests)
+├── tests/                   🧪 Tests (Jest)
 ├── server.js               🚀 Point d'entrée serveur
 └── package.json            📦 Dépendances
 ```
@@ -64,11 +64,13 @@ Mon jeu .io/
 
 | Mode | Joueurs | Niveaux | Shop | Description |
 |------|---------|---------|------|-------------|
-| **classic** | 1-8 | ∞ | Niveaux [5,10,15,20,25,30] | Multijoueur classique |
-| **infinite** | 1-4 | ∞ | Niveaux [3,6,9,12,15] | Mode infini plus agressif |
-| **solo** | 1 | 10 | Niveaux [5,10] | Speedrun solo personnel |
-| **solo20** | 1 | 20 | Niveaux [5,10,15,20] | Solo avec 20 niveaux |
-| **soloHardcore** | 1 | 15 | Désactivé | Solo hardcore, pas de shop |
+| **classic** | 1-8 | 10 | Niveaux [5,10] | Couloirs (multijoueur) |
+| **classicPrim** | 1-8 | 10 | Niveaux [5,10] | Organique (multijoueur) |
+| **infinite** | 1-4 | ∞ | Niveaux [3,6,9,12,15] | Infini (multijoueur) |
+| **solo** | 1 | 10 | Niveaux [5,10] | Speedrun solo |
+| **custom** | selon config | selon config | selon config | Mode personnalisé |
+
+Note: `solo20` existe dans `config/gameModes.js` comme exemple de configuration, mais n'est pas exposé par défaut dans le sélecteur de mode.
 
 Voir **[EXEMPLES_CONFIG.md](docs/EXEMPLES_CONFIG.md)** pour créer vos propres modes!
 
@@ -78,7 +80,7 @@ Tous les tests passent:
 
 ```bash
 npm test
-# 349 tests passent ✅
+# Tous les tests Jest passent ✅
 ```
 
 ### Coberture
@@ -108,15 +110,14 @@ npm start
 
 Voir le dossier **`scripts/`** :
 
-- **`resetScore.js`** - Réinitialiser les scores (développement)
+- **`scripts/resetScore.js`** - Réinitialiser les scores (développement)
+- Script npm: `npm run reset-score`
 
 ## 📝 Commits Récents
 
 Dernière refactorisation majeure:
 - ✅ Architecture centralisée implémentée
 - ✅ ShopManager créé pour gérer le shop
-- ✅ 16 nouveaux tests pour ShopManager
-- ✅ 349/349 tests passant
 - ✅ Documentation complète créée
 
 ## 🎓 Pour Les Développeurs
@@ -129,11 +130,14 @@ Dernière refactorisation majeure:
 
 ```javascript
 // config/gameModes.js
+// Astuce: pour éviter les arrays hardcodés, tu peux générer les niveaux de shop:
+// const { generateShopLevelsByMax } = require('./config/gameModes');
+// generateShopLevelsByMax(5, 30) => [5, 10, 15, 20, 25, 30]
 soloMassacre: {
     name: 'Solo Massacre',
     maxPlayers: 1,
     maxLevels: 30,
-    shop: { enabled: true, levels: [5,10,15,20,25,30] },
+    shop: { enabled: true, levels: generateShopLevelsByMax(5, 30) },
     shopItems: [...],
     // ... autres paramètres
 }
@@ -173,7 +177,7 @@ Le code est organisé pour être facile à modifier:
 
 - **Pas de duplication** - Une logique = Un endroit
 - **Configuration centralisée** - Changer les règles = 1 ligne
-- **Tests automatisés** - 349 tests valident tout
+- **Tests automatisés** - Couverture Jest sur les mécaniques principales
 - **Documentation claire** - Voir `docs/` pour tous les détails
 
 ## 📞 Support
@@ -187,6 +191,6 @@ Pour les questions sur l'architecture:
 
 **Dernière mise à jour:** Décembre 2025
 
-**Statut:** ✅ Stable - 349/349 tests passant
+**Statut:** ✅ Stable
 
 **Architecture:** 🏗️ Centralisée et Flexible

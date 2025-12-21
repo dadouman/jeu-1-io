@@ -51,7 +51,7 @@ const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-app.use(express.static('public'));
+app.use(express.static('Public'));
 
 // --- MIDDLEWARE ---
 app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64

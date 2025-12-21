@@ -45,8 +45,8 @@ cat EXEMPLES_CONFIG.md
 
 Dans `config/gameModes.js`, ajoute:
 ```javascript
-soloHardcore: {
-    name: 'Solo Hardcore',
+soloNoShop: {
+  name: 'Solo (sans shop)',
     maxPlayers: 1,
     maxLevels: 15,  // Plus de niveaux!
     shop: {
@@ -64,7 +64,7 @@ C'est tout! Le mode marche immédiatement avec toute la logique.
 ### 3. Vérifier que les tests passent
 ```bash
 npm test
-# 333/333 tests passent ✅
+# Tous les tests Jest passent ✅
 ```
 
 ---
@@ -223,7 +223,7 @@ npm test -- tests/architecture-refactoring.test.js
 | Document | Contenu | Temps |
 |----------|---------|-------|
 | ARCHITECTURE_SUMMARY.md | Vue d'ensemble visuelle | 5 min |
-| EXEMPLES_CONFIG.md | 5 modes d'exemple (solo20, hardcore, etc) | 15 min |
+| EXEMPLES_CONFIG.md | Exemples de configurations de modes | 15 min |
 | MIGRATION_PLAN.md | Plan détaillé pour migrer progressivement | 20 min |
 | ARCHITECTURE_NEW.md | Explique chaque classe en détail | 20 min |
 | socket-events-refactored.js | Code d'exemple pour chaque action | 10 min |
@@ -239,7 +239,7 @@ A: Oui! Les vieilles classes coexistent. On migre progressivement.
 A: `git checkout <ancien-commit>`
 
 **Q: Les tests passent toujours?**
-A: Oui! 333/333 tests (307 anciens + 26 nouveaux) ✅
+A: Oui, lance `npm test`.
 
 **Q: Combien de temps pour implémenter complètement?**
 A: 4-6 heures en suivant le MIGRATION_PLAN.md

@@ -6,6 +6,11 @@ const { resetPlayerForNewLevel, addScore } = require('../../utils/player');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');
 const { isShopLevel } = require('../../utils/shop');
 const { getGameModeConfig } = require('../../config/gameModes');
+const {
+    createDutchAuctionState,
+    tickDutchAuctionState,
+    toPublicState
+} = require('../../utils/dutchAuctionShop');
 
 function processLobbyGameLoop(lobbies, io, { 
     calculateMazeSize, 
@@ -27,7 +32,9 @@ function processLobbyGameLoop(lobbies, io, {
         
         // Récupérer les limites et le type de fin depuis la configuration
         let maxLevels;
-        const modeConfig = getGameModeConfig(mode);
+        // Le mode "custom" est dynamique: il est défini par lobby.customConfig.
+        // Éviter d'exiger une config statique dans config/gameModes.js.
+        const modeConfig = mode === 'custom' ? null : getGameModeConfig(mode);
         const endType = mode === 'custom'
             ? (lobby.customConfig?.endType || 'multi')
             : (modeConfig?.endType || 'multi');
@@ -168,7 +175,73 @@ function processLobbyGameLoop(lobbies, io, {
             console.log(`🏪 [CHECK SHOP] Mode: ${mode}, Niveau complété: ${completedLevel}, isShopLevel: ${isShopLvl}`);
             if (isShopLvl) {
                 console.log(`🏪 [SHOP TRIGGER] Mode: ${mode}, MAGASIN VA S'OUVRIR après le niveau ${completedLevel}`);
-                emitToLobby(mode, 'shopOpen', { items: getShopItemsForMode(mode, lobby), level: completedLevel }, io, lobbies);
+                const shopType = (mode === 'custom')
+                    ? (lobby.customConfig?.shop?.type || 'classic')
+                    : (modeConfig?.shop?.type || 'classic');
+
+                if (shopType === 'dutchAuction') {
+                    // Pour éviter une boutique vide (ex: config custom incomplète), fallback sur les items classiques.
+                    let itemsById = getShopItemsForMode(mode, lobby);
+                    if (!itemsById || Object.keys(itemsById).length === 0) {
+                        itemsById = getShopItemsForMode('classic', lobby);
+                    }
+                    const auctionConfig = (mode === 'custom')
+                        ? (lobby.customConfig?.shop?.auction || {})
+                        : (modeConfig?.shop?.auction || {});
+
+                    // Nettoyer un ticker existant si besoin
+                    if (lobby.dutchAuction && lobby.dutchAuction._intervalId) {
+                        try { clearInterval(lobby.dutchAuction._intervalId); } catch (e) {}
+                    }
+
+                    lobby.dutchAuction = createDutchAuctionState(itemsById, auctionConfig);
+                    tickDutchAuctionState(lobby.dutchAuction);
+
+                    // Émettre l'ouverture avec l'état public initial
+                    emitToLobby(mode, 'shopOpen', {
+                        items: itemsById,
+                        level: completedLevel,
+                        shopType,
+                        auction: toPublicState(lobby.dutchAuction)
+                    }, io, lobbies);
+
+                    // Ticker serveur pour synchroniser les prix entre tous les joueurs
+                    lobby.dutchAuction._intervalId = setInterval(() => {
+                        if (!lobbies[mode] || !lobbies[mode].dutchAuction) return;
+                        tickDutchAuctionState(lobbies[mode].dutchAuction);
+
+                        // Condition de fermeture: si tous les lots restants sont passés sous 1 gem.
+                        // (ou si tous les lots sont vendus)
+                        const lots = Array.isArray(lobbies[mode].dutchAuction.lots) ? lobbies[mode].dutchAuction.lots : [];
+                        const unsoldLots = lots.filter(l => !l.sold);
+                        const allSold = unsoldLots.length === 0;
+                        const allBelowOne = unsoldLots.length > 0 && unsoldLots.every(l => Number(l.currentPrice) < 1);
+                        if (allSold || allBelowOne) {
+                            try { clearInterval(lobbies[mode].dutchAuction._intervalId); } catch (e) {}
+                            delete lobbies[mode].dutchAuction;
+                            if (lobbies[mode].shopPlayersReady && typeof lobbies[mode].shopPlayersReady.clear === 'function') {
+                                lobbies[mode].shopPlayersReady.clear();
+                            }
+                            emitToLobby(mode, 'shopClosedAutomatically', { reason: allSold ? 'allSold' : 'priceBelowOne' }, io, lobbies);
+                            return;
+                        }
+
+                        emitToLobby(mode, 'dutchAuctionState', {
+                            auction: toPublicState(lobbies[mode].dutchAuction)
+                        }, io, lobbies);
+                    }, lobby.dutchAuction.tickMs);
+
+                    // Envoi immédiat d'un premier état (évite d'attendre le premier tick)
+                    emitToLobby(mode, 'dutchAuctionState', {
+                        auction: toPublicState(lobby.dutchAuction)
+                    }, io, lobbies);
+                } else {
+                    emitToLobby(mode, 'shopOpen', {
+                        items: getShopItemsForMode(mode, lobby),
+                        level: completedLevel,
+                        shopType
+                    }, io, lobbies);
+                }
                 console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   Les joueurs ont 15 secondes pour acheter!\n════════════════════════════════════\n`);
             } else {
                 // Afficher la vraie taille depuis la configuration

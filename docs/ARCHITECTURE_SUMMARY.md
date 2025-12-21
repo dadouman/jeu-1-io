@@ -42,10 +42,10 @@
 │         config/gameModes.js                   │
 │  Configuration de TOUS les modes              │
 │  ├─ classic: { maxPlayers, maxLevels, ... }  │
+│  ├─ classicPrim: { ... }                      │
 │  ├─ infinite: { maxPlayers, maxLevels, ... } │
 │  ├─ solo: { maxPlayers, maxLevels, ... }     │
 │  ├─ solo20: { maxPlayers: 1, maxLevels: 20 } │
-│  ├─ soloHardcore: { ... }                     │
 │  └─ shopParadise: { ... }                     │
 └──────────────────────────────────────────────┘
                       ↓
@@ -92,7 +92,7 @@
        /           |           \
 ┌──────────────────────────────────────────┐
 │    server/unified-game-loop.js           │
-│  Une seule boucle pour TOUS les modes    │
+│  Exemple de boucle unifiée (optionnel)   │
 │  ├─ handleCoinCollision()                │
 │  ├─ handleGameFinished()                 │
 │  └─ process()                            │
@@ -136,7 +136,7 @@ PlayerActions.processMovement(player, map, input, modeId);
 ### 3️⃣ Extensible
 ```javascript
 // Ajouter un mode = 30 lignes dans config
-soloHardcore: { /* config */ }
+soloNoShop: { /* config */ }
 ```
 
 ### 4️⃣ Testable
@@ -166,15 +166,15 @@ Après: "Je dois changer le nombre de niveaux solo"
 
 ### Pour l'évolutivité
 ```
-Avant: Ajouter "Solo Hardcore"
+Avant: Ajouter "Solo sans shop"
        → Copier solo-loop.js (oups, c'est 500 lignes!)
        → Adapter le code
        → Déboguer (c'est copié/collé, les bugs sont partout)
        → 2 jours de travail
        
-Après: Ajouter "Solo Hardcore"
+Après: Ajouter "Solo sans shop"
        → Ajouter dans config/gameModes.js
-       → { soloHardcore: { /* config */ } }
+       → { soloNoShop: { /* config */ } }
        → C'est tout! 15 minutes
 ```
 
@@ -200,7 +200,7 @@ Après: Faut juste mettre à jour:
 ### Exemple: Mode Solo
 ```javascript
 // 1. Client sélectionne 'solo'
-socket.emit('selectMode', 'solo');
+socket.emit('selectGameMode', { mode: 'solo' });
 
 // 2. Server crée une session
 const session = sessionManager.createSession(sessionId, 'solo');

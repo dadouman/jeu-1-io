@@ -226,7 +226,7 @@ Avant de déclarer victoire, vérifiez:
 - [ ] Render Dashboard a `SENDGRID_API_KEY` défini
 - [ ] Render Dashboard a `EMAIL_USER` défini
 - [ ] Render Dashboard n'a pas `EMAIL_PASSWORD`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_SECURE`
-- [ ] Tests locaux passent: `npm test` (349/349)
+- [ ] Tests locaux passent: `npm test`
 - [ ] Logs Render montrent "✅ Email de test SendGrid envoyé"
 - [ ] Vous avez reçu l'email de test
 - [ ] Vous avez testé un bug report complet

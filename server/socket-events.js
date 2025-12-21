@@ -5,6 +5,13 @@ const { checkWallCollision } = require('../utils/collisions');
 const { initializePlayerForMode } = require('../utils/player');
 const { generateRandomFeatureWeighted } = require('./utils/solo-utils');
 const { purchaseItem } = require('../utils/shop');
+const {
+    tickDutchAuctionState,
+    getLotById,
+    markLotSold,
+    computeCurrentPrice,
+    toPublicState
+} = require('../utils/dutchAuctionShop');
 const { emitToLobby } = require('./utils');
 const gameModes = require('../config/gameModes');
 const SoloSession = require('./utils/SoloSession');
@@ -51,7 +58,19 @@ function performDash(player, playerId, gameMap) {
 }
 
 // --- STRUCTURE POUR TRACKER LES JOUEURS PRÊTS AU SHOP ---
-const shopPlayersReady = {}; // { 'mode': Set(playerIds) }
+// Historique: c'était un objet global par mode.
+// Maintenant: on le stocke par lobby via lobby.shopPlayersReady = Set(playerIds)
+// (utile pour fermer le shop depuis la game-loop sans dépendance croisée).
+const shopPlayersReady = {}; // (legacy fallback, conservé pour compat)
+
+function stopDutchAuctionForMode(mode, lobbies) {
+    const lobby = lobbies?.[mode];
+    if (!lobby || !lobby.dutchAuction) return;
+    if (lobby.dutchAuction._intervalId) {
+        try { clearInterval(lobby.dutchAuction._intervalId); } catch (e) {}
+    }
+    delete lobby.dutchAuction;
+}
 
 // --- FONCTION D'INITIALISATION DES ÉVÉNEMENTS ---
 function initializeSocketEvents(io, lobbies, soloSessions, playerModes, { 
@@ -230,20 +249,19 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 return;
             }
             
-            // Cas du CLASSIQUE/CUSTOM : vote de continuation
-            // Initialiser le Set des joueurs prêts pour ce mode si nécessaire
-            if (!shopPlayersReady[mode]) {
-                shopPlayersReady[mode] = new Set();
-            }
-            
-            // Ajouter le joueur à la liste des prêts
-            shopPlayersReady[mode].add(socket.id);
-            
             const lobby = lobbies[mode];
             if (!lobby) return;
+
+            // Cas du CLASSIQUE/CUSTOM : vote de continuation
+            if (!lobby.shopPlayersReady) {
+                lobby.shopPlayersReady = new Set();
+            }
+
+            // Ajouter le joueur à la liste des prêts
+            lobby.shopPlayersReady.add(socket.id);
             
             const totalPlayers = Object.keys(lobby.players).length;
-            const readyCount = shopPlayersReady[mode].size;
+            const readyCount = lobby.shopPlayersReady.size;
             
             console.log(`✅ [SHOP] ${lobby.players[socket.id].skin} est prêt à continuer | ${readyCount}/${totalPlayers} joueurs prêts`);
             
@@ -256,9 +274,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             // Si tous les joueurs sont prêts, fermer le shop
             if (readyCount === totalPlayers) {
                 console.log(`🎉 [SHOP] Tous les joueurs sont prêts! Fermeture du shop...`);
+
+                // Stopper un éventuel shop d'enchères dégressives
+                stopDutchAuctionForMode(mode, lobbies);
                 
-                // Réinitialiser les joueurs prêts pour ce mode
-                shopPlayersReady[mode].clear();
+                // Réinitialiser les joueurs prêts pour ce lobby
+                lobby.shopPlayersReady.clear();
                 
                 // Émettre l'événement de fermeture du shop à tous les joueurs
                 emitToLobby(mode, 'shopClosed', {}, io, lobbies);
@@ -279,16 +300,107 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             
             const lobby = lobbies[mode];
             if (!lobby) return;
-            
-            // Réinitialiser le compteur de joueurs prêts pour ce mode
-            if (shopPlayersReady[mode]) {
-                shopPlayersReady[mode].clear();
+
+            // Shop enchères: pas de limite de temps.
+            if (lobby.dutchAuction && lobby.dutchAuction.type === 'dutchAuction') {
+                return;
             }
+            
+            // Réinitialiser le compteur de joueurs prêts pour ce lobby
+            if (lobby.shopPlayersReady) {
+                lobby.shopPlayersReady.clear();
+            }
+
+            // Stopper un éventuel shop d'enchères dégressives
+            stopDutchAuctionForMode(mode, lobbies);
             
             console.log(`⏱️ [SHOP TIMEOUT] Mode ${mode}: Shop fermé après 15 secondes`);
             
             // Émettre l'événement de fermeture du shop à tous les joueurs
             emitToLobby(mode, 'shopClosedAutomatically', {}, io, lobbies);
+        });
+
+        // --- SHOP: ENCHÈRES DÉGRESSIVES (ACHAT D'UN LOT) ---
+        socket.on('dutchAuctionPurchase', (data) => {
+            const mode = playerModes[socket.id];
+            if (!mode) return;
+
+            if (mode === 'solo') {
+                // Pas supporté côté multi-loop pour l'instant
+                socket.emit('shopPurchaseFailed', { reason: 'Shop enchères non supporté en solo', required: 0, current: 0 });
+                return;
+            }
+
+            const lobby = lobbies[mode];
+            if (!lobby || !lobby.players[socket.id]) return;
+            if (!lobby.dutchAuction || lobby.dutchAuction.type !== 'dutchAuction') {
+                socket.emit('shopPurchaseFailed', { reason: 'Enchères indisponibles', required: 0, current: 0 });
+                return;
+            }
+
+            const lotId = data?.lotId;
+            if (!lotId) {
+                socket.emit('shopPurchaseFailed', { reason: 'Lot invalide', required: 0, current: 0 });
+                return;
+            }
+
+            // Rafraîchir les prix côté serveur avant validation
+            tickDutchAuctionState(lobby.dutchAuction);
+
+            const lot = getLotById(lobby.dutchAuction, lotId);
+            if (!lot) {
+                socket.emit('shopPurchaseFailed', { reason: 'Lot introuvable', required: 0, current: 0 });
+                return;
+            }
+
+            if (lot.sold) {
+                socket.emit('shopPurchaseFailed', { reason: 'Lot déjà vendu', required: 0, current: 0 });
+                return;
+            }
+
+            // Calculer le prix actuel (sécurité)
+            const ticksElapsed = Math.floor((Date.now() - lobby.dutchAuction.startedAt) / lobby.dutchAuction.tickMs);
+            const currentPrice = computeCurrentPrice(
+                { startPrice: lot.startPrice, minPrice: lot.minPrice },
+                ticksElapsed,
+                lobby.dutchAuction.decrement
+            );
+
+            // Construire un item "au prix courant" pour réutiliser purchaseItem()
+            const player = lobby.players[socket.id];
+            const customShopItems = {
+                [lot.itemId]: {
+                    id: lot.itemId,
+                    name: lot.name,
+                    price: currentPrice
+                }
+            };
+
+            const result = purchaseItem(player, lot.itemId, customShopItems);
+            if (!result.success) {
+                socket.emit('shopPurchaseFailed', {
+                    reason: result.message,
+                    required: result.gemsRequired,
+                    current: result.gemsAvailable
+                });
+                return;
+            }
+
+            // Marquer le lot vendu et notifier tout le lobby
+            markLotSold(lobby.dutchAuction, lotId, socket.id, currentPrice);
+            tickDutchAuctionState(lobby.dutchAuction);
+
+            console.log(`📉💎 [DUTCH AUCTION] ${player.skin} a acheté ${lot.name} (lot ${lotId}) pour ${currentPrice}💎 | ${player.gems}💎 restants`);
+
+            socket.emit('shopPurchaseSuccess', { itemId: lot.itemId, item: { id: lot.itemId, name: lot.name, price: currentPrice }, gemsLeft: player.gems });
+
+            emitToLobby(mode, 'dutchAuctionLotSold', {
+                lotId,
+                itemId: lot.itemId,
+                price: currentPrice
+            }, io, lobbies);
+
+            emitToLobby(mode, 'dutchAuctionState', { auction: toPublicState(lobby.dutchAuction) }, io, lobbies);
         });
 
         // --- SAUVEGARDER LES RÉSULTATS SOLO ---
@@ -456,6 +568,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 
                 // Réinitialiser le lobby custom si vide
                 if (mode === 'custom' && Object.keys(lobby.players).length === 0) {
+                    stopDutchAuctionForMode(mode, lobbies);
                     delete lobbies['custom'];
                     console.log(`🗑️ Lobby custom supprimé (aucun joueur)`);
                 }

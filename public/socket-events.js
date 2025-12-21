@@ -130,11 +130,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             isShopOpenP2 = true;
             isPlayerReadyToContinueP2 = false;
             shopItemsP2 = data.items;
+            shopTypeP2 = data.shopType || 'classic';
+            dutchAuctionStateP2 = (shopTypeP2 === 'dutchAuction' && data.auction) ? data.auction : null;
             shopTimerStartP2 = now;
         } else {
             isShopOpen = true;
             isPlayerReadyToContinue = false;
             shopItems = data.items;
+            shopType = data.shopType || 'classic';
+            dutchAuctionState = (shopType === 'dutchAuction' && data.auction) ? data.auction : null;
             shopTimerStart = now;
         }
 
@@ -147,6 +151,30 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         const shopNumber = Math.floor(data.level / 5);
         const who = isSecondary ? 'P2' : 'P1';
         console.log(`%c🏪 [${who}] SHOP ${shopNumber} OUVERT | 1-5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+    });
+
+    targetSocket.on('dutchAuctionState', (data) => {
+        const auction = data?.auction || null;
+        const isSecondary = source === 'secondary';
+        if (isSecondary) {
+            dutchAuctionStateP2 = auction;
+            dutchAuctionTickAnchorP2 = Date.now();
+        } else {
+            dutchAuctionState = auction;
+            dutchAuctionTickAnchor = Date.now();
+        }
+    });
+
+    targetSocket.on('dutchAuctionLotSold', (data) => {
+        const lotId = data?.lotId;
+        if (!lotId) return;
+        const isSecondary = source === 'secondary';
+        const state = isSecondary ? dutchAuctionStateP2 : dutchAuctionState;
+        if (!state || !Array.isArray(state.lots)) return;
+        const lot = state.lots.find(l => l.lotId === lotId);
+        if (lot) {
+            lot.sold = true;
+        }
     });
 
     targetSocket.on('shopPurchaseSuccess', (data) => {
@@ -183,11 +211,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
                 isPlayerReadyToContinueP2 = false;
                 shopTimerStartP2 = null;
                 shopItemsP2 = {};
+                shopTypeP2 = 'classic';
+                dutchAuctionStateP2 = null;
             } else {
                 isShopOpen = false;
                 isPlayerReadyToContinue = false;
                 shopTimerStart = null;
                 shopItems = {};
+                shopType = 'classic';
+                dutchAuctionState = null;
             }
             shopReadyCount = 0;
             shopTotalPlayers = 0;
@@ -210,11 +242,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
                 isPlayerReadyToContinueP2 = false;
                 shopTimerStartP2 = null;
                 shopItemsP2 = {};
+                shopTypeP2 = 'classic';
+                dutchAuctionStateP2 = null;
             } else {
                 isShopOpen = false;
                 isPlayerReadyToContinue = false;
                 shopTimerStart = null;
                 shopItems = {};
+                shopType = 'classic';
+                dutchAuctionState = null;
             }
             shopReadyCount = 0;
             shopTotalPlayers = 0;

@@ -24,6 +24,228 @@ function getShopContinueButtonArea(canvasWidth, canvasHeight) {
 }
 
 /**
+ * Retourne les zones cliquables des lots pour la boutique d'enchères dégressives.
+ * @param {number} canvasWidth
+ * @param {number} canvasHeight
+ * @param {object|null} auction - { gridSize, lots }
+ * @returns {Array} Array de {id, rect: {x,y,width,height}}
+ */
+function getDutchAuctionClickAreas(canvasWidth, canvasHeight, auction) {
+    const shopWidth = 600;
+    const shopHeight = 440;
+    const shopX = (canvasWidth - shopWidth) / 2;
+    const shopY = (canvasHeight - shopHeight) / 2;
+
+    const gridSize = Math.max(1, Math.min(6, Math.floor(Number(auction?.gridSize || 3))));
+    const lots = Array.isArray(auction?.lots) ? auction.lots : [];
+
+    const gridPaddingX = 40;
+    const gridPaddingY = 110;
+    const gridX = shopX + gridPaddingX;
+    const gridY = shopY + gridPaddingY;
+    const gridW = shopWidth - gridPaddingX * 2;
+    const gridH = shopHeight - gridPaddingY - 70;
+
+    const cellGap = 12;
+    const cellW = Math.floor((gridW - (cellGap * (gridSize - 1))) / gridSize);
+    const cellH = Math.floor((gridH - (cellGap * (gridSize - 1))) / gridSize);
+
+    const areas = [];
+    for (let i = 0; i < Math.min(lots.length, gridSize * gridSize); i++) {
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        const x = gridX + col * (cellW + cellGap);
+        const y = gridY + row * (cellH + cellGap);
+        areas.push({
+            id: lots[i].lotId,
+            rect: { x, y, width: cellW, height: cellH }
+        });
+    }
+    return areas;
+}
+
+function getAuctionItemVisuals(itemId) {
+    const map = {
+        dash: { emoji: '⚡', color: '#FF6B6B', label: 'Dash' },
+        checkpoint: { emoji: '🚩', color: '#00D4FF', label: 'Checkpoint' },
+        compass: { emoji: '🧭', color: '#2ECC71', label: 'Boussole' },
+        rope: { emoji: '🪢', color: '#9B59B6', label: 'Corde' },
+        speedBoost: { emoji: '💨', color: '#FFD700', label: 'Vitesse+' }
+    };
+    return map[itemId] || { emoji: '🎁', color: '#CCCCCC', label: itemId || 'Item' };
+}
+
+function renderDutchAuctionShop(ctx, canvas, level, playerGems, shopTimeRemaining, shopUi) {
+    const auction = shopUi?.auction || null;
+    const lots = Array.isArray(auction?.lots) ? auction.lots : [];
+    const gridSize = Math.max(1, Math.min(6, Math.floor(Number(auction?.gridSize || 3))));
+
+    // Overlay semi-transparent
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const shopWidth = 600;
+    const shopHeight = 440;
+    const shopX = (canvas.width - shopWidth) / 2;
+    const shopY = (canvas.height - shopHeight) / 2;
+
+    ctx.fillStyle = "#222";
+    ctx.fillRect(shopX, shopY, shopWidth, shopHeight);
+    ctx.strokeStyle = "#FFD700";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(shopX, shopY, shopWidth, shopHeight);
+
+    // Titre
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 24px Arial";
+    ctx.textAlign = "center";
+    const shopNumber = Math.floor(level / 5);
+    ctx.fillText(`🏪 ENCHÈRES ${shopNumber}`, canvas.width / 2, shopY + 38);
+
+    // Timer shop (enchères: pas de limite => ∞)
+    const hasCountdown = typeof shopTimeRemaining === 'number' && Number.isFinite(shopTimeRemaining);
+    const timerLabel = hasCountdown ? ("⏱️ " + shopTimeRemaining + "s") : "⏱️ ∞";
+    ctx.fillStyle = hasCountdown && shopTimeRemaining <= 5 ? "#FF0000" : "#FFD700";
+    ctx.font = "bold 18px Arial";
+    ctx.fillText(timerLabel, canvas.width / 2, shopY + 62);
+
+    // Gems
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 28px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText(`💎 ${playerGems}`, shopX + shopWidth - 20, shopY + 48);
+
+    // Prochain tick (approx côté client)
+    const tickMs = Math.max(250, Math.min(10000, Number(auction?.tickMs || 2000)));
+    const anchor = Number.isFinite(shopUi?.auctionTickAnchor) ? shopUi.auctionTickAnchor : null;
+    let nextPriceSeconds = null;
+    if (anchor) {
+        const elapsed = Date.now() - anchor;
+        const remainingMs = Math.max(0, tickMs - (elapsed % tickMs));
+        nextPriceSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+    }
+
+    ctx.fillStyle = "#CCCCCC";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "left";
+    const tickLabel = nextPriceSeconds === null
+        ? `Prochain prix: toutes les ${Math.round(tickMs / 1000)}s`
+        : `Prochain prix dans : ${nextPriceSeconds}s`;
+    ctx.fillText(tickLabel, shopX + 20, shopY + 78);
+
+    // Grille
+    const gridPaddingX = 40;
+    const gridPaddingY = 110;
+    const gridX = shopX + gridPaddingX;
+    const gridY = shopY + gridPaddingY;
+    const gridW = shopWidth - gridPaddingX * 2;
+    const gridH = shopHeight - gridPaddingY - 70;
+
+    const cellGap = 12;
+    const cellW = Math.floor((gridW - (cellGap * (gridSize - 1))) / gridSize);
+    const cellH = Math.floor((gridH - (cellGap * (gridSize - 1))) / gridSize);
+
+    const drawRoundRect = (x, y, width, height, radius) => {
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+        ctx.lineTo(x + width, y + height - radius);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        ctx.lineTo(x + radius, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+    };
+
+    if (lots.length === 0) {
+        ctx.fillStyle = '#999999';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Aucun lot disponible', shopX + shopWidth / 2, gridY + gridH / 2);
+    }
+
+    for (let i = 0; i < Math.min(lots.length, gridSize * gridSize); i++) {
+        const lot = lots[i];
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        const x = gridX + col * (cellW + cellGap);
+        const y = gridY + row * (cellH + cellGap);
+
+        const visuals = getAuctionItemVisuals(lot.itemId);
+        const canBuy = !lot.sold && (playerGems >= (lot.currentPrice || 0));
+        const isHovered = shopUi?.animations?.hoveredItemId === lot.lotId;
+
+        ctx.fillStyle = canBuy ? 'rgba(255, 215, 0, 0.10)' : 'rgba(100, 100, 100, 0.20)';
+        ctx.strokeStyle = isHovered ? '#FFD700' : '#666666';
+        ctx.lineWidth = isHovered ? 3 : 1;
+        drawRoundRect(x, y, cellW, cellH, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        // Emoji
+        ctx.font = '34px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = visuals.color;
+        ctx.globalAlpha = lot.sold ? 0.35 : 1.0;
+        ctx.fillText(visuals.emoji, x + cellW / 2, y + 30);
+        ctx.globalAlpha = 1.0;
+
+        // Nom
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = '#FFFFFF';
+        const displayName = (lot.name || visuals.label || '').toString();
+        ctx.fillText(displayName.slice(0, 18), x + cellW / 2, y + 62);
+
+        // Prix
+        ctx.font = 'bold 14px Arial';
+        ctx.fillStyle = lot.sold ? '#888888' : (canBuy ? '#FFD700' : '#CCCCCC');
+        const price = Number.isFinite(Number(lot.currentPrice)) ? Number(lot.currentPrice) : '?';
+        ctx.fillText(`Prix: ${price} 💎`, x + cellW / 2, y + 88);
+
+        // Bouton acheter (visuel uniquement, la zone cliquable est la carte)
+        ctx.font = 'bold 12px Arial';
+        ctx.fillStyle = lot.sold ? '#777777' : (canBuy ? '#00FF00' : '#AAAAAA');
+        ctx.fillText(lot.sold ? 'VENDU' : 'ACHETER', x + cellW / 2, y + cellH - 16);
+    }
+
+    // Instruction + bouton continuer (réutilise l'existant)
+    ctx.fillStyle = "#888";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Cliquez sur un lot pour acheter (le premier l'obtient)", canvas.width / 2, shopY + shopHeight - 50);
+
+    // Bouton Continuer (copié du shop classique)
+    const continueButtonWidth = 150;
+    const continueButtonHeight = 40;
+    const continueButtonX = canvas.width / 2 - continueButtonWidth / 2;
+    const continueButtonY = shopY + shopHeight - 35;
+
+    const effectiveIsReady = !!shopUi?.isPlayerReadyToContinue;
+    const effectiveReadyCount = Number.isFinite(shopUi?.readyCount) ? shopUi.readyCount : 0;
+    const effectiveTotalPlayers = Number.isFinite(shopUi?.totalPlayers) ? shopUi.totalPlayers : 0;
+
+    ctx.fillStyle = '#FFD700';
+    ctx.fillRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
+    ctx.strokeStyle = '#FFA500';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(continueButtonX, continueButtonY, continueButtonWidth, continueButtonHeight);
+
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let buttonText = 'Continuer';
+    if (effectiveIsReady) {
+        buttonText = `${effectiveReadyCount}/${effectiveTotalPlayers} ont terminé`;
+    }
+    ctx.fillText(buttonText, canvas.width / 2, continueButtonY + continueButtonHeight / 2);
+}
+
+/**
  * Affiche l'interface du shop
  */
 function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
@@ -47,6 +269,22 @@ function renderShop(ctx, canvas, level, playerGems, shopTimeRemaining) {
     const effectiveTotalPlayers = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object' && typeof arguments[5].totalPlayers === 'number')
         ? arguments[5].totalPlayers
         : (typeof shopTotalPlayers !== 'undefined' ? shopTotalPlayers : 0);
+
+    const effectiveShopType = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object' && typeof arguments[5].shopType === 'string')
+        ? arguments[5].shopType
+        : (typeof shopType !== 'undefined' ? shopType : 'classic');
+
+    if (effectiveShopType === 'dutchAuction') {
+        const shopUi = (arguments.length >= 6 && arguments[5] && typeof arguments[5] === 'object') ? arguments[5] : {};
+        renderDutchAuctionShop(ctx, canvas, level, playerGems, shopTimeRemaining, {
+            ...shopUi,
+            animations: effectiveAnimations,
+            isPlayerReadyToContinue: effectiveIsReady,
+            readyCount: effectiveReadyCount,
+            totalPlayers: effectiveTotalPlayers
+        });
+        return;
+    }
 
     // Overlay semi-transparent
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)";

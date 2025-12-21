@@ -16,7 +16,7 @@
 |----------|-------|---------|
 | **[ARCHITECTURE_NEW.md](ARCHITECTURE_NEW.md)** | 20 min | Explique chaque classe en détail |
 | **[EXEMPLES_CONFIG.md](EXEMPLES_CONFIG.md)** | 15 min | 5 modes d'exemple concrets |
-| **[socket-events-refactored.js](server/socket-events-refactored.js)** | 10 min | Code d'exemple pour chaque action |
+| **[socket-events-refactored.js](../server/socket-events-refactored.js)** | 10 min | Code d'exemple pour chaque action |
 
 ## 🔧 Implémenter
 
@@ -35,17 +35,17 @@
 
 | Fichier | Ligne | Contenu |
 |---------|------|---------|
-| **[config/gameModes.js](config/gameModes.js)** | 350 | Configuration centralisée de TOUS les modes |
-| **[utils/GameMode.js](utils/GameMode.js)** | 140 | Classe pour accéder à la config |
-| **[utils/GameSessionManager.js](utils/GameSessionManager.js)** | 250 | Gestion des sessions |
-| **[utils/PlayerActions.js](utils/PlayerActions.js)** | 200 | Actions unifiées du joueur |
-| **[server/unified-game-loop.js](server/unified-game-loop.js)** | 120 | Boucle unifiée pour tous les modes |
+| **[config/gameModes.js](../config/gameModes.js)** | - | Configuration centralisée de TOUS les modes |
+| **[utils/GameMode.js](../utils/GameMode.js)** | - | Classe pour accéder à la config |
+| **[utils/GameSessionManager.js](../utils/GameSessionManager.js)** | - | Gestion des sessions |
+| **[utils/PlayerActions.js](../utils/PlayerActions.js)** | - | Actions unifiées du joueur |
+| **[server/unified-game-loop.js](../server/unified-game-loop.js)** | - | Exemple de boucle unifiée (non branchée par défaut) |
 
 ## ✅ Tests
 
 | Fichier | Tests | Contenu |
 |---------|-------|---------|
-| **[tests/architecture-refactoring.test.js](tests/architecture-refactoring.test.js)** | 26 | Tests de la nouvelle architecture |
+| **[tests/architecture-refactoring.test.js](../tests/architecture-refactoring.test.js)** | 26 | Tests de la nouvelle architecture |
 
 ---
 
@@ -58,16 +58,16 @@
 → **Lire [README_ARCHITECTURE.md](README_ARCHITECTURE.md)** (10 min)
 
 ### Je veux créer un mode personnalisé
-→ **Lire [EXEMPLES_CONFIG.md](EXEMPLES_CONFIG.md)** puis modifier [config/gameModes.js](config/gameModes.js)
+→ **Lire [EXEMPLES_CONFIG.md](EXEMPLES_CONFIG.md)** puis modifier [config/gameModes.js](../config/gameModes.js)
 
 ### Je veux changer le nombre de niveaux solo
-→ **Ouvrir [config/gameModes.js](config/gameModes.js) ligne 32, changer `maxLevels: 20`**
+→ **Ouvrir [config/gameModes.js](../config/gameModes.js) et changer `solo.maxLevels`**
 
 ### Je veux changer le prix d'un objet
-→ **Ouvrir [config/gameModes.js](config/gameModes.js), chercher l'item, changer `price`**
+→ **Ouvrir [config/gameModes.js](../config/gameModes.js), chercher l'item, changer `price`**
 
 ### Je veux changer quand le shop ouvre
-→ **Ouvrir [config/gameModes.js](config/gameModes.js), changer `shop.levels`**
+→ **Ouvrir [config/gameModes.js](../config/gameModes.js), changer `shop.levels`**
 
 ### Je veux intégrer dans socket-events.js
 → **Lire [MIGRATION_PLAN.md](MIGRATION_PLAN.md)**
@@ -122,7 +122,7 @@ cat EXEMPLES_CONFIG.md
 ### 3. Tester que ça marche
 ```bash
 npm test
-# 333/333 tests passent ✅
+# Tous les tests Jest passent ✅
 ```
 
 ### 4. Créer votre premier mode
@@ -187,7 +187,7 @@ A: Non! Les classes coexistent avec l'ancien code. Migration graduelle.
 A: `git checkout <ancien-commit>`
 
 **Q: Les tests passent?**
-A: OUI! 333/333 tests ✅
+A: Oui, lance `npm test`.
 
 **Q: Où est la documentation?**
 A: Vous lisez l'index! Voir les liens ci-dessus.

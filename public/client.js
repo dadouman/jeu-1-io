@@ -44,6 +44,8 @@ canvas.addEventListener('click', (event) => {
     const localFeatures = side === 'secondary' ? purchasedFeaturesP2 : purchasedFeatures;
     const localShopItems = (side === 'secondary' ? shopItemsP2 : shopItems) || {};
     const localAnimations = side === 'secondary' ? shopAnimationsP2 : shopAnimations;
+    const localShopType = side === 'secondary' ? shopTypeP2 : shopType;
+    const localAuction = side === 'secondary' ? dutchAuctionStateP2 : dutchAuctionState;
     const targetSocket = side === 'secondary' ? socketSecondary : socket;
     const localIsReadyRef = side === 'secondary' ? 'P2' : 'P1';
 
@@ -72,7 +74,9 @@ canvas.addEventListener('click', (event) => {
     }
     
     // Obtenir les zones cliquables du shop
-    const clickAreas = getShopClickAreas(halfW, canvas.height);
+    const clickAreas = (localShopType === 'dutchAuction' && typeof getDutchAuctionClickAreas === 'function')
+        ? getDutchAuctionClickAreas(halfW, canvas.height, localAuction)
+        : getShopClickAreas(halfW, canvas.height);
     console.log(`📦 Zones cliquables:`, clickAreas);
     
     // Items par défaut si shopItems est vide
@@ -87,32 +91,58 @@ canvas.addEventListener('click', (event) => {
     // Utiliser shopItems du serveur ou les valeurs par défaut
     const effectiveShopItems = (localShopItems && Object.keys(localShopItems).length > 0) ? localShopItems : defaultShopItems;
     
-    // Vérifier si un item a été cliqué
+    // Vérifier si un item / lot a été cliqué
     for (const area of clickAreas) {
         const { x, y, width, height } = area.rect;
         if (localX >= x && localX <= x + width && localY >= y && localY <= y + height) {
-            const item = effectiveShopItems[area.id];
-            if (item) {
-                // Vérifier si le joueur a assez de gems
-            const hasEnoughGems = localGems >= item.price;
-                
-                // Vérifier si l'item est déjà acheté (non-stackable)
-            const isAlreadyPurchased = (item.id !== 'speedBoost' && !item.stackable && localFeatures[item.id] === true);
-                
-                console.log(`🎯 Item cliqué: ${area.id} | Assez de gems: ${hasEnoughGems} | Déjà acheté: ${isAlreadyPurchased}`);
-                
-                // Ne pas acheter si pas assez d'argent ou si déjà acheté
-                if (hasEnoughGems && !isAlreadyPurchased) {
-                    console.log(`📤 Envoi shopPurchase: ${area.id}`);
+            if (localShopType === 'dutchAuction') {
+                const lotId = area.id;
+                // Trouver le lot (pour vérifier sold + prix)
+                const lots = Array.isArray(localAuction?.lots) ? localAuction.lots : [];
+                const lot = lots.find(l => l.lotId === lotId);
+                if (!lot) {
+                    console.log(`❌ Lot introuvable: ${lotId}`);
+                    break;
+                }
+
+                const lotPrice = Number(lot.currentPrice || 0);
+                const hasEnoughGems = localGems >= lotPrice;
+                const isSold = !!lot.sold;
+                console.log(`🎯 Lot cliqué: ${lotId} | Prix=${lotPrice} | Assez de gems: ${hasEnoughGems} | Vendu: ${isSold}`);
+
+                if (!isSold && hasEnoughGems) {
+                    console.log(`📤 Envoi dutchAuctionPurchase: ${lotId}`);
                     if (targetSocket) {
-                        targetSocket.emit('shopPurchase', { itemId: area.id });
+                        targetSocket.emit('dutchAuctionPurchase', { lotId });
                     }
-                    // Déclencher l'animation d'achat
-                    localAnimations.purchaseAnimations[area.id] = {
-                        startTime: Date.now()
-                    };
+                    localAnimations.purchaseAnimations[lotId] = { startTime: Date.now() };
                 } else {
-                    console.log(`❌ Achat refusé(${localIsReadyRef}): gems=${localGems}, price=${item.price}, purchased=${localFeatures[area.id]}`);
+                    console.log(`❌ Achat refusé(${localIsReadyRef}): sold=${isSold}, gems=${localGems}, price=${lotPrice}`);
+                }
+            } else {
+                const item = effectiveShopItems[area.id];
+                if (item) {
+                    // Vérifier si le joueur a assez de gems
+                    const hasEnoughGems = localGems >= item.price;
+                    
+                    // Vérifier si l'item est déjà acheté (non-stackable)
+                    const isAlreadyPurchased = (item.id !== 'speedBoost' && !item.stackable && localFeatures[item.id] === true);
+                    
+                    console.log(`🎯 Item cliqué: ${area.id} | Assez de gems: ${hasEnoughGems} | Déjà acheté: ${isAlreadyPurchased}`);
+                    
+                    // Ne pas acheter si pas assez d'argent ou si déjà acheté
+                    if (hasEnoughGems && !isAlreadyPurchased) {
+                        console.log(`📤 Envoi shopPurchase: ${area.id}`);
+                        if (targetSocket) {
+                            targetSocket.emit('shopPurchase', { itemId: area.id });
+                        }
+                        // Déclencher l'animation d'achat
+                        localAnimations.purchaseAnimations[area.id] = {
+                            startTime: Date.now()
+                        };
+                    } else {
+                        console.log(`❌ Achat refusé(${localIsReadyRef}): gems=${localGems}, price=${item.price}, purchased=${localFeatures[area.id]}`);
+                    }
                 }
             }
             break;
@@ -134,6 +164,8 @@ canvas.addEventListener('mousemove', (event) => {
 
     const isOpen = side === 'secondary' ? isShopOpenP2 : isShopOpen;
     const localAnimations = side === 'secondary' ? shopAnimationsP2 : shopAnimations;
+    const localShopType = side === 'secondary' ? shopTypeP2 : shopType;
+    const localAuction = side === 'secondary' ? dutchAuctionStateP2 : dutchAuctionState;
 
     if (!isOpen) {
         localAnimations.hoveredItemId = null;
@@ -143,7 +175,9 @@ canvas.addEventListener('mousemove', (event) => {
     const localX = side === 'secondary' ? (mouseX - halfW) : mouseX;
     const localY = mouseY;
     
-    const clickAreas = getShopClickAreas(halfW, canvas.height);
+    const clickAreas = (localShopType === 'dutchAuction' && typeof getDutchAuctionClickAreas === 'function')
+        ? getDutchAuctionClickAreas(halfW, canvas.height, localAuction)
+        : getShopClickAreas(halfW, canvas.height);
     
     localAnimations.hoveredItemId = null;
     for (const area of clickAreas) {

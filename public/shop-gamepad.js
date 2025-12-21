@@ -22,6 +22,18 @@ function resetShopGamepadNavigation() {
 function handleShopGamepadNavigation(gamepad) {
     if (!shopGamepadNavigationEnabled || !isShopOpen) return;
 
+    // Boutique enchères: navigation manette non implémentée (éviter des achats invalides)
+    try {
+        const activeType = (typeof activeShopSide === 'string' && activeShopSide === 'secondary')
+            ? (typeof shopTypeP2 !== 'undefined' ? shopTypeP2 : 'classic')
+            : (typeof shopType !== 'undefined' ? shopType : 'classic');
+        if (activeType === 'dutchAuction') {
+            return;
+        }
+    } catch (e) {
+        // noop
+    }
+
     // Mouvement horizontal pour naviguer entre les items
     const axisX = applyDeadzone(gamepad.axes[0] || 0);
     const dPadLeft = gamepad.buttons[14] && gamepad.buttons[14].pressed;

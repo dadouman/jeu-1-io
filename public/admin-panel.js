@@ -74,6 +74,46 @@ function createAdminPanel() {
                 <input type="number" id="itemPriceMultiplier" min="0.1" max="5" step="0.1" value="1" placeholder="1">
                 <small style="color: #888;">1 = prix normal, 2 = 2x plus cher, 0.5 = 2x moins cher</small>
             </div>
+
+            <div class="form-group">
+                <label for="shopType">🛒 Type de shop:</label>
+                <select id="shopType" style="width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px;">
+                    <option value="classic">🏪 Classique</option>
+                    <option value="dutchAuction">⏱️ Enchères dégressives</option>
+                </select>
+                <small style="color: #888;">Classique = liste d'items, Enchères = lots avec prix qui baisse</small>
+            </div>
+
+            <div id="auctionSettingsGroup" style="display: none; padding: 10px; background: rgba(255,255,255,0.04); border-radius: 6px; border: 1px solid #444;">
+                <div class="form-group">
+                    <label for="auctionGridSize">🧱 Taille de grille (NxN):</label>
+                    <input type="number" id="auctionGridSize" min="1" max="6" value="3" placeholder="3">
+                    <small style="color: #888;">1 à 6 (ex: 3 = 9 lots)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="auctionTickSeconds">⏲️ Baisse de prix toutes les (secondes):</label>
+                    <input type="number" id="auctionTickSeconds" min="0.25" max="10" step="0.25" value="2" placeholder="2">
+                    <small style="color: #888;">Entre 0.25s et 10s</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="auctionDecrement">📉 Décroissance (prix -X à chaque tick):</label>
+                    <input type="number" id="auctionDecrement" min="1" max="9999" value="1" placeholder="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="auctionStartPriceMultiplier">🚀 Prix de départ (multiplicateur):</label>
+                    <input type="number" id="auctionStartPriceMultiplier" min="0.1" max="10" step="0.1" value="2" placeholder="2">
+                    <small style="color: #888;">Prix départ = prix item × multiplicateur</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="auctionMinPriceMultiplier">🧱 Prix minimum (multiplicateur):</label>
+                    <input type="number" id="auctionMinPriceMultiplier" min="0" max="5" step="0.05" value="0.5" placeholder="0.5">
+                    <small style="color: #888;">Prix min = prix item × multiplicateur (plancher)</small>
+                </div>
+            </div>
             
             <hr style="border: none; border-top: 1px solid #444; margin: 20px 0;">
             
@@ -152,6 +192,12 @@ function applyCustomMode() {
     const decrement = parseInt(document.getElementById('decrement').value) || increment;
     const shopFrequency = parseInt(document.getElementById('shopFrequency').value) || 5;
     const itemPriceMultiplier = parseFloat(document.getElementById('itemPriceMultiplier').value) || 1;
+    const shopType = (document.getElementById('shopType') && document.getElementById('shopType').value) ? document.getElementById('shopType').value : 'classic';
+    const auctionGridSize = parseInt(document.getElementById('auctionGridSize')?.value) || 3;
+    const auctionTickSeconds = parseFloat(document.getElementById('auctionTickSeconds')?.value) || 2;
+    const auctionDecrement = parseInt(document.getElementById('auctionDecrement')?.value) || 1;
+    const auctionStartPriceMultiplier = parseFloat(document.getElementById('auctionStartPriceMultiplier')?.value) || 2;
+    const auctionMinPriceMultiplier = parseFloat(document.getElementById('auctionMinPriceMultiplier')?.value) || 0.5;
     const mazeAlgorithm = document.getElementById('mazeAlgorithm').value || 'backtracker';
     const mazeDensity = parseInt(document.getElementById('mazeDensity').value) / 100 || 0.5;
     
@@ -183,6 +229,34 @@ function applyCustomMode() {
     if (itemPriceMultiplier < 0.1 || itemPriceMultiplier > 5) {
         alert('❌ Le multiplicateur de prix doit être entre 0.1 et 5');
         return;
+    }
+
+    if (shopType !== 'classic' && shopType !== 'dutchAuction') {
+        alert('❌ Type de shop invalide');
+        return;
+    }
+
+    if (shopType === 'dutchAuction') {
+        if (auctionGridSize < 1 || auctionGridSize > 6) {
+            alert('❌ La taille de grille doit être entre 1 et 6');
+            return;
+        }
+        if (auctionTickSeconds < 0.25 || auctionTickSeconds > 10) {
+            alert('❌ Le tick des enchères doit être entre 0.25s et 10s');
+            return;
+        }
+        if (auctionDecrement < 1 || auctionDecrement > 9999) {
+            alert('❌ La décroissance doit être entre 1 et 9999');
+            return;
+        }
+        if (auctionStartPriceMultiplier < 0.1 || auctionStartPriceMultiplier > 10) {
+            alert('❌ Le multiplicateur de prix de départ doit être entre 0.1 et 10');
+            return;
+        }
+        if (auctionMinPriceMultiplier < 0 || auctionMinPriceMultiplier > 5) {
+            alert('❌ Le multiplicateur de prix minimum doit être entre 0 et 5');
+            return;
+        }
     }
     
     // Générer les tailles et vérifier qu'aucune n'est négative ou trop petite
@@ -217,16 +291,30 @@ function applyCustomMode() {
             }
             
             // Créer et sauvegarder la configuration
-            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm, mazeDensity);
+            const auctionConfig = (shopType === 'dutchAuction') ? {
+                gridSize: auctionGridSize,
+                tickMs: Math.round(auctionTickSeconds * 1000),
+                decrement: auctionDecrement,
+                startPriceMultiplier: auctionStartPriceMultiplier,
+                minPriceMultiplier: auctionMinPriceMultiplier
+            } : null;
+            createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, shopType, auctionConfig, mazeAlgorithm, mazeDensity);
         });
     } else {
         // Sans socket, créer et sauvegarder directement
-        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm, mazeDensity);
+        const auctionConfig = (shopType === 'dutchAuction') ? {
+            gridSize: auctionGridSize,
+            tickMs: Math.round(auctionTickSeconds * 1000),
+            decrement: auctionDecrement,
+            startPriceMultiplier: auctionStartPriceMultiplier,
+            minPriceMultiplier: auctionMinPriceMultiplier
+        } : null;
+        createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, shopType, auctionConfig, mazeAlgorithm, mazeDensity);
     }
 }
 
 // Fonction utilitaire pour créer et sauvegarder la configuration
-function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, mazeAlgorithm = 'backtracker', mazeDensity = 0.5) {
+function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, decrement, sizes, shopFrequency, itemPriceMultiplier, shopType = 'classic', auctionConfig = null, mazeAlgorithm = 'backtracker', mazeDensity = 0.5) {
     // Calculer les niveaux de shop selon la fréquence
     const shopLevels = [];
     for (let i = shopFrequency; i <= numLevels; i += shopFrequency) {
@@ -257,7 +345,8 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
         shop: {
             enabled: true,
             levels: shopLevels,
-            duration: 15000
+            duration: 15000,
+            type: shopType
         },
         shopItems: shopItems,
         gemsPerLevel: {
@@ -275,13 +364,18 @@ function createAndSaveCustomConfig(numLevels, startSize, increment, peakLevel, d
             density: mazeDensity       // 0.0 à 1.0 (uniquement pour prim)
         }
     };
+
+    if (shopType === 'dutchAuction' && auctionConfig) {
+        config.shop.auction = auctionConfig;
+    }
     
     saveCustomModeConfig(config);
     
     // Mettre à jour l'affichage du mode personnalisé
     updateCustomModeDisplay();
     
-    alert(`✅ Mode personnalisé créé!\n🏪 Shop tous les ${shopFrequency} niveaux (${shopLevels.join(', ')})\n💎 Multiplicateur de prix: x${itemPriceMultiplier.toFixed(1)}\n\nSélectionnez "Personnalisé" dans le menu.`);
+    const shopTypeLabel = shopType === 'dutchAuction' ? 'Enchères dégressives' : 'Classique';
+    alert(`✅ Mode personnalisé créé!\n🏪 Shop tous les ${shopFrequency} niveaux (${shopLevels.join(', ')})\n🛒 Type de shop: ${shopTypeLabel}\n💎 Multiplicateur de prix: x${itemPriceMultiplier.toFixed(1)}\n\nSélectionnez "Personnalisé" dans le menu.`);
     closeAdminPanel();
 }
 
@@ -329,6 +423,16 @@ function openAdminPanel() {
         document.getElementById('increment').addEventListener('input', generatePreview);
         document.getElementById('peakLevel').addEventListener('input', generatePreview);
         document.getElementById('decrement').addEventListener('input', generatePreview);
+
+        // Event listener pour afficher/masquer les options d'enchères
+        const shopTypeSelect = document.getElementById('shopType');
+        if (shopTypeSelect) {
+            shopTypeSelect.addEventListener('change', function() {
+                const auctionGroup = document.getElementById('auctionSettingsGroup');
+                if (!auctionGroup) return;
+                auctionGroup.style.display = this.value === 'dutchAuction' ? 'block' : 'none';
+            });
+        }
         
         // Event listener pour afficher/masquer les options de densité
         document.getElementById('mazeAlgorithm').addEventListener('change', function() {
@@ -348,6 +452,39 @@ function openAdminPanel() {
             document.getElementById('densityValue').textContent = Math.round((customModeConfig.mazeGeneration.density || 0.5) * 100) + '%';
             if (customModeConfig.mazeGeneration.algorithm === 'prim') {
                 document.getElementById('densityGroup').style.display = 'block';
+            }
+        }
+
+        // Charger les valeurs shop si disponibles
+        if (customModeConfig && customModeConfig.shop) {
+            const shopType = customModeConfig.shop.type || 'classic';
+            const shopTypeSelect2 = document.getElementById('shopType');
+            if (shopTypeSelect2) {
+                shopTypeSelect2.value = shopType;
+            }
+
+            const auctionGroup2 = document.getElementById('auctionSettingsGroup');
+            if (auctionGroup2) {
+                auctionGroup2.style.display = shopType === 'dutchAuction' ? 'block' : 'none';
+            }
+
+            if (shopType === 'dutchAuction' && customModeConfig.shop.auction) {
+                const a = customModeConfig.shop.auction;
+                if (document.getElementById('auctionGridSize')) document.getElementById('auctionGridSize').value = a.gridSize ?? 3;
+                if (document.getElementById('auctionTickSeconds')) document.getElementById('auctionTickSeconds').value = a.tickMs ? (a.tickMs / 1000) : 2;
+                if (document.getElementById('auctionDecrement')) document.getElementById('auctionDecrement').value = a.decrement ?? 1;
+                if (document.getElementById('auctionStartPriceMultiplier')) document.getElementById('auctionStartPriceMultiplier').value = a.startPriceMultiplier ?? 2;
+                if (document.getElementById('auctionMinPriceMultiplier')) document.getElementById('auctionMinPriceMultiplier').value = a.minPriceMultiplier ?? 0.5;
+            }
+
+            // (Optionnel) Essayer de déduire la fréquence depuis les niveaux de shop
+            if (Array.isArray(customModeConfig.shop.levels) && customModeConfig.shop.levels.length > 0) {
+                let inferredFrequency = customModeConfig.shop.levels[0];
+                if (customModeConfig.shop.levels.length >= 2) {
+                    inferredFrequency = Math.max(1, customModeConfig.shop.levels[1] - customModeConfig.shop.levels[0]);
+                }
+                const freqInput = document.getElementById('shopFrequency');
+                if (freqInput) freqInput.value = inferredFrequency;
             }
         }
     }

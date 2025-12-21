@@ -59,6 +59,9 @@ let trails = {}; // { playerId: { color, positions } }
 // --- VARIABLES SHOP ---
 let isShopOpen = false;
 let shopItems = {};
+let shopType = 'classic'; // 'classic' | 'dutchAuction'
+let dutchAuctionState = null; // { type, gridSize, tickMs, lots: [...] }
+let dutchAuctionTickAnchor = null; // Date.now() du dernier update serveur (affichage "prochain prix")
 let playerGems = 0;
 let purchasedFeatures = {};
 let playerGemsP2 = 0;
@@ -72,6 +75,9 @@ let isPlayerReadyToContinue = false; // Joueur prêt à continuer du shop
 // Split-screen: état shop séparé pour le joueur 2
 let isShopOpenP2 = false;
 let shopItemsP2 = {};
+let shopTypeP2 = 'classic'; // 'classic' | 'dutchAuction'
+let dutchAuctionStateP2 = null;
+let dutchAuctionTickAnchorP2 = null;
 let shopTimerStartP2 = null;
 let shopAnimationsP2 = { hoveredItemId: null, purchaseAnimations: {} };
 let isPlayerReadyToContinueP2 = false;

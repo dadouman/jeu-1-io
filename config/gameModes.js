@@ -126,6 +126,20 @@ function generateShopLevelsByCount(interval, count) {
  */
 
 const GAME_MODES_CONFIG = {
+    // ⚠️ Pour activer la boutique dégressive (enchères) en multi, il faut mettre type: 'dutchAuction' dans la config shop du mode custom !
+    // Exemple d'utilisation côté custom :
+    // custom: {
+    //   ...
+    //   shop: {
+    //     enabled: true,
+    //     levels: [5, 10, 15],
+    //     duration: 20000,
+    //     type: 'dutchAuction', // ← active la boutique dégressive
+    //     auction: { gridSize: 3, tickMs: 2000, decrement: 1, startPriceMultiplier: 2, minPriceMultiplier: 0.5 }
+    //   },
+    //   ...
+    // }
+
     classic: {
         name: 'Couloirs',
         description: 'Mode classique - Longs couloirs',

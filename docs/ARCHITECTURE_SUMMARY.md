@@ -1,4 +1,28 @@
+
 // ARCHITECTURE_SUMMARY.md - Résumé visuel de la nouvelle architecture
+
+---
+## ⚠️ À ne jamais oublier :
+
+**Toujours ajouter une route GET `/` dans Express qui sert `public/index.html` !**
+
+Sinon, tu auras l'erreur :
+
+> Cannot GET /
+
+**Patch à mettre dans `server/index.js` :**
+
+```js
+const path = require('path');
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+       res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+```
+
+Vérifie cette route avant chaque déploiement !
+
+---
 
 ## 🏗️ Architecture Flexible (Nouvelle)
 

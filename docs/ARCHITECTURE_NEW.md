@@ -1,5 +1,32 @@
 // ARCHITECTURE.md - Nouvelle architecture flexible
 
+---
+## ⚠️ Piège classique : route GET / manquante (Express)
+
+**Problème fréquent lors du déploiement :**
+
+> Si tu oublies d'ajouter une route GET `/` dans Express qui sert le fichier `public/index.html`, tu auras l'erreur :
+> 
+>     Cannot GET /
+
+**Solution (à ne jamais oublier) :**
+
+Dans `server/index.js` (ou ton fichier serveur principal), ajoute :
+
+```js
+const path = require('path');
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+```
+
+Cela garantit que la racine `/` sert bien la page d'accueil, que ce soit en local ou sur Render/Heroku/etc.
+
+**Vérifie toujours que cette route existe avant de déployer !**
+
+---
+
 ## 🎯 Vue d'ensemble
 
 La nouvelle architecture permet de varier les règles du jeu facilement sans duplicater le code:

@@ -1,4 +1,31 @@
+
 # 🎮 Rogue-Like .io - Architecture & Documentation
+
+---
+## ⚠️ Piège classique Express :
+
+**Erreur fréquente lors du déploiement :**
+
+> Cannot GET /
+
+**Cause :**
+Tu as oublié d'ajouter une route GET `/` qui sert le fichier `public/index.html` dans Express.
+
+**Solution à ne jamais oublier :**
+
+Dans `server/index.js` (ou ton fichier serveur principal), ajoute :
+
+```js
+const path = require('path');
+app.use(express.static('public'));
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+```
+
+**Vérifie toujours que cette route existe avant de déployer !**
+
+---
 
 ## 📖 Documentation
 
@@ -165,6 +192,7 @@ getShopDuration() {
 ```javascript
 // Exemple: Solo avec 50 niveaux
 solo: {
+    
     ...
     maxLevels: 50,  // 50 niveaux au lieu de 10
     shop: { levels: [5,10,15,20,25,30,35,40,45,50] }

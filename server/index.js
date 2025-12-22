@@ -51,7 +51,13 @@ const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-app.use(express.static('Public'));
+const path = require('path');
+app.use(express.static('public'));
+
+// Route GET / pour servir l'index.html à la racine
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // --- MIDDLEWARE ---
 app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64

@@ -914,4 +914,15 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
             const result = purchaseItem(player, itemId, customShopItems);
             
-            if
+            if (result.success) {
+                console.log(`✅ Achat réussi pour l'item ${itemId}`);
+            } else {
+                console.log(`❌ Échec de l'achat pour l'item ${itemId}`);
+            }
+        });
+    });
+}
+
+module.exports = {
+    initializeSocketEvents
+};

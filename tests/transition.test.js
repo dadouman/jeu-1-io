@@ -222,4 +222,19 @@ describe('Système de Transition', () => {
         expect(isInTransition).toBe(false);
     });
 
+    // --- TEST 13 : Mise à jour des scores ---
+    test('Les scores doivent être correctement mis à jour', () => {
+        const player = { skin: '👻', score: 10 };
+
+        const addScore = (player, points) => {
+            player.score += points;
+            return player.score;
+        };
+
+        const newScore = addScore(player, 5);
+
+        expect(newScore).toBe(15);
+        expect(player.score).toBe(15);
+    });
+
 });

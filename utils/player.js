@@ -128,6 +128,7 @@ function getPlayerPublicInfo(player) {
  */
 function addScore(player, points = 1) {
     player.score += points;
+    console.log(`🔢 Score mis à jour: Joueur ${player.skin}, Nouveau score: ${player.score}`);
     return player.score;
 }
 

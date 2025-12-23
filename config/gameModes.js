@@ -225,6 +225,7 @@ const GAME_MODES_CONFIG = {
         },
 
         // Timing
+        shopIntroDuration: 3000,  // Durée de l'introduction de la boutique
         transitionDuration: 5000,  // Entre les niveaux
         
         // Système de vote (restart)

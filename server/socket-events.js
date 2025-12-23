@@ -914,18 +914,4 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
             const result = purchaseItem(player, itemId, customShopItems);
             
-            if (result.success) {
-                console.log(`💎 [SHOP] ${player.skin} a acheté "${result.item.name}" pour ${result.item.price}💎 | ${result.gemsLeft}💎 restants`);
-                socket.emit('shopPurchaseSuccess', { itemId, item: result.item, gemsLeft: result.gemsLeft });
-            } else {
-                socket.emit('shopPurchaseFailed', { 
-                    reason: result.message,
-                    required: result.gemsRequired,
-                    current: result.gemsAvailable
-                });
-            }
-        });
-    });
-}
-
-module.exports = { initializeSocketEvents };
+            if

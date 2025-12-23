@@ -11,6 +11,7 @@ const {
     tickDutchAuctionState,
     toPublicState
 } = require('../../utils/dutchAuctionShop');
+const ShopTransitionManager = require('../../utils/shopTransitionManager');
 
 function processLobbyGameLoop(lobbies, io, { 
     calculateMazeSize, 
@@ -264,6 +265,10 @@ function processLobbyGameLoop(lobbies, io, {
                 console.log(`🌍 [NIVEAU ${lobby.currentLevel} ${mode}] Labyrinthe ${mazeSize.width}x${mazeSize.height} généré`);
             }
         }
+
+        // ===== AJOUTER ÉCRAN DE TRANSITION =====
+        const shopTransitionManager = new ShopTransitionManager(lobby.transitionDuration, lobby.shopIntroDuration);
+        shopTransitionManager.handleTransition(lobby);
 
         // SI LE RECORD A CHANGÉ
         if (recordChanged) {

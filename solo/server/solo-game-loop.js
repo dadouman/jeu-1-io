@@ -7,6 +7,7 @@ const PlayerActions = require('../../utils/PlayerActions');
 const { generateMaze, getRandomEmptyPosition } = require('../../utils/map');
 const { calculateMazeSize } = require('../utils');
 const { initializePlayerForMode } = require('../../utils/player');
+const ShopTransitionManager = require('../../utils/shopTransitionManager');
 
 class SoloGameLoop {
     constructor(soloSessions, io, { SoloRunModel, SoloBestSplitsModel } = {}) {
@@ -51,12 +52,8 @@ class SoloGameLoop {
             }
             
             // ===== VÉRIFIER TIMEOUT TRANSITION =====
-            if (session.inTransition) {
-                if (session.getTransitionElapsed() >= session.transitionDuration) {
-                    session.endTransition();
-                    console.log(`✅ [SOLO] Transition terminée pour ${session.playerId}`);
-                }
-            }
+            const shopTransitionManager = new ShopTransitionManager(session.transitionDuration, session.shopIntroDuration);
+            shopTransitionManager.handleTransition(session);
             
             // ===== ENVOYER L'ÉTAT =====
             session.sendGameState();

@@ -920,6 +920,32 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 console.log(`❌ Échec de l'achat pour l'item ${itemId}`);
             }
         });
+
+        // --- FORCER L'ARRÊT DES LOBBYS ---
+        socket.on('forceStopLobbies', () => {
+            console.log('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
+
+            Object.keys(lobbies).forEach((mode) => {
+                const lobby = lobbies[mode];
+                if (lobby) {
+                    console.log(`🛑 Fermeture du lobby: ${mode}`);
+
+                    // Déconnecter tous les joueurs
+                    Object.keys(lobby.players).forEach((playerId) => {
+                        const playerSocket = io.sockets.sockets.get(playerId);
+                        if (playerSocket) {
+                            playerSocket.emit('kicked', { message: 'Lobby fermé par l\'administrateur.' });
+                            playerSocket.disconnect();
+                        }
+                    });
+
+                    // Supprimer le lobby
+                    delete lobbies[mode];
+                }
+            });
+
+            console.log('✅ Tous les lobbys ont été fermés.');
+        });
     });
 }
 

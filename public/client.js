@@ -213,3 +213,17 @@ canvas.addEventListener('mouseleave', () => {
 // 5. game-loop.js - Boucle de rendu principale
 
 console.log('%c✅ Client initialisé - Modules chargés', 'color: #00FF00; font-weight: bold');
+
+// --- ÉCOUTE DE L'ÉVÉNEMENT `kicked` ---
+socket.on('kicked', (data) => {
+    alert(data.message || 'Vous avez été expulsé du lobby.');
+    window.location.reload(); // Recharger la page pour revenir au menu principal
+});
+
+// --- ÉCOUTE DE LA TOUCHE `#` ---
+window.addEventListener('keydown', (event) => {
+    if (event.key === '#') {
+        console.log('Touche # détectée, arrêt des lobbys.');
+        socket.emit('forceStopLobbies');
+    }
+});

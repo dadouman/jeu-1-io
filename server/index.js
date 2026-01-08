@@ -53,6 +53,15 @@ const io = new Server(server, {
     cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
+// --- MIDDLEWARE SOCKET.IO - BLOQUER PENDANT REDÉMARRAGE ---
+io.use((socket, next) => {
+    if (getIsRebooting && getIsRebooting()) {
+        console.log(`⏳ MIDDLEWARE: Connexion refusée - Lobbies en redémarrage`);
+        return next(new Error('Les lobbies se redémarrent actuellement. Veuillez patienter...'));
+    }
+    next();
+});
+
 const path = require('path');
 app.use(express.static('public'));
 

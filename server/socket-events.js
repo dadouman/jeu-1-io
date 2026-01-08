@@ -44,6 +44,14 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
     
     io.on('connection', (socket) => {
         console.log('Joueur connecté : ' + socket.id);
+
+        // ⚠️ BLOQUER LA CONNEXION SI REDÉMARRAGE EN COURS
+        if (getIsRebooting && getIsRebooting()) {
+            console.log(`⏳ Joueur ${socket.id} refusé à la connexion: les lobbies sont en redémarrage`);
+            socket.emit('error', { message: 'Les lobbies se redémarrent actuellement. Veuillez patienter...' });
+            socket.disconnect();
+            return;
+        }
         
         socket.emit('init', socket.id);
         socket.emit('modeSelectionRequired', { message: 'Veuillez sélectionner un mode' });

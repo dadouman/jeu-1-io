@@ -35,9 +35,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
     restartGameFunc
 }, {
     generateMazeFunc = generateMaze,
-    generateMazeAdvancedFunc,
-    getRandomEmptyPositionFunc,
-    initializePlayerFunc
+    generateMazeAdvancedFunc = generateMazeAdvanced,
+    getRandomEmptyPositionFunc = getRandomEmptyPosition,
+    initializePlayerFunc = initializePlayer
 } = {}) {
     
     io.on('connection', (socket) => {

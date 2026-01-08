@@ -101,7 +101,10 @@ class SoloGameLoop {
             return;
         }
         
-        // 4. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
+        // 4. Démarrer la transition vers le prochain niveau
+        session.startTransition();
+        
+        // 5. Vérifier si un shop doit ouvrir (basé sur la configuration de la session)
         let shopItems = {};
         if (session.shouldOpenShop(currentLevel)) {
             session.openShop();
@@ -111,10 +114,10 @@ class SoloGameLoop {
             shopItems = soloConfig.shopItems || [];
         }
         
-        // 5. Générer le prochain niveau
+        // 6. Générer le prochain niveau
         this.generateNextLevel(session);
         
-        // 6. Envoyer l'état mis à jour avec les items du shop si ouvert
+        // 7. Envoyer l'état mis à jour avec les items du shop si ouvert
         session.sendGameState(shopItems);
     }
     

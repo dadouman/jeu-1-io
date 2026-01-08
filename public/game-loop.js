@@ -166,9 +166,14 @@ function handleServerState(gameState) {
             // Bloquer les inputs pendant le countdown serveur
             if (soloStartCountdownActive) {
                 inputsBlocked = true;
-            } else if (inputsBlocked && !soloGameState.shop?.active) {
-                // Débloquer les inputs quand le countdown est terminé (et pas en shop)
+            } else if (inputsBlocked && !soloGameState.shop?.active && !soloGameState.transition?.active) {
+                // Débloquer les inputs quand le countdown est terminé (et pas en shop ni en transition)
                 inputsBlocked = false;
+            }
+            
+            // Bloquer les inputs pendant les transitions (changement de niveau)
+            if (soloGameState.transition?.active) {
+                inputsBlocked = true;
             }
             
             // Mettre à jour l'état global de fin de jeu

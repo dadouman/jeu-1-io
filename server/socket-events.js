@@ -1,7 +1,8 @@
 // server/socket-events.js - Event Manager (Refactorisé en modules feature-based)
 // Gère l'initialisation des connexions et dispatche les événements vers les handlers spécialisés
 
-const { generateMaze } = require('../utils/map');
+const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
+const { initializePlayer } = require('../utils/player');
 
 // Importer les modules socket handlers (feature-based)
 const { handleModeSelection } = require('./socket-handlers/mode-selection');
@@ -32,7 +33,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
     submitRestartVoteFunc,
     checkRestartVoteFunc,
     restartGameFunc
-}) {
+}, {
+    generateMazeFunc = generateMaze,
+    generateMazeAdvancedFunc,
+    getRandomEmptyPositionFunc,
+    initializePlayerFunc
+} = {}) {
     
     io.on('connection', (socket) => {
         console.log('Joueur connecté : ' + socket.id);
@@ -59,7 +65,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             startRestartVoteFunc: startRestartVoteFunc,
             submitRestartVoteFunc: submitRestartVoteFunc,
             checkRestartVoteFunc: checkRestartVoteFunc,
-            restartGameFunc: restartGameFunc
+            restartGameFunc: restartGameFunc,
+            generateMazeFunc: generateMazeFunc,
+            generateMazeAdvancedFunc: generateMazeAdvancedFunc,
+            getRandomEmptyPositionFunc: getRandomEmptyPositionFunc,
+            initializePlayerFunc: initializePlayerFunc
         });
 
         // Solo Handler (saveSoloResults, requestSoloBestSplits, getSoloLeaderboard)

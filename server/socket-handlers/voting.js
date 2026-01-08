@@ -8,7 +8,11 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
     startRestartVoteFunc,
     submitRestartVoteFunc,
     checkRestartVoteFunc,
-    restartGameFunc
+    restartGameFunc,
+    generateMazeFunc,
+    generateMazeAdvancedFunc,
+    getRandomEmptyPositionFunc,
+    initializePlayerFunc
 }) {
     // Proposer un redémarrage
     socket.on('proposeRestart', () => {
@@ -29,7 +33,7 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
         const lobby = lobbies[mode];
         if (!lobby) return;
 
-        startRestartVoteFunc(mode, lobbies);
+        startRestartVoteFunc(socket.id, mode, io, lobbies);
         
         console.log(`🗳️ [VOTE] Redémarrage proposé pour ${mode}`);
         emitToLobby(mode, 'restartVoteStarted', { message: 'Vote de redémarrage lancé!' }, io, lobbies);
@@ -54,7 +58,7 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
         const lobby = lobbies[mode];
         if (!lobby) return;
 
-        submitRestartVoteFunc(mode, socket.id, data.vote, lobbies);
+        submitRestartVoteFunc(socket.id, data.vote, mode, lobbies);
 
         const lobby_state = lobbies[mode];
         if (lobby_state?.restartVote?.votes) {
@@ -68,9 +72,9 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
         }
 
         // Vérifier si redémarrage consensuel
-        if (checkRestartVoteFunc(mode, lobbies)) {
+        if (checkRestartVoteFunc(mode, lobbies, io)) {
             console.log(`🔄 Redémarrage du ${mode}`);
-            restartGameFunc(mode, lobbies);
+            restartGameFunc(mode, io, lobbies, generateMazeFunc, getRandomEmptyPositionFunc, initializePlayerFunc, playerModes, generateMazeAdvancedFunc);
             emitToLobby(mode, 'gameRestarted', { level: 1 }, io, lobbies);
         }
     });

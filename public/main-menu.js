@@ -71,11 +71,6 @@ function toggleSplitScreenFromMainMenu() {
  * Lance le jeu depuis le menu principal
  */
 function startGameFromMainMenu() {
-    // Bloquer si les lobbies se redémarrent
-    if (lobbiesRebooting) {
-        console.log('⏳ Impossible de continuer: les lobbies se redémarrent...');
-        return;
-    }
     hideMainMenu();
 }
 
@@ -84,6 +79,12 @@ function startGameFromMainMenu() {
  */
 function handleMainMenuClick(mouseX, mouseY) {
     if (!mainMenuVisible || !mainMenuClickAreas) return false;
+
+    // Bloquer TOUS les clics si les lobbies se redémarrent
+    if (lobbiesRebooting) {
+        console.log('⏳ Clics bloqués: les lobbies se redémarrent...');
+        return false;
+    }
 
     const isInside = (rect) => rect && mouseX >= rect.x && mouseX <= rect.x + rect.width && mouseY >= rect.y && mouseY <= rect.y + rect.height;
 
@@ -298,12 +299,17 @@ function handleMainMenuGamepadNavigation(gamepad) {
     // Bouton A pour confirmer
     const aPressed = gamepad.buttons[0] && gamepad.buttons[0].pressed;
     if (aPressed && !mainMenuGamepadYInputDebounce) {
-        if (mainMenuSelectedIndex === 0) {
-            toggleGamepadFromMainMenu();
-        } else if (mainMenuSelectedIndex === 1) {
-            toggleSplitScreenFromMainMenu();
-        } else if (mainMenuSelectedIndex === 2) {
-            startGameFromMainMenu();
+        // Bloquer TOUS les inputs si les lobbies se redémarrent
+        if (!lobbiesRebooting) {
+            if (mainMenuSelectedIndex === 0) {
+                toggleGamepadFromMainMenu();
+            } else if (mainMenuSelectedIndex === 1) {
+                toggleSplitScreenFromMainMenu();
+            } else if (mainMenuSelectedIndex === 2) {
+                startGameFromMainMenu();
+            }
+        } else {
+            console.log('⏳ Manette bloquée: les lobbies se redémarrent...');
         }
         mainMenuGamepadYInputDebounce = 2; // Bloquer pour éviter les appuis multiples
     } else if (!aPressed) {

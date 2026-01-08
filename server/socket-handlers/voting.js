@@ -2,6 +2,7 @@
 // Gestion des votes de redémarrage et retour au menu
 
 const { emitToLobby } = require('../utils');
+const { withValidation } = require('../validation/middleware');
 
 function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
     startRestartVoteFunc,
@@ -11,6 +12,13 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
 }) {
     // Proposer un redémarrage
     socket.on('proposeRestart', () => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'proposeRestart', {});
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         const mode = playerModes[socket.id];
         
         // Solo players can't vote
@@ -29,6 +37,13 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
 
     // Voter pour redémarrage
     socket.on('voteRestart', (data) => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'voteRestart', data);
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         const mode = playerModes[socket.id];
         
         // Solo players can't vote
@@ -62,6 +77,13 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
 
     // Proposer retour au menu
     socket.on('proposeReturnToMode', () => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'proposeReturnToMode', {});
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         const mode = playerModes[socket.id];
         
         // Solo: allowed (single player)
@@ -92,6 +114,13 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
 
     // Voter pour retour au menu
     socket.on('voteReturnToMode', (data) => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'voteReturnToMode', data);
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         const mode = playerModes[socket.id];
 
         if (mode === 'solo') {

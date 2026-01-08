@@ -38,7 +38,16 @@ function performDash(player, playerId, gameMap) {
 }
 
 function handleCheckpoint(socket, lobbies, soloSessions, playerModes) {
+    const { withValidation } = require('../validation/middleware');
+    
     socket.on('checkpoint', (actions) => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'checkpoint', actions);
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         const mode = playerModes[socket.id];
         if (!mode) return;
         

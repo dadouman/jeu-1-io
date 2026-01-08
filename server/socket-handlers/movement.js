@@ -2,9 +2,16 @@
 // Gestion du mouvement des joueurs
 
 const { checkWallCollision } = require('../../utils/collisions');
+const { withValidation } = require('../validation/middleware');
 
 function handleMovement(socket, lobbies, soloSessions, playerModes) {
     socket.on('movement', (input) => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'movement', input);
+        if (!validation.valid) {
+            return; // Silencieusement ignorer les inputs invalides/rate-limited
+        }
+
         const mode = playerModes[socket.id];
         if (!mode) return;
         

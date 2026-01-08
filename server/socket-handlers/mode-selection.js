@@ -7,9 +7,17 @@ const { generateRandomFeatureWeighted } = require('../utils/solo-utils');
 const { emitToLobby } = require('../utils');
 const gameModes = require('../../config/gameModes');
 const SoloSession = require('../utils/SoloSession');
+const { withValidation } = require('../validation/middleware');
 
 function handleModeSelection(socket, io, lobbies, soloSessions, playerModes) {
     socket.on('selectGameMode', (data) => {
+        // Valider et rate-limit
+        const validation = withValidation(socket.id, 'selectGameMode', data);
+        if (!validation.valid) {
+            socket.emit('error', { message: validation.errors[0] });
+            return;
+        }
+
         let mode = data.mode; // 'classic', 'infinite', 'solo', ou 'custom'
         
         playerModes[socket.id] = mode;

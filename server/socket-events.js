@@ -921,7 +921,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             }
         });
 
-        // --- FORCER L'ARRÊT DES LOBBYS ---
+        // --- FORCER L'ARRÊT ET RELANCER LES LOBBYS ---
         socket.on('forceStopLobbies', () => {
             console.log('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
 
@@ -945,7 +945,22 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             });
 
             console.log('✅ Tous les lobbys ont été fermés.');
+
+            // Relancer les lobbys
+            setTimeout(() => {
+                console.log('♻️ Relance des lobbys...');
+                initializeLobbies();
+                console.log('✅ Lobbys relancés et prêts à l\'emploi.');
+            }, 5000); // Attendre 5 secondes avant de relancer
         });
+
+        // Fonction pour initialiser les lobbys
+        function initializeLobbies() {
+            lobbies.classic = { players: {}, map: generateMaze(15, 15) };
+            lobbies.infinite = { players: {}, map: generateMaze(20, 20) };
+            lobbies.custom = { players: {}, map: generateMaze(10, 10) };
+            console.log('🔄 Lobbys initialisés:', Object.keys(lobbies));
+        }
     });
 }
 

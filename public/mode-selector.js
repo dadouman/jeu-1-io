@@ -7,6 +7,12 @@ var selectedMode = null; // var pour accès global
  * @param {string} mode - 'classic', 'infinite', 'solo', ou 'custom'
  */
 function selectMode(mode) {
+    // Bloquer la sélection si les lobbies se redémarrent
+    if (lobbiesRebooting) {
+        console.log('⏳ Sélection bloquée: les lobbies se redémarrent...');
+        return;
+    }
+    
     if (mode === 'classic' || mode === 'classicPrim' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
         // Vérifier que le mode personnalisé existe
         if (mode === 'custom' && !customModeConfig) {

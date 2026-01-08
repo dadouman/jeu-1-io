@@ -80,12 +80,22 @@ const schemas = {
     },
 
     // --- VOTING ---
+    proposeRestart: {
+        type: 'object',
+        additionalProperties: false
+    },
+
     voteRestart: {
         type: 'object',
         properties: {
             vote: { type: 'boolean' }
         },
         required: ['vote'],
+        additionalProperties: false
+    },
+
+    proposeReturnToMode: {
+        type: 'object',
         additionalProperties: false
     },
 

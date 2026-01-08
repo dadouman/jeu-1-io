@@ -334,6 +334,8 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         map = null;
         currentPlayers = {};
         voteResult = null;
+        inputsBlocked = false; // Débloquer les inputs
+        currentGameMode = null; // Réinitialiser le mode courant
         
         console.log(`%c✨ Prêt à choisir un nouveau mode!`, 'color: #00FF00; font-weight: bold');
     });
@@ -402,6 +404,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
                 isSoloGameFinished = false;
                 currentGameMode = null;
                 selectedMode = null; // Réinitialiser pour permettre Échap → menu principal
+                inputsBlocked = false; // Débloquer les inputs
                 
                 const modeSelector = document.getElementById('modeSelector');
                 if (modeSelector) {
@@ -415,6 +418,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             isSoloGameFinished = false;
             currentGameMode = null;
             selectedMode = null; // Réinitialiser pour permettre Échap → menu principal
+            inputsBlocked = false; // Débloquer les inputs
             
             const modeSelector = document.getElementById('modeSelector');
             if (modeSelector) {

@@ -43,21 +43,19 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- DISPATCHER LES ÉVÉNEMENTS AUX MODULES SPÉCIALISÉS ---
         
         // Mode Selection Handler (selectGameMode, checkCustomModeConnections)
-        handleModeSelection(socket, playerModes, lobbies, soloSessions, io, { 
-            SoloRunModel, SoloBestSplitsModel, mongoURI 
-        });
+        handleModeSelection(socket, io, lobbies, soloSessions, playerModes);
 
         // Movement Handler (movement)
-        handleMovement(socket, playerModes, lobbies, soloSessions);
+        handleMovement(socket, lobbies, soloSessions, playerModes);
 
         // Checkpoint Handler (checkpoint)
-        handleCheckpoint(socket, playerModes, lobbies, soloSessions);
+        handleCheckpoint(socket, lobbies, soloSessions, playerModes);
 
         // Shop Handler (playerReadyToContinueShop, shopClosedByTimeout, dutchAuctionPurchase, validateShop, shopPurchase)
-        handleShopEvents(socket, playerModes, lobbies, soloSessions, io, { mongoURI });
+        handleShopEvents(socket, io, lobbies, soloSessions, playerModes, { mongoURI });
 
         // Voting Handler (proposeRestart, voteRestart, proposeReturnToMode, voteReturnToMode)
-        handleVotingEvents(socket, playerModes, lobbies, soloSessions, io, {
+        handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
             startRestartVote,
             submitRestartVote,
             checkRestartVote,
@@ -71,7 +69,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         });
 
         // Disconnect Handler
-        handleDisconnect(socket, playerModes, lobbies, soloSessions);
+        handleDisconnect(socket, io, lobbies, soloSessions, playerModes);
 
         // --- ADMIN COMMANDS ---
         socket.on('forceStopLobbies', () => {

@@ -56,11 +56,10 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // Voting Handler (proposeRestart, voteRestart, proposeReturnToMode, voteReturnToMode)
         handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
-            startRestartVote,
-            submitRestartVote,
-            checkRestartVote,
-            restartGame,
-            generateMaze
+            startRestartVoteFunc: startRestartVoteFunc,
+            submitRestartVoteFunc: submitRestartVoteFunc,
+            checkRestartVoteFunc: checkRestartVoteFunc,
+            restartGameFunc: restartGameFunc
         });
 
         // Solo Handler (saveSoloResults, requestSoloBestSplits, getSoloLeaderboard)

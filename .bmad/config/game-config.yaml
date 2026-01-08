@@ -1,0 +1,189 @@
+# BMAD Configuration pour Mon Jeu .io
+# Configuration personnalisée pour un jeu rogue-like temps-réel avec Socket.io
+
+project:
+  name: "Mon Jeu .io - Rogue-like Procédural"
+  description: "Jeu multijoueur temps-réel avec niveaux procéduraux, shop, et leaderboard"
+  type: "game-development"
+  language: "javascript"
+  framework: "Node.js + Express + Socket.io"
+  database: "MongoDB"
+
+# Stack technique détaillée
+stack:
+  backend:
+    runtime: "Node.js >= 20.0.0"
+    frameworks:
+      - "Express 5.1.0"
+      - "Socket.io 4.8.1"
+    database: "MongoDB + Mongoose 9.0.0"
+    messaging: "SendGrid pour notifications
+  frontend:
+    type: "Vanilla JavaScript"
+    rendering: "HTML5 Canvas"
+    input: "Keyboard + Gamepad + Mobile Controls"
+  testing:
+    framework: "Jest 30.2.0"
+    coverage_target: 85
+  deployment:
+    platform: "Render.com"
+    ci_cd: "GitHub Actions"
+
+# Features principales du jeu
+game_features:
+  - name: "Niveaux Procéduraux"
+    description: "Génération dynamique de labyrinthes et ennemis"
+    criticality: "CRITICAL"
+  - name: "Temps-Réel Multijoueur"
+    description: "Synchronisation via Socket.io (WebSocket forcé)"
+    criticality: "CRITICAL"
+  - name: "Système de Shop"
+    description: "Achat d'items avec transition smooth"
+    criticality: "HIGH"
+  - name: "Leaderboard Global"
+    description: "Stockage MongoDB et affichage temps-réel"
+    criticality: "HIGH"
+  - name: "Countdown Cinema"
+    description: "Effets visuels countdown avancés"
+    criticality: "MEDIUM"
+  - name: "Mode Solo"
+    description: "Mode rogue-like single-player avec progression"
+    criticality: "MEDIUM"
+  - name: "Academy Leader"
+    description: "Système d'académie avec progression des joueurs"
+    criticality: "MEDIUM"
+
+# Modules de logique à optimiser
+modules:
+  map:
+    path: "utils/map.js"
+    responsibility: "Génération procédurale de labyrinthe"
+    priority: "HIGH"
+  collisions:
+    path: "utils/collisions.js"
+    responsibility: "Détection de collision temps-réel"
+    priority: "CRITICAL"
+  game-state:
+    path: "public/game-state.js"
+    responsibility: "Gestion d'état du jeu côté client"
+    priority: "HIGH"
+  client-networking:
+    path: "public/client.js"
+    responsibility: "Communication Socket.io et inputs"
+    priority: "CRITICAL"
+  game-loop:
+    path: "public/game-loop.js"
+    responsibility: "Boucle de jeu et rendu"
+    priority: "CRITICAL"
+  server-logic:
+    path: "server/"
+    responsibility: "Logique serveur centralisée"
+    priority: "HIGH"
+
+# Tests existants à améliorer
+testing:
+  test_count: 45
+  test_directory: "tests/"
+  framework: "jest"
+  jest_config: "jest.config.js"
+  test_strategy:
+    - "Unit tests pour utils/ (map, collisions, game logic)"
+    - "Integration tests pour Socket.io (client/server sync)"
+    - "E2E tests pour workflows (shop, leaderboard, solo mode)"
+    - "Fixture-based tests pour temps-réel (playwright-utils recommandé)"
+  coverage_gaps:
+    - "Procédural generation edge cases"
+    - "Socket.io reconnection handling"
+    - "Shop transition timing"
+    - "Leaderboard consistency"
+
+# Agents BMAD spécialisés recommandés
+agents_recommended:
+  - role: "Game Architect"
+    expertise: "Architecture temps-réel, Socket.io, procédural generation"
+    tasks: ["create-architecture", "review-design"]
+  - role: "Backend Developer"
+    expertise: "Node.js, Express, MongoDB, game server logic"
+    tasks: ["implement-features", "optimize-networking"]
+  - role: "Frontend Developer"
+    expertise: "Canvas rendering, input handling, game state sync"
+    tasks: ["implement-ui", "optimize-performance"]
+  - role: "Test Architect"
+    expertise: "Jest, E2E testing, fixture-based tests pour jeux"
+    tasks: ["design-test-suite", "improve-coverage"]
+  - role: "DevOps"
+    expertise: "Render.com, GitHub Actions, environment variables"
+    tasks: ["setup-deployment", "security-audit"]
+
+# Workflows BMAD prioritaires pour le jeu
+workflows:
+  audit_phase:
+    - id: "document-project"
+      description: "Audit complet architecture existante"
+      duration: "30-45 min"
+      priority: 1
+  
+  architecture_phase:
+    - id: "create-architecture"
+      description: "Diagrammes C4/UML et refactoring plan"
+      duration: "1-2 hours"
+      priority: 2
+    - id: "create-tech-spec"
+      description: "Documentation technique actualisée"
+      duration: "1 hour"
+      priority: 3
+  
+  testing_phase:
+    - id: "run-test-design"
+      description: "Plan couverture tests manquante"
+      duration: "1 hour"
+      priority: 4
+    - id: "setup-test-framework"
+      description: "Configuration Jest + fixtures"
+      duration: "1.5 hours"
+      priority: 5
+    - id: "run-code-review"
+      description: "Audit qualité code existant"
+      duration: "2 hours"
+      priority: 6
+  
+  implementation_phase:
+    - id: "create-product-brief"
+      description: "PRD pour chaque feature rogue-like"
+      duration: "1 hour per feature"
+      priority: 7
+    - id: "create-story"
+      description: "User stories détaillées avec acceptance criteria"
+      duration: "30 min per story"
+      priority: 8
+    - id: "implement-story"
+      description: "Développement guidé avec BMAD"
+      duration: "Variable"
+      priority: 9
+    - id: "run-code-review"
+      description: "QA avant merge"
+      duration: "1 hour"
+      priority: 10
+
+# Règles métier critiques pour le jeu
+critical_rules:
+  - "Collisions doivent être pixel-perfect (game-breaking si non)"
+  - "Socket.io doit forcer WebSocket (fallback non autorisé par architecture)"
+  - "Map procédurale = déterministe (seed-based pour rejouer)"
+  - "Shop transitions = smooth sans interruption gameplay"
+  - "Leaderboard = eventually consistent via MongoDB"
+  - "Environnement variables = JAMAIS en dur (SendGrid, Render.com, DB)"
+
+# Metriques de succès
+success_metrics:
+  code_quality:
+    target_coverage: 85
+    max_cyclomatic_complexity: 10
+    max_cognitive_complexity: 15
+  performance:
+    socket_latency_ms: 50
+    game_loop_fps: 60
+    map_generation_ms: 100
+  reliability:
+    test_pass_rate: 100
+    deployment_success_rate: 99.5

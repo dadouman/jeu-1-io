@@ -1,0 +1,130 @@
+# BMAD Global Configuration for Mon Jeu .io
+# Reference: https://docs.bmad-method.org/reference/configuration/global-config
+
+version: "6.0"
+project_name: "Mon Jeu .io"
+project_type: "game-development"
+
+# Communication language (for BMAD agents)
+communication:
+  language: "french"  # français pour agents
+  code_language: "javascript"  # JavaScript for output code
+  technical_level: "senior"  # Senior dev audience
+  style: "direct-and-technical"  # No fluff, focus on what matters
+
+# Code generation settings
+code_generation:
+  language: "javascript"
+  framework: "node.js"
+  style_guide: "airbnb"
+  linter: "eslint"
+  formatter: "prettier"
+  testing_framework: "jest"
+  target_coverage: 85
+
+# Game development specific settings
+game_development:
+  genre: "rogue-like"
+  multiplayer: true
+  networking: "socket.io"
+  rendering: "html5-canvas"
+  performance:
+    target_fps: 60
+    max_socket_latency_ms: 50
+    max_map_generation_ms: 100
+  
+# Team roles (customize agent personalities here)
+team:
+  game_architect:
+    active: true
+    custom_agent: ".bmad/agents/game-architect.yaml"
+    focus_areas:
+      - real-time-sync
+      - procedural-generation
+      - performance
+  developer:
+    active: true
+    specialized_for: "node.js-game-backend"
+  test_architect:
+    active: true
+    focus_areas:
+      - socket.io-testing
+      - procedural-generation-edge-cases
+      - leaderboard-consistency
+
+# Document handling
+documents:
+  max_size_tokens: 100000  # Enable document sharding if > 100K tokens
+  sharding_enabled: true
+  sharding_strategy: "semantic"
+
+# Workflow customization
+workflows:
+  audit_focus: ["architecture", "testing", "performance", "security"]
+  implementation_track: "bmad-method"  # vs "quick-flow" or "enterprise"
+  code_review_strict: true
+  require_tests_before_merge: true
+
+# Integration with your tools
+integrations:
+  git:
+    auto_commit: false
+    commit_message_format: "workflow: {workflow_name} - {description}"
+  github:
+    create_issues_from_findings: true
+    create_pr_from_implementation: false  # Manual review first
+  mongodb:
+    schema_review: true
+  socket_io:
+    protocol_review: true
+    performance_profiling: true
+
+# Output & Documentation
+output:
+  save_location: ".bmad/outputs/"
+  generate_diagrams: true
+  diagram_format: "svg"  # or "png" if prefer
+  generate_markdown: true
+  archive_old_runs: true
+  auto_commit_outputs: true
+
+# Security
+security:
+  check_for_secrets: true
+  check_env_variables: true
+  require_input_validation: true
+  anti_cheat_review: true  # For game
+
+# Performance monitoring
+performance:
+  profile_code: true
+  identify_bottlenecks: true
+  suggest_optimizations: true
+  canvas_rendering_review: true
+  database_query_optimization: true
+
+# Quality gates
+quality_gates:
+  min_test_coverage: 85
+  max_cyclomatic_complexity: 10
+  max_cognitive_complexity: 15
+  no_console_errors: true
+  no_hardcoded_secrets: true
+  no_unused_dependencies: true
+
+# Logging & Debugging
+logging:
+  level: "info"  # "debug", "info", "warn", "error"
+  save_workflow_logs: true
+  log_location: ".bmad/logs/"
+
+# Custom commands (aliases)
+aliases:
+  doc: "document-project"
+  arch: "create-architecture"
+  spec: "create-tech-spec"
+  test-plan: "run-test-design"
+  review: "run-code-review"
+  story: "create-story"
+  impl: "implement-story"
+  quick: "run-quick-flow"

@@ -84,6 +84,10 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         socket.on('forceStopLobbies', () => {
             console.log('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
 
+            // Notifier TOUS les clients que les lobbies se redémarrent
+            io.emit('lobbiesRebooting', { rebooting: true });
+            console.log('📢 Notification: Lobbies en redémarrage');
+
             Object.keys(lobbies).forEach((mode) => {
                 const lobby = lobbies[mode];
                 if (lobby) {
@@ -107,6 +111,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 console.log('♻️ Relance des lobbys...');
                 initializeLobbies();
                 console.log('✅ Lobbys relancés et prêts à l\'emploi.');
+                // Notifier que les lobbies sont prêts
+                io.emit('lobbiesRebooting', { rebooting: false });
+                console.log('📢 Notification: Lobbies prêts!');
             }, 5000);
         });
 

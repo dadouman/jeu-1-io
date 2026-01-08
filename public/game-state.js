@@ -71,6 +71,7 @@ let purchasedFeaturesById = {};
 let shopTimerStart = null;
 let shopAnimations = { hoveredItemId: null, purchaseAnimations: {} }; // Animations du shop
 let isPlayerReadyToContinue = false; // Joueur prêt à continuer du shop
+let lobbiesRebooting = false; // Les lobbies se redémarrent
 
 // Split-screen: état shop séparé pour le joueur 2
 let isShopOpenP2 = false;

@@ -71,6 +71,11 @@ function toggleSplitScreenFromMainMenu() {
  * Lance le jeu depuis le menu principal
  */
 function startGameFromMainMenu() {
+    // Bloquer si les lobbies se redémarrent
+    if (lobbiesRebooting) {
+        console.log('⏳ Impossible de continuer: les lobbies se redémarrent...');
+        return;
+    }
     hideMainMenu();
 }
 
@@ -175,16 +180,35 @@ function renderMainMenu(ctx, canvas) {
     ctx.fillText("👥 Split-Screen: " + (splitScreenEnabled ? "✓ ACTIVÉ" : "✗ DÉSACTIVÉ"), canvas.width / 2, splitButtonY + 40);
 
     // Bouton Commencer
-    ctx.fillStyle = "#FFD700";
+    const buttonColorStart = lobbiesRebooting ? "#777777" : "#FFD700";
+    const textColorStart = lobbiesRebooting ? "#CCCCCC" : "#000000";
+    ctx.fillStyle = buttonColorStart;
     ctx.fillRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
-    ctx.strokeStyle = "#FFFFFF";
+    ctx.strokeStyle = lobbiesRebooting ? "#555555" : "#FFFFFF";
     ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = textColorStart;
     ctx.font = "bold 24px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("▶ COMMENCER", canvas.width / 2, startGameButtonY + 40);
+    const buttonText = lobbiesRebooting ? "⏳ REDÉMARRAGE..." : "▶ COMMENCER";
+    ctx.fillText(buttonText, canvas.width / 2, startGameButtonY + 40);
+
+    // Message de redémarrage si lobbies se redémarrent
+    if (lobbiesRebooting) {
+        ctx.fillStyle = "rgba(255, 100, 100, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 36px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("⏳ Redémarrage en cours...", canvas.width / 2, canvas.height / 2 - 20);
+        
+        ctx.fillStyle = "#FFFF00";
+        ctx.font = "18px Arial";
+        ctx.fillText("Les lobbies se réinitialisent", canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText("Veuillez patienter...", canvas.width / 2, canvas.height / 2 + 60);
+    }
 
     // Instructions au clavier
     ctx.fillStyle = "#AAAAAA";

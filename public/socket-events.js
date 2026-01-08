@@ -311,6 +311,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         voteResultTime = Date.now();
     });
 
+    targetSocket.on('lobbiesRebooting', (data) => {
+        lobbiesRebooting = data.rebooting;
+        if (data.rebooting) {
+            console.log('⏳ Lobbies en redémarrage...');
+        } else {
+            console.log('✅ Lobbies redémarrés et prêts!');
+        }
+    });
+
     targetSocket.on('returnToModeSelection', () => {
         if (source === 'secondary') {
             return; // Ignorer le socket secondaire pour éviter de fermer la session locale

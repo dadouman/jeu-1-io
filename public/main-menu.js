@@ -75,6 +75,14 @@ function toggleSplitScreenFromMainMenu() {
 function startGameFromMainMenu() {
     mainMenuGameStarting = true; // Marquer comme commencé
     hideMainMenu();
+    
+    // Sécurité: réinitialiser après 10 secondes au cas où quelque chose se passe mal
+    setTimeout(() => {
+        if (mainMenuGameStarting) {
+            console.log('⚠️ Timeout: Réinitialisation du flag mainMenuGameStarting');
+            mainMenuGameStarting = false;
+        }
+    }, 10000);
 }
 
 /**

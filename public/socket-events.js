@@ -315,6 +315,9 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         lobbiesRebooting = data.rebooting;
         if (data.rebooting) {
             console.log('⏳ Lobbies en redémarrage...');
+            // Revenir au menu principal immédiatement
+            showMainMenu();
+            mainMenuGameStarting = false;
         } else {
             console.log('✅ Lobbies redémarrés et prêts!');
         }

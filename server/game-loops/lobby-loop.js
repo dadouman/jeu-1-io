@@ -48,6 +48,7 @@ function processLobbyGameLoop(lobbies, io, {
 
         for (const id in lobby.players) {
             const p = lobby.players[id];
+            if (!p || !lobby.coin) continue; // Vérifier que le joueur et la pièce existent
             const dist = Math.hypot(p.x - lobby.coin.x, p.y - lobby.coin.y);
             
             // --- COLLISION AVEC LA PIÈCE ---

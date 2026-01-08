@@ -169,6 +169,12 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
             lobby.currentLevel = 1;
             delete lobby.returnToModeVote;
             
+            // Réinitialiser la pièce (coin) si elle existe
+            if (lobby.coin) {
+                const { getRandomEmptyPosition } = require('../../utils/map');
+                lobby.coin = getRandomEmptyPosition(lobby.map);
+            }
+            
             emitToLobby(mode, 'returnToModeSelection', { message: 'Retour au sélecteur de modes' }, io, lobbies);
         }
     });

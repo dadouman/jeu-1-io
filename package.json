@@ -8,7 +8,11 @@
     "reset-score": "node scripts/resetScore.js",
     "bmad:quick-start": "echo 'See .bmad/QUICK-START.md for BMAD v6 integration guide'",
     "bmad:audit": "echo 'Run: *document-project in Claude/Cursor with this project'",
-    "bmad:architecture": "echo 'Run: *create-architecture in Claude/Cursor'"
+    "architecture:quick": "echo 'Read: docs/ARCHITECTURE_QUICK_REFERENCE.md'",
+    "architecture:complete": "echo 'Read: docs/ARCHITECTURE_COMPLETE.md'",
+    "architecture:diagrams": "echo 'Read: docs/ARCHITECTURE_DIAGRAMS.md'",
+    "architecture:check": "echo 'Use: docs/ARCHITECTURE_VALIDATION_CHECKLIST.md before commit'",
+    "architecture:index": "echo 'Start here: docs/ARCHITECTURE_INDEX.md'"
   },
   "keywords": [],
   "author": "",

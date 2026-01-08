@@ -158,7 +158,17 @@ function handleVotingEvents(socket, io, lobbies, soloSessions, playerModes, {
 
         if (allVotedYes) {
             console.log(`🔄 Retour au sélecteur de modes depuis ${mode}`);
+            
+            // Supprimer le joueur de la lobby et de playerModes pour qu'ils puissent rejoindre une nouvelle partie
+            Object.keys(lobby.players).forEach(playerId => {
+                delete playerModes[playerId];
+            });
+            
+            // Réinitialiser la lobby
+            lobby.players = {};
+            lobby.currentLevel = 1;
             delete lobby.returnToModeVote;
+            
             emitToLobby(mode, 'returnToModeSelection', { message: 'Retour au sélecteur de modes' }, io, lobbies);
         }
     });

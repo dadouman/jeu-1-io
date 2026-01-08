@@ -9,8 +9,15 @@ const gameModes = require('../../config/gameModes');
 const SoloSession = require('../utils/SoloSession');
 const { withValidation } = require('../validation/middleware');
 
-function handleModeSelection(socket, io, lobbies, soloSessions, playerModes) {
+function handleModeSelection(socket, io, lobbies, soloSessions, playerModes, getIsRebooting) {
     socket.on('selectGameMode', (data) => {
+        // ⚠️ BLOQUER SI REDÉMARRAGE EN COURS
+        if (getIsRebooting && getIsRebooting()) {
+            console.log(`⏳ Joueur ${socket.id} refusé: les lobbies sont en redémarrage`);
+            socket.emit('error', { message: 'Les lobbies se redémarrent actuellement. Veuillez patienter...' });
+            return;
+        }
+
         // Valider et rate-limit
         const validation = withValidation(socket.id, 'selectGameMode', data);
         if (!validation.valid) {

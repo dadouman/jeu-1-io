@@ -27,7 +27,9 @@ const {
 function initializeSocketEvents(io, lobbies, soloSessions, playerModes, { 
     SoloRunModel,
     SoloBestSplitsModel,
-    mongoURI 
+    mongoURI,
+    setIsRebooting,
+    getIsRebooting
 }, {
     startRestartVoteFunc,
     submitRestartVoteFunc,
@@ -49,7 +51,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         // --- DISPATCHER LES ÉVÉNEMENTS AUX MODULES SPÉCIALISÉS ---
         
         // Mode Selection Handler (selectGameMode, checkCustomModeConnections)
-        handleModeSelection(socket, io, lobbies, soloSessions, playerModes);
+        handleModeSelection(socket, io, lobbies, soloSessions, playerModes, getIsRebooting);
 
         // Movement Handler (movement)
         handleMovement(socket, lobbies, soloSessions, playerModes);
@@ -84,6 +86,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         socket.on('forceStopLobbies', () => {
             console.log('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
 
+            // Marquer comme en redémarrage
+            setIsRebooting(true);
+
             // Notifier TOUS les clients que les lobbies se redémarrent
             io.emit('lobbiesRebooting', { rebooting: true });
             console.log('📢 Notification: Lobbies en redémarrage');
@@ -111,6 +116,10 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 console.log('♻️ Relance des lobbys...');
                 initializeLobbies();
                 console.log('✅ Lobbys relancés et prêts à l\'emploi.');
+                
+                // Marquer comme prêt
+                setIsRebooting(false);
+                
                 // Notifier que les lobbies sont prêts
                 io.emit('lobbiesRebooting', { rebooting: false });
                 console.log('📢 Notification: Lobbies prêts!');

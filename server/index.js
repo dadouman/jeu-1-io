@@ -24,7 +24,9 @@ const {
     SoloBestSplitsModel,
     lobbies,
     soloSessions,
-    playerModes
+    playerModes,
+    setIsRebooting,
+    getIsRebooting
 } = require('./config');
 
 const {
@@ -88,7 +90,9 @@ lobbies.infinite.coin = getRandomEmptyPosition(lobbies.infinite.map);
 initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
     SoloRunModel,
     SoloBestSplitsModel,
-    mongoURI
+    mongoURI,
+    setIsRebooting,
+    getIsRebooting
 }, {
     startRestartVoteFunc: startRestartVote,
     submitRestartVoteFunc: submitRestartVote,

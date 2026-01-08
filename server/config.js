@@ -104,6 +104,9 @@ const soloSessions = {};
 // Tracker le mode de chaque joueur
 const playerModes = {};
 
+// État de redémarrage des lobbies
+let isRebooting = false;
+
 // Chargement du record depuis MongoDB
 async function loadHighScore() {
     if (!mongoURI) return;
@@ -132,5 +135,8 @@ module.exports = {
     SoloBestSplitsModel,
     lobbies,
     soloSessions,
-    playerModes
+    playerModes,
+    isRebooting,
+    setIsRebooting: (value) => { isRebooting = value; },
+    getIsRebooting: () => isRebooting
 };

@@ -1,6 +1,7 @@
 // main-menu.js - Menu principal avec options manette et split-screen
 
 var mainMenuVisible = true; // Afficher le menu principal au démarrage (var pour accès global)
+var mainMenuGameStarting = false; // Bouton COMMENCER cliqué
 var mainMenuOptions = {
     startGame: false,
     gamepadEnabled: false,
@@ -19,6 +20,7 @@ var mainMenuGamepadYInputDebounce = 0; // Évite les inputs répétés
  */
 function showMainMenu() {
     mainMenuVisible = true;
+    mainMenuGameStarting = false; // Réinitialiser quand on revient au menu
     const modeSelector = document.getElementById('modeSelector');
     if (modeSelector) {
         modeSelector.style.display = 'none';
@@ -30,6 +32,7 @@ function showMainMenu() {
  */
 function hideMainMenu() {
     mainMenuVisible = false;
+    mainMenuGameStarting = false; // Réinitialiser quand on revient au menu
     const modeSelector = document.getElementById('modeSelector');
     if (modeSelector) {
         modeSelector.style.display = 'flex';
@@ -71,6 +74,7 @@ function toggleSplitScreenFromMainMenu() {
  * Lance le jeu depuis le menu principal
  */
 function startGameFromMainMenu() {
+    mainMenuGameStarting = true; // Marquer comme commencé
     hideMainMenu();
 }
 
@@ -83,6 +87,12 @@ function handleMainMenuClick(mouseX, mouseY) {
     // Bloquer TOUS les clics si les lobbies se redémarrent
     if (lobbiesRebooting) {
         console.log('⏳ Clics bloqués: les lobbies se redémarrent...');
+        return false;
+    }
+
+    // Bloquer si le jeu est en cours de lancement
+    if (mainMenuGameStarting) {
+        console.log('⏳ Clics bloqués: le jeu se lance...');
         return false;
     }
 
@@ -181,18 +191,20 @@ function renderMainMenu(ctx, canvas) {
     ctx.fillText("👥 Split-Screen: " + (splitScreenEnabled ? "✓ ACTIVÉ" : "✗ DÉSACTIVÉ"), canvas.width / 2, splitButtonY + 40);
 
     // Bouton Commencer
-    const buttonColorStart = lobbiesRebooting ? "#777777" : "#FFD700";
-    const textColorStart = lobbiesRebooting ? "#CCCCCC" : "#000000";
+    const buttonColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#777777" : "#FFD700";
+    const textColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#CCCCCC" : "#000000";
     ctx.fillStyle = buttonColorStart;
     ctx.fillRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
-    ctx.strokeStyle = lobbiesRebooting ? "#555555" : "#FFFFFF";
+    ctx.strokeStyle = (lobbiesRebooting || mainMenuGameStarting) ? "#555555" : "#FFFFFF";
     ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = textColorStart;
     ctx.font = "bold 24px Arial";
     ctx.textAlign = "center";
-    const buttonText = lobbiesRebooting ? "⏳ REDÉMARRAGE..." : "▶ COMMENCER";
+    let buttonText = "▶ COMMENCER";
+    if (lobbiesRebooting) buttonText = "⏳ REDÉMARRAGE...";
+    if (mainMenuGameStarting) buttonText = "⏳ CHARGEMENT...";
     ctx.fillText(buttonText, canvas.width / 2, startGameButtonY + 40);
 
     // Message de redémarrage si lobbies se redémarrent
@@ -299,8 +311,8 @@ function handleMainMenuGamepadNavigation(gamepad) {
     // Bouton A pour confirmer
     const aPressed = gamepad.buttons[0] && gamepad.buttons[0].pressed;
     if (aPressed && !mainMenuGamepadYInputDebounce) {
-        // Bloquer TOUS les inputs si les lobbies se redémarrent
-        if (!lobbiesRebooting) {
+        // Bloquer TOUS les inputs si les lobbies se redémarrent ou si le jeu se lance
+        if (!lobbiesRebooting && !mainMenuGameStarting) {
             if (mainMenuSelectedIndex === 0) {
                 toggleGamepadFromMainMenu();
             } else if (mainMenuSelectedIndex === 1) {
@@ -308,8 +320,10 @@ function handleMainMenuGamepadNavigation(gamepad) {
             } else if (mainMenuSelectedIndex === 2) {
                 startGameFromMainMenu();
             }
-        } else {
+        } else if (lobbiesRebooting) {
             console.log('⏳ Manette bloquée: les lobbies se redémarrent...');
+        } else if (mainMenuGameStarting) {
+            console.log('⏳ Manette bloquée: le jeu se lance...');
         }
         mainMenuGamepadYInputDebounce = 2; // Bloquer pour éviter les appuis multiples
     } else if (!aPressed) {

@@ -46,10 +46,17 @@ async function handleSoloEvents(socket, io, soloSessions, playerModes, {
     // Obtenir les meilleurs splits
     async function requestSoloBestSplits() {
         try {
-            const bestSplits = await SoloBestSplitsModel.findOne({}).sort({ levelSplitTime: 1 }).exec();
+            // Ajouter timeout de 5 secondes pour éviter les hangs
+            const bestSplits = await Promise.race([
+                SoloBestSplitsModel.findOne({}).sort({ levelSplitTime: 1 }).exec(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('DB timeout')), 5000)
+                )
+            ]);
             socket.emit('soloBestSplits', bestSplits || {});
         } catch (error) {
-            console.error('Erreur lors de la récupération des meilleurs splits:', error);
+            console.warn('⚠️ Impossible de récupérer les meilleurs splits (DB may not be ready):', error.message);
+            // Retourner objet vide plutôt que de planter
             socket.emit('soloBestSplits', {});
         }
     }
@@ -60,11 +67,17 @@ async function handleSoloEvents(socket, io, soloSessions, playerModes, {
     // Obtenir le leaderboard solo
     socket.on('getSoloLeaderboard', async () => {
         try {
-            const leaderboard = await SoloRunModel
-                .find({})
-                .sort({ score: -1 })
-                .limit(100)
-                .exec();
+            // Ajouter timeout de 5 secondes pour éviter les hangs
+            const leaderboard = await Promise.race([
+                SoloRunModel
+                    .find({})
+                    .sort({ score: -1 })
+                    .limit(100)
+                    .exec(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('DB timeout')), 5000)
+                )
+            ]);
 
             const formattedLeaderboard = leaderboard.map((entry, index) => ({
                 rank: index + 1,
@@ -78,7 +91,7 @@ async function handleSoloEvents(socket, io, soloSessions, playerModes, {
 
             socket.emit('soloLeaderboardData', formattedLeaderboard);
         } catch (error) {
-            console.error('Erreur lors de la récupération du leaderboard solo:', error);
+            console.warn('⚠️ Impossible de récupérer le leaderboard (DB may not be ready):', error.message);
             socket.emit('soloLeaderboardData', []);
         }
     });

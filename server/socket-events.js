@@ -111,10 +111,76 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         });
 
         function initializeLobbies() {
-            lobbies.classic = { players: {}, map: generateMaze(15, 15) };
-            lobbies.infinite = { players: {}, map: generateMaze(20, 20) };
-            lobbies.custom = { players: {}, map: generateMaze(10, 10) };
-            console.log('🔄 Lobbys initialisés:', Object.keys(lobbies));
+            // Réinitialiser classic
+            lobbies.classic = { 
+                players: {}, 
+                currentLevel: 1,
+                levelStartTime: Date.now(),
+                map: generateMazeFunc(15, 15),
+                coin: getRandomEmptyPositionFunc(generateMazeFunc(15, 15)),
+                currentRecord: { score: 0, skin: "❓" },
+                restartVote: {
+                    isActive: false,
+                    votes: {},
+                    startTime: null,
+                    VOTE_TIMEOUT: 60000
+                }
+            };
+            
+            // Réinitialiser classicPrim (MANQUAIT AVANT!)
+            lobbies.classicPrim = {
+                players: {},
+                currentLevel: 1,
+                levelStartTime: Date.now(),
+                map: generateMazeAdvancedFunc(15, 15, { algorithm: 'prim', density: 0.5 }),
+                coin: getRandomEmptyPositionFunc(generateMazeAdvancedFunc(15, 15, { algorithm: 'prim', density: 0.5 })),
+                currentRecord: { score: 0, skin: "❓" },
+                mazeGeneration: {
+                    algorithm: 'prim',
+                    density: 0.5
+                },
+                restartVote: {
+                    isActive: false,
+                    votes: {},
+                    startTime: null,
+                    VOTE_TIMEOUT: 60000
+                }
+            };
+            
+            // Réinitialiser infinite
+            lobbies.infinite = { 
+                players: {},
+                currentLevel: 1,
+                levelStartTime: Date.now(),
+                map: generateMazeFunc(15, 15),
+                coin: getRandomEmptyPositionFunc(generateMazeFunc(15, 15)),
+                currentRecord: { score: 0, skin: "❓" },
+                restartVote: {
+                    isActive: false,
+                    votes: {},
+                    startTime: null,
+                    VOTE_TIMEOUT: 60000
+                }
+            };
+            
+            // Réinitialiser custom
+            lobbies.custom = { 
+                players: {},
+                currentLevel: 1,
+                levelStartTime: Date.now(),
+                map: generateMazeFunc(10, 10),
+                coin: getRandomEmptyPositionFunc(generateMazeFunc(10, 10)),
+                currentRecord: { score: 0, skin: "❓" },
+                customConfig: null,
+                restartVote: {
+                    isActive: false,
+                    votes: {},
+                    startTime: null,
+                    VOTE_TIMEOUT: 60000
+                }
+            };
+            
+            console.log('🔄 Lobbys réinitialisés:', Object.keys(lobbies));
         }
     });
 }

@@ -312,7 +312,9 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     });
 
     targetSocket.on('lobbiesRebooting', (data) => {
+        console.log('📨 ====== lobbiesRebooting EVENT RECEIVED ======');
         console.log('📨 Message reçu: lobbiesRebooting =', data.rebooting);
+        console.log('📨 typeof updateModeButtonsState:', typeof updateModeButtonsState);
         lobbiesRebooting = data.rebooting;
         if (data.rebooting) {
             console.log('⏳ Lobbies en redémarrage...');
@@ -321,14 +323,23 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             showMainMenu();
             mainMenuGameStarting = false;
             // Désactiver les boutons du mode selector
-            console.log('🔴 Appel de updateModeButtonsState()');
-            updateModeButtonsState();
+            console.log('🔴 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
+            if (typeof updateModeButtonsState === 'function') {
+                updateModeButtonsState();
+                console.log('🔴 APRÈS updateModeButtonsState()');
+            } else {
+                console.error('❌ updateModeButtonsState est pas une fonction!');
+            }
         } else {
             console.log('✅ Lobbies redémarrés et prêts!');
             // Réactiver les boutons du mode selector
-            console.log('🟢 Appel de updateModeButtonsState()');
-            updateModeButtonsState();
+            console.log('🟢 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
+            if (typeof updateModeButtonsState === 'function') {
+                updateModeButtonsState();
+                console.log('🟢 APRÈS updateModeButtonsState()');
+            }
         }
+        console.log('📨 ====== END lobbiesRebooting EVENT ======');
     });
 
     targetSocket.on('returnToModeSelection', () => {

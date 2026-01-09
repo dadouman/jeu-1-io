@@ -6,21 +6,26 @@ var selectedMode = null; // var pour accès global
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
  */
 function updateModeButtonsState() {
-    console.log('🔄 updateModeButtonsState() appelée - lobbiesRebooting =', lobbiesRebooting);
+    console.log('� ====== updateModeButtonsState() CALLED ======');
+    console.log('📍 lobbiesRebooting =', lobbiesRebooting);
+    
     const buttons = document.querySelectorAll('.mode-card button');
     console.log('📍 Boutons trouvés:', buttons.length);
+    console.log('📍 Boutons details:', buttons);
     
     buttons.forEach((button, index) => {
+        console.log(`  📍 Bouton ${index}:`, button.outerHTML.substring(0, 50));
         if (lobbiesRebooting) {
             button.disabled = true;
             button.style.pointerEvents = 'none';
-            console.log(`  ✓ Bouton ${index} désactivé`);
+            console.log(`    ✓ Bouton ${index} DÉSACTIVÉ`);
         } else {
             button.disabled = false;
             button.style.pointerEvents = 'auto';
-            console.log(`  ✓ Bouton ${index} réactivé`);
+            console.log(`    ✓ Bouton ${index} RÉACTIVÉ`);
         }
     });
+    console.log('📍 ====== updateModeButtonsState() DONE ======');
 }
 
 // Event listener global pour empêcher les clics sur les boutons désactivés

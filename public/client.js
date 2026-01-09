@@ -224,6 +224,9 @@ socket.on('kicked', (data) => {
 window.addEventListener('keydown', (event) => {
     if (event.key === '#') {
         console.log('Touche # détectée, arrêt des lobbys.');
+        // ✅ BLOQUER IMMÉDIATEMENT sans attendre le serveur
+        lobbiesRebooting = true;
+        console.log('🔴 lobbiesRebooting SET TO TRUE (immédiat)');
         socket.emit('forceStopLobbies');
     }
 });

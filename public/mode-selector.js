@@ -3,6 +3,18 @@
 var selectedMode = null; // var pour accès global
 
 /**
+ * Wrapper pour bloquer les clics si lobbiesRebooting = true
+ * @param {string} mode - Le mode à sélectionner
+ */
+function selectModeWithGuard(mode) {
+    if (lobbiesRebooting) {
+        console.log('⏳ Clique bloqué: les lobbies se redémarrent...');
+        return;
+    }
+    selectMode(mode);
+}
+
+/**
  * Sélectionne un mode de jeu
  * @param {string} mode - 'classic', 'infinite', 'solo', ou 'custom'
  */

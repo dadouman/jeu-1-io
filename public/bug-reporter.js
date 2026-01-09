@@ -287,24 +287,31 @@ class BugReporter {
 
     /**
      * Prendre une capture d'écran avec html2canvas
+     * Optimisée pour réduire la taille du fichier
      */
     async takeScreenshot() {
         try {
             // Vérifier que html2canvas est disponible
             if (typeof html2canvas === 'undefined') {
-                console.warn('html2canvas non disponible');
+                console.warn('❌ html2canvas non disponible');
                 return null;
             }
 
+            console.log('📸 Capture d\'écran en cours...');
+            
             const canvas = await html2canvas(document.body, {
                 allowTaint: true,
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                scale: 0.75  // Réduire à 75% de la résolution pour diminuer la taille
             });
 
-            return canvas.toDataURL('image/jpeg', 0.7);
+            const screenshot = canvas.toDataURL('image/jpeg', 0.5);  // Qualité 50% pour économiser
+            console.log(`✅ Screenshot capturé (${(screenshot.length / 1024 / 1024).toFixed(2)} MB)`);
+            
+            return screenshot;
         } catch (error) {
-            console.error('Erreur lors de la capture d\'écran:', error);
+            console.error('❌ Erreur lors de la capture d\'écran:', error);
             return null;
         }
     }
@@ -323,16 +330,27 @@ class BugReporter {
 
         // Afficher le statut "envoi en cours"
         statusDiv.style.display = 'block';
-        statusDiv.style.backgroundColor = '#e3f2fd';
-        statusDiv.style.color = '#1976d2';
-        statusDiv.innerHTML = '⏳ Envoi en cours...';
+        statusDiv.style.backgroundColor = '#fff3cd';
+        statusDiv.style.color = '#856404';
+        statusDiv.innerHTML = '⏳ Traitement du rapport...';
 
         try {
             let screenshot = null;
             if (includeScreenshot) {
+                statusDiv.innerHTML = '📸 Capture d\'écran en cours...';
                 screenshot = await this.takeScreenshot();
+                
+                // Avertir si la capture a échoué
+                if (!screenshot) {
+                    statusDiv.style.backgroundColor = '#fff3cd';
+                    statusDiv.style.color = '#856404';
+                    statusDiv.innerHTML = '⚠️ Attention: Capture d\'écran non disponible. Le rapport sera quand même envoyé.';
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
             }
 
+            statusDiv.innerHTML = '📤 Envoi du rapport...';
+            
             const logs = includeLogs ? this.consoleLogs : [];
 
             const bugReport = {
@@ -349,6 +367,8 @@ class BugReporter {
                 }
             };
 
+            console.log('🐛 Envoi du rapport de bug...', bugReport);
+
             // Envoyer au serveur
             const response = await fetch('/api/bugs', {
                 method: 'POST',
@@ -359,20 +379,25 @@ class BugReporter {
             });
 
             if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Rapport envoyé avec succès:', result.bugId);
+                
                 statusDiv.style.backgroundColor = '#c8e6c9';
                 statusDiv.style.color = '#2e7d32';
-                statusDiv.innerHTML = '✅ Merci! Votre rapport a été envoyé avec succès.';
+                statusDiv.innerHTML = '✅ Merci! Votre rapport a été envoyé avec succès.\\n' +
+                                     '<small style="display: block; margin-top: 5px; font-size: 11px;">ID: ' + result.bugId + '</small>';
 
-                // Fermer la modal après 2 secondes
-                setTimeout(() => this.closeModal(), 2000);
+                // Fermer la modal après 2.5 secondes
+                setTimeout(() => this.closeModal(), 2500);
             } else {
-                throw new Error('Erreur lors de l\'envoi');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erreur lors de l\'envoi');
             }
         } catch (error) {
-            console.error('Erreur lors de l\'envoi du rapport:', error);
+            console.error('❌ Erreur lors de l\'envoi du rapport:', error);
             statusDiv.style.backgroundColor = '#ffcdd2';
             statusDiv.style.color = '#c62828';
-            statusDiv.innerHTML = '❌ Erreur lors de l\'envoi. Veuillez réessayer.';
+            statusDiv.innerHTML = '❌ Erreur lors de l\'envoi: ' + error.message + '<br><small>Veuillez réessayer.</small>';
         }
     }
 }

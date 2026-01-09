@@ -75,13 +75,15 @@ app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les scree
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // --- INITIALISATION DU SERVICE D'EMAIL ---
-emailService.initialize().then(success => {
-    if (success) {
-        console.log('✅ Service d\'email initialisé');
+(async () => {
+    console.log('🔧 Initialisation du service d\'email...');
+    const emailSuccess = await emailService.initialize();
+    if (emailSuccess) {
+        console.log('✅ Service d\'email initialisé et prêt');
     } else {
-        console.log('⚠️  Service d\'email désactivé');
+        console.log('⚠️  Service d\'email désactivé - bugs seront sauvegardés mais pas notifiés');
     }
-});
+})();
 
 // --- ROUTES API ---
 app.use('/api/bugs', bugRoutes);

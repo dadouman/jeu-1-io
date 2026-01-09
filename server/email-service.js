@@ -23,16 +23,21 @@ class EmailService {
             const emailUser = process.env.EMAIL_USER || 'admin@example.com';
             
             // DEBUG: Afficher les variables (sans l'API key!)
-            console.log(`📧 Email Config: user=${emailUser}, hasApiKey=${!!apiKey}`);
+            console.log(`📧 Configuration Email:`);
+            console.log(`   • EMAIL_USER: ${emailUser}`);
+            console.log(`   • SENDGRID_API_KEY: ${apiKey ? '✅ DÉFINI' : '❌ MANQUANT'}`);
             
             if (!apiKey) {
-                throw new Error('SENDGRID_API_KEY manquant!');
+                console.error('❌ SENDGRID_API_KEY manquant dans .env');
+                console.log('💡 Ajoutez dans .env: SENDGRID_API_KEY=SG.votre_cle_ici');
+                this.initialized = false;
+                return false;  // Ne pas throw - permettre au serveur de continuer
             }
             
             console.log('🔧 Configuration de SendGrid...');
             sgMail.setApiKey(apiKey);
             this.apiKey = apiKey;
-            console.log('✅ SendGrid configuré');
+            console.log('✅ SendGrid configuré avec succès');
 
             // Envoyer un email de test à l'initialisation
             try {
@@ -41,6 +46,10 @@ class EmailService {
                 console.log('✅ Email de test envoyé avec succès!');
             } catch (testError) {
                 console.error('❌ Erreur lors de l\'envoi de l\'email de test:', testError.message);
+                // Si le test échoue, c'est probablement une clé invalide ou email non vérifié
+                console.log('💡 Vérifiez que:');
+                console.log('   1. SENDGRID_API_KEY est valide et active');
+                console.log('   2. EMAIL_USER est vérifié dans SendGrid (Single Sender Verification)');
             }
             
             this.initialized = true;
@@ -102,6 +111,8 @@ class EmailService {
         }
 
         try {
+            console.log(`📧 Tentative d'envoi email pour bug ${bugReport._id}...`);
+            
             // Résumé du bug en HTML
             const htmlContent = `
                 <h2>🚨 Nouveau Rapport de Bug</h2>
@@ -153,11 +164,19 @@ ${bugReport.logs.map(log =>
                 setTimeout(() => reject(new Error('Timeout d\'envoi email')), 10000)
             );
             await Promise.race([sendPromise, timeoutPromise]);
-            console.log(`✅ Email de notification SendGrid envoyé pour le bug ${bugReport._id}`);
+            console.log(`✅ Email de notification SendGrid envoyé avec succès pour bug ${bugReport._id}`);
             
             return true;
         } catch (error) {
-            console.error('❌ Erreur lors de l\'envoi de l\'email:', error.message);
+            console.error('❌ Erreur SendGrid:', error.message);
+            // Loguer plus de détails si disponible
+            if (error.response && error.response.body) {
+                console.error('   Détails erreur:', error.response.body.errors);
+                console.log('💡 Causes possibles:');
+                console.log('   • SENDGRID_API_KEY invalide ou révoquée');
+                console.log('   • EMAIL_USER non vérifié dans SendGrid');
+                console.log('   • Email trop volumineux (> 25 MB)');
+            }
             return false;
         }
     }

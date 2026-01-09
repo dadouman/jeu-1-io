@@ -131,7 +131,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 // Notifier que les lobbies sont prêts
                 io.emit('lobbiesRebooting', { rebooting: false });
                 console.log('📢 Notification: Lobbies prêts!');
-            }, 5000);
+            }, 8000);
         });
 
         function initializeLobbies() {

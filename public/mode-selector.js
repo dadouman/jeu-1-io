@@ -6,18 +6,19 @@ var selectedMode = null; // var pour accès global
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
  */
 function updateModeButtonsState() {
+    console.log('🔄 updateModeButtonsState() appelée - lobbiesRebooting =', lobbiesRebooting);
     const buttons = document.querySelectorAll('.mode-card button');
-    buttons.forEach(button => {
+    console.log('📍 Boutons trouvés:', buttons.length);
+    
+    buttons.forEach((button, index) => {
         if (lobbiesRebooting) {
             button.disabled = true;
-            button.style.opacity = '0.5';
-            button.style.cursor = 'not-allowed';
-            button.style.backgroundColor = '#666666';
+            button.style.pointerEvents = 'none';
+            console.log(`  ✓ Bouton ${index} désactivé`);
         } else {
             button.disabled = false;
-            button.style.opacity = '1';
-            button.style.cursor = 'pointer';
-            button.style.backgroundColor = '';
+            button.style.pointerEvents = 'auto';
+            console.log(`  ✓ Bouton ${index} réactivé`);
         }
     });
 }

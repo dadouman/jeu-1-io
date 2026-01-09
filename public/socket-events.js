@@ -312,17 +312,21 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     });
 
     targetSocket.on('lobbiesRebooting', (data) => {
+        console.log('📨 Message reçu: lobbiesRebooting =', data.rebooting);
         lobbiesRebooting = data.rebooting;
         if (data.rebooting) {
             console.log('⏳ Lobbies en redémarrage...');
+            console.log('🎬 Appel de showMainMenu()');
             // Revenir au menu principal immédiatement
             showMainMenu();
             mainMenuGameStarting = false;
             // Désactiver les boutons du mode selector
+            console.log('🔴 Appel de updateModeButtonsState()');
             updateModeButtonsState();
         } else {
             console.log('✅ Lobbies redémarrés et prêts!');
             // Réactiver les boutons du mode selector
+            console.log('🟢 Appel de updateModeButtonsState()');
             updateModeButtonsState();
         }
     });

@@ -233,6 +233,14 @@ canvas {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
+.mode-card button:disabled {
+    background: #666666 !important;
+    color: #999999 !important;
+    cursor: not-allowed !important;
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+}
+
 .mode-card.coming-soon {
     opacity: 0.5;
     cursor: not-allowed;

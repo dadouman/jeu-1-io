@@ -521,7 +521,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         // Afficher l'écran d'attente de redémarrage
         const waitingScreen = document.getElementById('restartWaitingScreen');
         if (waitingScreen) {
-            waitingScreen.style.display = 'flex';
+            waitingScreen.classList.add('show');
             console.log('%c⏳ Écran d\'attente affichée', 'color: #FFD700; font-weight: bold');
         }
     });
@@ -536,7 +536,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         // Masquer l'écran d'attente
         const waitingScreen = document.getElementById('restartWaitingScreen');
         if (waitingScreen) {
-            waitingScreen.style.display = 'none';
+            waitingScreen.classList.remove('show');
         }
         
         // Retourner au menu principal

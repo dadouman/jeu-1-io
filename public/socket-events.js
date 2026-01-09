@@ -500,6 +500,15 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
     targetSocket.on('error', (data) => {
         console.log(`%c⚠️ ${data.message}`, 'color: #FFA500; font-weight: bold');
+        
+        // ✅ SI ERREUR DE REDÉMARRAGE, REVENIR AU MENU IMMÉDIATEMENT
+        if (data.message && data.message.includes('redémarr')) {
+            console.log(`%c🔴 ERREUR REDÉMARRAGE DÉTECTÉE - Retour au menu principal`, 'color: #FF0000; font-weight: bold; font-size: 14px');
+            lobbiesRebooting = true;
+            mainMenuVisible = true;
+            gameRunning = false;
+            showMainMenu();
+        }
     });
 }
 

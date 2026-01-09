@@ -56,9 +56,11 @@ function selectModeWithGuard(mode) {
 function selectMode(mode) {
     // Bloquer la sélection si les lobbies se redémarrent
     if (lobbiesRebooting) {
-        console.log('⏳ Sélection bloquée: les lobbies se redémarrent...');
+        console.log(`%c🔴 BLOQUEÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #FF0000; font-weight: bold; font-size: 14px');
         return;
     }
+    
+    console.log(`%c✅ AUTORISÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
     
     if (mode === 'classic' || mode === 'classicPrim' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
         // Vérifier que le mode personnalisé existe

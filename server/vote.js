@@ -1,5 +1,7 @@
 // server/vote.js - Système de vote pour redémarrer
 
+const { debugLog } = require('./debug');
+
 function startRestartVote(initiatorId, mode, io, lobbies) {
     const lobby = lobbies[mode];
     if (!lobby) return { success: false, message: "Lobby invalide" };
@@ -13,7 +15,7 @@ function startRestartVote(initiatorId, mode, io, lobbies) {
     lobby.restartVote.startTime = Date.now();
     
     const playerCount = Object.keys(lobby.players).length;
-    console.log(`\n🗳️ ════════════════════════════════════\n   VOTE POUR REDÉMARRER LANCÉ (${mode})\n   ${playerCount} joueur(s) connecté(s)\n   Tapez O pour OUI, N ou rien pour NON\n════════════════════════════════════\n`);
+    debugLog(`\n🗳️ ════════════════════════════════════\n   VOTE POUR REDÉMARRER LANCÉ (${mode})\n   ${playerCount} joueur(s) connecté(s)\n   Tapez O pour OUI, N ou rien pour NON\n════════════════════════════════════\n`);
     
     // Émettre à tous les joueurs de la lobby
     Object.keys(lobby.players).forEach(playerId => {
@@ -41,7 +43,7 @@ function submitRestartVote(playerId, voteValue, mode, lobbies) {
     const player = lobby.players[playerId];
     lobby.restartVote.votes[playerId] = voteValue;
     
-    console.log(`   ${player.skin} a voté: ${voteValue ? "✅ OUI" : "❌ NON"}`);
+    debugLog(`   ${player.skin} a voté: ${voteValue ? "✅ OUI" : "❌ NON"}`);
     
     return { success: true, voteRegistered: voteValue };
 }
@@ -90,7 +92,7 @@ function finishRestartVote(mode, lobbies, io) {
         totalVotesReceived: Object.keys(lobby.restartVote.votes).length
     };
     
-    console.log(`\n📊 RÉSULTAT DU VOTE (${mode}): ${yesVotes}/${requiredYes} votes pour redémarrer`);
+    debugLog(`\n📊 RÉSULTAT DU VOTE (${mode}): ${yesVotes}/${requiredYes} votes pour redémarrer`);
     
     // Réinitialiser le vote
     lobby.restartVote.isActive = false;
@@ -112,7 +114,7 @@ function restartGame(mode, io, lobbies, generateMaze, getRandomEmptyPosition, in
     const lobby = lobbies[mode];
     if (!lobby) return;
     
-    console.log(`\n🔄 ════════════════════════════════════\n   REDÉMARRAGE DU JEU (${mode})\n════════════════════════════════════\n`);
+    debugLog(`\n🔄 ════════════════════════════════════\n   REDÉMARRAGE DU JEU (${mode})\n════════════════════════════════════\n`);
     
     // Réinitialiser les variables du jeu
     lobby.currentLevel = 1;

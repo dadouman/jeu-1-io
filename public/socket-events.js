@@ -1,5 +1,18 @@
 // socket-events.js - Tous les événements Socket.io
 
+// Mode DEBUG - contrôlé par sessionStorage ou directement en développement
+const DEBUG_CLIENT = sessionStorage.getItem('DEBUG') === 'true' || process.env.NODE_ENV === 'development' || false;
+
+/**
+ * Log seulement en mode DEBUG (côté client)
+ * @param {...args} args - Arguments à logger
+ */
+function clientDebugLog(...args) {
+    if (DEBUG_CLIENT) {
+        console.log(...args);
+    }
+}
+
 /**
  * Attache tous les événements de jeu à un socket donné.
  * source: 'primary' | 'secondary'
@@ -13,7 +26,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             myPlayerId = id;
         } else {
             myPlayerIdSecondary = id;
-            console.log(`🎮 Joueur 2 connecté (split-screen) : ${id}`);
+            clientDebugLog(`🎮 Joueur 2 connecté (split-screen) : ${id}`);
             if (currentGameMode) {
                 targetSocket.emit('selectGameMode', { mode: currentGameMode });
             }
@@ -39,7 +52,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         });
 
         targetSocket.on('disconnect', () => {
-            console.log('ℹ️ Socket secondaire déconnecté');
+            clientDebugLog('ℹ️ Socket secondaire déconnecté');
             myPlayerIdSecondary = null;
             if (typeof detachSecondaryStateListener === 'function') {
                 detachSecondaryStateListener();
@@ -72,7 +85,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             if (myPlayer && myPlayer.score > (classicPersonalBestScore || 0)) {
                 classicPersonalBestScore = myPlayer.score;
                 localStorage.setItem('classicPersonalBest', myPlayer.score.toString());
-                console.log(`%c🎯 Nouveau record personnel classique! ${myPlayer.score}💎`, 'color: #00FF00; font-weight: bold');
+                clientDebugLog(`%c🎯 Nouveau record personnel classique! ${myPlayer.score}💎`, 'color: #00FF00; font-weight: bold');
             }
         }
     });
@@ -94,7 +107,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             
             const playerData = currentPlayers[idForSkin];
             if (playerData) {
-                console.log(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+                clientDebugLog(`%c${levelUpPlayerSkin} Niveau ${lastLevel} complété en ${levelUpTime.toFixed(1)}s | ${playerData.gems}💎 | Score: ${playerData.score}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
             }
             
             levelStartTime = Date.now();
@@ -137,7 +150,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             if (shopTypeP2 === 'dutchAuction') {
                 const itemKeys = data?.items ? Object.keys(data.items) : [];
                 const lotsCount = Array.isArray(data?.auction?.lots) ? data.auction.lots.length : 0;
-                console.log(`%c🧩 [P2] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
+                clientDebugLog(`%c🧩 [P2] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
                     'color:#FFD700; font-weight:bold');
             }
         } else {
@@ -151,7 +164,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             if (shopType === 'dutchAuction') {
                 const itemKeys = data?.items ? Object.keys(data.items) : [];
                 const lotsCount = Array.isArray(data?.auction?.lots) ? data.auction.lots.length : 0;
-                console.log(`%c🧩 [P1] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
+                clientDebugLog(`%c🧩 [P1] AUCTION shopOpen: ${lotsCount} lot(s), items=${itemKeys.join(', ') || '(none)'}`,
                     'color:#FFD700; font-weight:bold');
             }
         }
@@ -164,7 +177,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
 
         const shopNumber = Math.floor(data.level / 5);
         const who = isSecondary ? 'P2' : 'P1';
-        console.log(`%c🏪 [${who}] SHOP ${shopNumber} OUVERT | 1-5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
+        clientDebugLog(`%c🏪 [${who}] SHOP ${shopNumber} OUVERT | 1-5 pour acheter (${shopTotalPlayers} joueur(s))`, 'color: #FFD700; font-weight: bold; font-size: 12px');
     });
 
     targetSocket.on('dutchAuctionState', (data) => {
@@ -175,13 +188,13 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             dutchAuctionTickAnchorP2 = Date.now();
 
             const lotsCount = Array.isArray(auction?.lots) ? auction.lots.length : 0;
-            console.log(`%c📡 [P2] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
+            clientDebugLog(`%c📡 [P2] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
         } else {
             dutchAuctionState = auction;
             dutchAuctionTickAnchor = Date.now();
 
             const lotsCount = Array.isArray(auction?.lots) ? auction.lots.length : 0;
-            console.log(`%c📡 [P1] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
+            clientDebugLog(`%c📡 [P1] AUCTION state: ${lotsCount} lot(s)`, 'color:#999');
         }
     });
 
@@ -216,11 +229,11 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         }
 
         const who = isSecondary ? 'P2' : 'P1';
-        console.log(`%c✅ [${who}] ${data.item.name} acheté! | ${data.gemsLeft}💎`, 'color: #00FF00; font-weight: bold');
+        clientDebugLog(`%c✅ [${who}] ${data.item.name} acheté! | ${data.gemsLeft}💎`, 'color: #00FF00; font-weight: bold');
     });
 
     targetSocket.on('shopPurchaseFailed', (data) => {
-        console.log(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
+        clientDebugLog(`%c❌ ${data.reason} | Vous avez ${data.current}/${data.required} 💎`, 'color: #FF6B6B; font-weight: bold');
     });
 
     targetSocket.on('shopClosed', () => {
@@ -251,7 +264,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     targetSocket.on('shopPlayersReadyUpdate', (data) => {
         shopReadyCount = data.readyCount;
         shopTotalPlayers = data.totalPlayers;
-        console.log(`%c🏪 Joueurs prêts: ${shopReadyCount}/${shopTotalPlayers}`, 'color: #FFD700; font-weight: bold');
+        clientDebugLog(`%c🏪 Joueurs prêts: ${shopReadyCount}/${shopTotalPlayers}`, 'color: #FFD700; font-weight: bold');
     });
 
     targetSocket.on('shopClosedAutomatically', (data) => {
@@ -275,7 +288,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             shopReadyCount = 0;
             shopTotalPlayers = 0;
             const reason = data?.reason ? String(data.reason) : 'auto';
-            console.log(`%c🏪 SHOP FERMÉ (${reason}) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
+            clientDebugLog(`%c🏪 SHOP FERMÉ (${reason}) | Retour au niveau`, 'color: #FFD700; font-weight: bold');
             levelStartTime = Date.now();
         }
     });
@@ -285,7 +298,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         isVoteActive = true;
         voteStartTime = Date.now();
         myVote = null;
-        console.log(`%c🗳️ VOTE POUR REDÉMARRER LANCÉ (${data.playerCount} joueur(s)) - Tapez O pour OUI, N/Aucun pour NON`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
+        clientDebugLog(`%c🗳️ VOTE POUR REDÉMARRER LANCÉ (${data.playerCount} joueur(s)) - Tapez O pour OUI, N/Aucun pour NON`, 'color: #FF00FF; font-weight: bold; font-size: 12px');
     });
 
     targetSocket.on('restartVoteFinished', (data) => {
@@ -294,7 +307,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         
         if (data.shouldRestart) {
             voteResult = 'success';
-            console.log(`%c✅ REDÉMARRAGE VALIDÉ! ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #00FF00; font-weight: bold');
+            clientDebugLog(`%c✅ REDÉMARRAGE VALIDÉ! ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #00FF00; font-weight: bold');
             
             isInTransition = true;
             isFirstLevel = true;
@@ -305,41 +318,41 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             lastLevel = 1;
         } else {
             voteResult = 'failed';
-            console.log(`%c❌ Vote rejeté: ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #FF0000; font-weight: bold');
+            clientDebugLog(`%c❌ Vote rejeté: ${data.yesVotes}/${data.requiredYes} votes pour OUI`, 'color: #FF0000; font-weight: bold');
         }
         
         voteResultTime = Date.now();
     });
 
     targetSocket.on('lobbiesRebooting', (data) => {
-        console.log('📨 ====== lobbiesRebooting EVENT RECEIVED ======');
-        console.log('📨 Message reçu: lobbiesRebooting =', data.rebooting);
-        console.log('📨 typeof updateModeButtonsState:', typeof updateModeButtonsState);
+        clientDebugLog('📨 ====== lobbiesRebooting EVENT RECEIVED ======');
+        clientDebugLog('📨 Message reçu: lobbiesRebooting =', data.rebooting);
+        clientDebugLog('📨 typeof updateModeButtonsState:', typeof updateModeButtonsState);
         lobbiesRebooting = data.rebooting;
         if (data.rebooting) {
-            console.log('⏳ Lobbies en redémarrage...');
-            console.log('🎬 Appel de showMainMenu()');
+            clientDebugLog('⏳ Lobbies en redémarrage...');
+            clientDebugLog('🎬 Appel de showMainMenu()');
             // Revenir au menu principal immédiatement
             showMainMenu();
             mainMenuGameStarting = false;
             // Désactiver les boutons du mode selector
-            console.log('🔴 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
+            clientDebugLog('🔴 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
             if (typeof updateModeButtonsState === 'function') {
                 updateModeButtonsState();
-                console.log('🔴 APRÈS updateModeButtonsState()');
+                clientDebugLog('🔴 APRÈS updateModeButtonsState()');
             } else {
                 console.error('❌ updateModeButtonsState est pas une fonction!');
             }
         } else {
-            console.log('✅ Lobbies redémarrés et prêts!');
+            clientDebugLog('✅ Lobbies redémarrés et prêts!');
             // Réactiver les boutons du mode selector
-            console.log('🟢 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
+            clientDebugLog('🟢 AVANT updateModeButtonsState() - lobbiesRebooting =', lobbiesRebooting);
             if (typeof updateModeButtonsState === 'function') {
                 updateModeButtonsState();
-                console.log('🟢 APRÈS updateModeButtonsState()');
+                clientDebugLog('🟢 APRÈS updateModeButtonsState()');
             }
         }
-        console.log('📨 ====== END lobbiesRebooting EVENT ======');
+        clientDebugLog('📨 ====== END lobbiesRebooting EVENT ======');
     });
 
     targetSocket.on('returnToModeSelection', () => {
@@ -347,7 +360,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             return; // Ignorer le socket secondaire pour éviter de fermer la session locale
         }
 
-        console.log(`%c🎮 Retour à la sélection de mode!`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+        clientDebugLog(`%c🎮 Retour à la sélection de mode!`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
         const modeSelector = document.getElementById('modeSelector');
         if (modeSelector) {
@@ -368,7 +381,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         inputsBlocked = false; // Débloquer les inputs
         currentGameMode = null; // Réinitialiser le mode courant
         
-        console.log(`%c✨ Prêt à choisir un nouveau mode!`, 'color: #00FF00; font-weight: bold');
+        clientDebugLog(`%c✨ Prêt à choisir un nouveau mode!`, 'color: #00FF00; font-weight: bold');
     });
 
     targetSocket.on('gameModSelected', (data) => {
@@ -381,11 +394,11 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         const endType = data.endType || currentGameEndType || 'multi';
 
         if (endType === 'solo') {
-            console.log(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
+            clientDebugLog(`%c🏁 SOLO TERMINÉ! Temps total: ${data.totalTime?.toFixed(2) || 'N/A'}s`, 'color: #FF00FF; font-weight: bold; font-size: 16px');
             // Le flux solo complet est déjà géré ailleurs (soloGameState)
         } else {
             const modeLabel = (data.mode || currentGameMode || 'GAME').toUpperCase();
-            console.log(`%c🏁 ${modeLabel} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
+            clientDebugLog(`%c🏁 ${modeLabel} TERMINÉ! Vous avez atteint le niveau ${data.finalLevel}`, 'color: #00FFFF; font-weight: bold; font-size: 16px');
             
             isClassicGameFinished = true;
             classicEndScreenStartTime = Date.now();
@@ -411,7 +424,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     targetSocket.on('soloBestSplits', (data) => {
         window.soloBestSplits = data.splits || {};
         soloBestSplits = data.splits || {};
-        console.log(`%c📊 Meilleurs splits reçus: ${JSON.stringify(data.splits)}`, 'color: #00FF00; font-weight: bold');
+        clientDebugLog(`%c📊 Meilleurs splits reçus: ${JSON.stringify(data.splits)}`, 'color: #00FF00; font-weight: bold');
     });
 
     targetSocket.on('modeSelectionRequired', (data) => {
@@ -419,17 +432,17 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             return; // Ne pas casser l'écran principal si le socket secondaire demande un mode
         }
 
-        console.log(`%c🔄 ${data.message}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
+        clientDebugLog(`%c🔄 ${data.message}`, 'color: #FFD700; font-weight: bold; font-size: 14px');
         
         // Si le menu principal est visible, ne pas afficher le mode selector
         // L'utilisateur doit d'abord cliquer sur "Commencer"
         if (mainMenuVisible) {
-            console.log('%c🎮 Menu principal affiché - mode selector masqué', 'color: #00BFFF');
+            clientDebugLog('%c🎮 Menu principal affiché - mode selector masqué', 'color: #00BFFF');
             return;
         }
         
         if (data.reason === 'gameEnded') {
-            console.log(`%c⏳ L'écran de fin s'affichera pendant 5 secondes...`, 'color: #FF6B6B; font-weight: bold');
+            clientDebugLog(`%c⏳ L'écran de fin s'affichera pendant 5 secondes...`, 'color: #FF6B6B; font-weight: bold');
             setTimeout(() => {
                 isClassicGameFinished = false;
                 isSoloGameFinished = false;
@@ -442,7 +455,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
                     modeSelector.style.display = 'flex';
                 }
                 
-                console.log(`%c✅ Retour au sélecteur de mode!`, 'color: #00FF00; font-weight: bold');
+                clientDebugLog(`%c✅ Retour au sélecteur de mode!`, 'color: #00FF00; font-weight: bold');
             }, 5000);
         } else {
             isClassicGameFinished = false;
@@ -464,7 +477,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         
         returnToModeVoteActive = true;
         returnToModeVoteTime = Date.now();
-        console.log(`%c🗳️ Vote pour retour au mode commencé! Durée: ${data.timeoutSeconds || 30}s`, 'color: #FFD700; font-weight: bold');
+        clientDebugLog(`%c🗳️ Vote pour retour au mode commencé! Durée: ${data.timeoutSeconds || 30}s`, 'color: #FFD700; font-weight: bold');
     });
 
     targetSocket.on('returnToModeVoteFinished', (data) => {
@@ -474,7 +487,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
         returnToModeVoteTime = null;
         
         if (data.success) {
-            console.log(`%c✅ Vote réussi! Retour au mode sélection...`, 'color: #00FF00; font-weight: bold');
+            clientDebugLog(`%c✅ Vote réussi! Retour au mode sélection...`, 'color: #00FF00; font-weight: bold');
             
             // Réinitialiser l'état du jeu
             isClassicGameFinished = false;
@@ -494,7 +507,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             
             mainMenuVisible = false;
         } else {
-            console.log(`%c❌ Vote échoué. Poursuite du jeu...`, 'color: #FF6B6B; font-weight: bold');
+            clientDebugLog(`%c❌ Vote échoué. Poursuite du jeu...`, 'color: #FF6B6B; font-weight: bold');
         }
     });
 

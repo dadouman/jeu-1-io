@@ -1,6 +1,7 @@
 // server/socket-events.js - Event Manager (Refactorisé en modules feature-based)
 // Gère l'initialisation des connexions et dispatche les événements vers les handlers spécialisés
 
+const { debugLog } = require('./debug');
 const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
 const { initializePlayer } = require('../utils/player');
 
@@ -43,11 +44,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 } = {}) {
     
     io.on('connection', (socket) => {
-        console.log('Joueur connecté : ' + socket.id);
+        debugLog('Joueur connecté : ' + socket.id);
 
         // ⚠️ BLOQUER LA CONNEXION SI REDÉMARRAGE EN COURS
         if (getIsRebooting && getIsRebooting()) {
-            console.log(`⏳ Joueur ${socket.id} refusé à la connexion: les lobbies sont en redémarrage`);
+            debugLog(`⏳ Joueur ${socket.id} refusé à la connexion: les lobbies sont en redémarrage`);
             socket.emit('error', { message: 'Les lobbies se redémarrent actuellement. Veuillez patienter...' });
             socket.disconnect();
             return;
@@ -92,19 +93,19 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // --- ADMIN COMMANDS ---
         socket.on('forceStopLobbies', () => {
-            console.log('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
+            debugLog('⚠️ Commande reçue: Forcer l\'arrêt des lobbys');
 
             // Marquer comme en redémarrage
             setIsRebooting(true);
 
             // Notifier TOUS les clients que les lobbies se redémarrent
             io.emit('lobbiesRebooting', { rebooting: true });
-            console.log('📢 Notification: Lobbies en redémarrage');
+            debugLog('📢 Notification: Lobbies en redémarrage');
 
             Object.keys(lobbies).forEach((mode) => {
                 const lobby = lobbies[mode];
                 if (lobby) {
-                    console.log(`🛑 Fermeture du lobby: ${mode}`);
+                    debugLog(`🛑 Fermeture du lobby: ${mode}`);
 
                     Object.keys(lobby.players).forEach((playerId) => {
                         const playerSocket = io.sockets.sockets.get(playerId);
@@ -114,7 +115,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                                 message: 'Redémarrage des serveurs en cours...',
                                 waitingForRestart: true 
                             });
-                            console.log(`   👋 Joueur ${playerId} kické pour redémarrage`);
+                            debugLog(`   👋 Joueur ${playerId} kické pour redémarrage`);
                         }
                     });
 
@@ -122,12 +123,12 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 }
             });
 
-            console.log('✅ Tous les lobbys ont été fermés.');
+            debugLog('✅ Tous les lobbys ont été fermés.');
 
             setTimeout(() => {
-                console.log('♻️ Relance des lobbys...');
+                debugLog('♻️ Relance des lobbys...');
                 initializeLobbies();
-                console.log('✅ Lobbys relancés et prêts à l\'emploi.');
+                debugLog('✅ Lobbys relancés et prêts à l\'emploi.');
                 
                 // Marquer comme prêt
                 setIsRebooting(false);
@@ -137,11 +138,11 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     message: 'Les serveurs sont prêts!',
                     ready: true 
                 });
-                console.log('   ✅ TOUS les joueurs libérés');
+                debugLog('   ✅ TOUS les joueurs libérés');
                 
                 // Notifier que les lobbies sont prêts
                 io.emit('lobbiesRebooting', { rebooting: false });
-                console.log('📢 Notification: Lobbies prêts!');
+                debugLog('📢 Notification: Lobbies prêts!');
             }, 8000);
         });
 
@@ -215,7 +216,7 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 }
             };
             
-            console.log('🔄 Lobbys réinitialisés:', Object.keys(lobbies));
+            debugLog('🔄 Lobbys réinitialisés:', Object.keys(lobbies));
         }
     });
 }

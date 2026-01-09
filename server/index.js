@@ -74,19 +74,21 @@ app.get('/', (req, res) => {
 app.use(express.json({ limit: '50mb' }));  // Augmenter la limite pour les screenshots base64
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// --- ROUTES API ---
+app.use('/api/bugs', bugRoutes);
+
 // --- INITIALISATION DU SERVICE D'EMAIL ---
-(async () => {
-    console.log('🔧 Initialisation du service d\'email...');
-    const emailSuccess = await emailService.initialize();
-    if (emailSuccess) {
+// NOTE: Email init est async mais ne bloque pas le serveur
+console.log('🔧 Initialisation du service d\'email...');
+emailService.initialize().then(success => {
+    if (success) {
         console.log('✅ Service d\'email initialisé et prêt');
     } else {
         console.log('⚠️  Service d\'email désactivé - bugs seront sauvegardés mais pas notifiés');
     }
-})();
-
-// --- ROUTES API ---
-app.use('/api/bugs', bugRoutes);
+}).catch(err => {
+    console.error('❌ Erreur lors de l\'initialisation du service d\'email:', err.message);
+});
 
 // --- INITIALISATION DU LABYRINTHE INITIAL ---
 const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');

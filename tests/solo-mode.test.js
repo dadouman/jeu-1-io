@@ -65,23 +65,23 @@ describe('Solo Mode - Configuration de base', () => {
     });
 
     test('Zoom doit diminuer lors de l\'expansion et augmenter lors de la contraction', () => {
-        // Niveaux 1-10: maze grandit → zoom diminue
-        // Niveaux 11-20: maze rétrécit → zoom augmente
+        // Niveaux 1-5: maze grandit → zoom diminue
+        // Niveaux 6-10: maze rétrécit → zoom augmente
         
         const zoomLevel1 = 1.0;  // Premier niveau = zoom max
-        const zoomLevel10 = 0.5; // Niveau 10 = zoom min
-        const zoomLevel11 = 0.5; // Niveau 11 = restart contraction
-        const zoomLevel20 = 1.0; // Niveau 20 = zoom max
+        const zoomLevel5 = 0.5;  // Niveau 5 = zoom min
+        const zoomLevel6 = 0.5;  // Niveau 6 = restart contraction
+        const zoomLevel10 = 1.0; // Niveau 10 = zoom max
         
         // Vérifier la cohérence
-        expect(zoomLevel1).toBeGreaterThan(zoomLevel10);
-        expect(zoomLevel11).toBe(zoomLevel10);
-        expect(zoomLevel20).toBe(zoomLevel1);
+        expect(zoomLevel1).toBeGreaterThan(zoomLevel5);
+        expect(zoomLevel6).toBe(zoomLevel5);
+        expect(zoomLevel10).toBe(zoomLevel1);
     });
 
-    test('Nombre total de niveaux pour mode solo est 20', () => {
-        const totalLevels = 20;
-        expect(totalLevels).toBe(20);
+    test('Nombre total de niveaux pour mode solo est 10', () => {
+        const totalLevels = 10;
+        expect(totalLevels).toBe(10);
     });
 
     test('Niveaux 1-10 doivent être d\'expansion (taille croissante)', () => {
@@ -97,10 +97,10 @@ describe('Solo Mode - Configuration de base', () => {
         }
     });
 
-    test('Niveaux 11-20 doivent être de contraction (taille décroissante)', () => {
+    test('Niveaux 6-10 doivent être de contraction (taille décroissante)', () => {
         const sizes = [];
-        for (let level = 11; level <= 20; level++) {
-            const size = 15 + (10 - (level - 10)) * 2;
+        for (let level = 6; level <= 10; level++) {
+            const size = 15 + (10 - (level - 5)) * 2;
             sizes.push(size);
         }
         

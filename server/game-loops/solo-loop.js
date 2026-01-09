@@ -1,5 +1,5 @@
 // server/game-loops/solo-loop.js
-// Boucle de jeu pour mode solo (20 niveaux)
+// Boucle de jeu pour mode solo (10 niveaux)
 
 const { generateMaze, getRandomEmptyPosition, getRandomEmptyPositionFarFromPlayers } = require('../../utils/map');
 const { calculateGemsForLevel, addGems } = require('../../utils/gems');

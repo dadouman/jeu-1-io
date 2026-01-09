@@ -17,32 +17,32 @@ describe('Solo Mode - Progression des niveaux', () => {
         expect(isGameFinished).toBe(true);
     });
 
-    test('Progression: Vérifier qu\'on ne peut pas aller au delà du niveau 20', () => {
-        const currentLevel = 20;
-        const nextLevel = Math.min(currentLevel + 1, 20);
+    test('Progression: Vérifier qu\'on ne peut pas aller au delà du niveau 10', () => {
+        const currentLevel = 10;
+        const nextLevel = Math.min(currentLevel + 1, 10);
         
-        expect(nextLevel).toBe(20);
+        expect(nextLevel).toBe(10);
     });
 
-    test('Progression: Séquence complète 1 → 20', () => {
+    test('Progression: Séquence complète 1 → 10', () => {
         const levels = [];
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 10; i++) {
             levels.push(i);
         }
         
-        expect(levels.length).toBe(20);
+        expect(levels.length).toBe(10);
         expect(levels[0]).toBe(1);
-        expect(levels[19]).toBe(20);
+        expect(levels[9]).toBe(10);
     });
 
     test('Progression: Chaque niveau doit être unique', () => {
         const levels = [];
-        for (let i = 1; i <= 20; i++) {
+        for (let i = 1; i <= 10; i++) {
             levels.push(i);
         }
         
         const uniqueLevels = new Set(levels);
-        expect(uniqueLevels.size).toBe(20);
+        expect(uniqueLevels.size).toBe(10);
     });
 
     test('Progression: Transition expansion → contraction au niveau 11', () => {
@@ -77,10 +77,10 @@ describe('Solo Mode - Progression des niveaux', () => {
         }
     });
 
-    test('Progression: Décroissance des niveaux 11-20', () => {
+    test('Progression: Décroissance des niveaux 6-10', () => {
         const sizes = [];
-        for (let level = 11; level <= 20; level++) {
-            const size = 15 + (10 - (level - 10)) * 2;
+        for (let level = 6; level <= 10; level++) {
+            const size = 15 + (10 - (level - 5)) * 2;
             sizes.push(size);
         }
         
@@ -102,20 +102,20 @@ describe('Solo Mode - Progression des niveaux', () => {
     test('Progression: Vérifier la continuité des tailles', () => {
         const sizes = [];
         
-        // Niveaux 1-10
-        for (let level = 1; level <= 10; level++) {
+        // Niveaux 1-5
+        for (let level = 1; level <= 5; level++) {
             sizes.push(15 + (level - 1) * 2);
         }
         
-        // Niveaux 11-20
-        for (let level = 11; level <= 20; level++) {
-            sizes.push(15 + (10 - (level - 10)) * 2);
+        // Niveaux 6-10
+        for (let level = 6; level <= 10; level++) {
+            sizes.push(15 + (5 - (level - 5)) * 2);
         }
         
-        // Vérifier qu'on monte de 15 à 33 puis redescend à 15
+        // Vérifier qu'on monte de 15 à 23 puis redescend à 15
         expect(sizes[0]).toBe(15);  // Niveau 1
-        expect(sizes[9]).toBe(33);  // Niveau 10
-        expect(sizes[10]).toBe(33); // Niveau 11
-        expect(sizes[19]).toBe(15); // Niveau 20
+        expect(sizes[4]).toBe(23);  // Niveau 5
+        expect(sizes[5]).toBe(23);  // Niveau 6
+        expect(sizes[9]).toBe(15);  // Niveau 10
     });
 });

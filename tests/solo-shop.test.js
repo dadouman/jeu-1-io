@@ -153,27 +153,27 @@ describe('Solo Mode - Shop System', () => {
         expect(soloSession.currentLevel).toBe(6);
     });
 
-    // --- TEST 9 : Pas de shop au niveau 20 en solo (serveur vérifie completedLevel < 20) ---
-    test('Le serveur ne doit pas ouvrir le shop après le niveau 20 en solo', () => {
-        soloSession.currentLevel = 21; // Après complétion du niveau 20
+    // --- TEST 9 : Pas de shop au niveau 10 en solo (serveur vérifie completedLevel < 10) ---
+    test('Le serveur ne doit pas ouvrir le shop après le niveau 10 en solo', () => {
+        soloSession.currentLevel = 11; // Après complétion du niveau 10
         
-        const completedLevel = 20;
+        const completedLevel = 10;
         const isShopLevelBasic = isShopLevel(completedLevel);
-        const shouldShopOpen = isShopLevelBasic && completedLevel < 20; // Logique du serveur
+        const shouldShopOpen = isShopLevelBasic && completedLevel < 10; // Logique du serveur
         
         expect(isShopLevelBasic).toBe(true);  // isShopLevel retourne true
-        expect(shouldShopOpen).toBe(false);   // Mais le serveur bloque (< 20)
+        expect(shouldShopOpen).toBe(false);   // Mais le serveur bloque (< 10)
     });
 
-    // --- TEST 10 : Progression avec shop aux niveaux 5, 10, 15 (pas 20) ---
+    // --- TEST 10 : Progression avec shop aux niveaux 5, 10 (pas après) ---
     test('Progression complète du solo avec shop aux bons niveaux', () => {
         const progression = [];
         
-        // Simuler 20 niveaux
-        for (let level = 1; level <= 20; level++) {
+        // Simuler 10 niveaux
+        for (let level = 1; level <= 10; level++) {
             const completedLevel = level - 1;
-            // Le serveur applique la logique: isShopLevel ET completedLevel < 20
-            const hasShop = isShopLevel(completedLevel) && completedLevel < 20;
+            // Le serveur applique la logique: isShopLevel ET completedLevel < 10
+            const hasShop = isShopLevel(completedLevel) && completedLevel < 10;
             
             progression.push({
                 level: level,
@@ -181,17 +181,14 @@ describe('Solo Mode - Shop System', () => {
             });
         }
         
-        // Vérifier les niveaux de shop (avec la condition completedLevel < 20)
+        // Vérifier les niveaux de shop (avec la condition completedLevel < 10)
         // progression[0] = level 1, completion 0 → pas de shop
-        // progression[5] = level 6, completion 5 → isShopLevel(5) && 5 < 20 = true → SHOP!
-        // progression[10] = level 11, completion 10 → isShopLevel(10) && 10 < 20 = true → SHOP!
-        // progression[15] = level 16, completion 15 → isShopLevel(15) && 15 < 20 = true → SHOP!
-        // progression[19] = level 20, completion 19 → isShopLevel(19) && 19 < 20 = false && true = false → pas de shop
+        // progression[5] = level 6, completion 5 → isShopLevel(5) && 5 < 10 = true → SHOP!
+        // progression[10] = level 11, completion 10 → isShopLevel(10) && 10 < 10 = false → pas de shop
         
         expect(progression[5].hasShop).toBe(true);   // progression[5] = niveau 6 (après complétion du 5)
-        expect(progression[10].hasShop).toBe(true);  // progression[10] = niveau 11 (après complétion du 10)
-        expect(progression[15].hasShop).toBe(true);  // progression[15] = niveau 16 (après complétion du 15)
-        expect(progression[19].hasShop).toBe(false); // progression[19] = niveau 20 (après complétion du 19 - pas de shop car isShopLevel(19) = false)
+        expect(progression[9].hasShop).toBe(false);  // progression[9] = niveau 10 (après complétion du 9 - pas de shop car isShopLevel(9) = false)
+        
         
         // Vérifier que les autres niveaux n'ont pas de shop
         expect(progression[0].hasShop).toBe(false);

@@ -25,17 +25,17 @@ describe('Solo Mode - Génération de labyrinthe', () => {
         expect(sizes[9] - sizes[0]).toBe(18);
     });
 
-    test('Taille du maze doit diminuer de 33 à 15 (niveaux 11-20)', () => {
+    test('Taille du maze doit diminuer de 23 à 15 (niveaux 6-10)', () => {
         const sizes = [];
         
-        for (let level = 11; level <= 20; level++) {
-            const size = 15 + (10 - (level - 10)) * 2;
+        for (let level = 6; level <= 10; level++) {
+            const size = 15 + (5 - (level - 5)) * 2;
             sizes.push(size);
         }
         
-        expect(sizes[0]).toBe(33);  // Niveau 11
-        expect(sizes[9]).toBe(15);  // Niveau 20
-        expect(sizes[0] - sizes[9]).toBe(18);
+        expect(sizes[0]).toBe(23);  // Niveau 6
+        expect(sizes[4]).toBe(15);  // Niveau 10
+        expect(sizes[0] - sizes[4]).toBe(8);
     });
 
     test('Maze doit avoir des dimensions carrées (NxN)', () => {
@@ -104,12 +104,12 @@ describe('Solo Mode - Génération de labyrinthe', () => {
         expect(maze1.cells).not.toEqual(maze2.cells);
     });
 
-    test('Niveaux de contraction (11-20) doivent avoir le même algorithme de maze', () => {
-        const level11Size = 15 + (10 - (11 - 10)) * 2; // 33
-        const level12Size = 15 + (10 - (12 - 10)) * 2; // 31
+    test('Niveaux de contraction (6-10) doivent avoir le même algorithme de maze', () => {
+        const level6Size = 15 + (10 - (6 - 5)) * 2; // 33
+        const level7Size = 15 + (10 - (7 - 5)) * 2; // 31
         
-        expect(level11Size).toBe(33);
-        expect(level12Size).toBe(31);
+        expect(level6Size).toBe(33);
+        expect(level7Size).toBe(31);
     });
 
     test('Maze doit avoir des murs (1) et des chemins (0)', () => {

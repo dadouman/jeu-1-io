@@ -510,6 +510,39 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             showMainMenu();
         }
     });
+
+    // ✅ QUAND LE JOUEUR EST KICKÉ (REDÉMARRAGE EN COURS)
+    targetSocket.on('lobbyKicked', (data) => {
+        console.log(`%c🔴 LOBBY KICKED - ${data.message}`, 'color: #FF0000; font-weight: bold; font-size: 14px');
+        lobbiesRebooting = true;
+        gameRunning = false;
+        mainMenuVisible = false;
+        
+        // Afficher l'écran d'attente de redémarrage
+        const waitingScreen = document.getElementById('restartWaitingScreen');
+        if (waitingScreen) {
+            waitingScreen.style.display = 'flex';
+            console.log('%c⏳ Écran d\'attente affichée', 'color: #FFD700; font-weight: bold');
+        }
+    });
+
+    // ✅ QUAND LES SERVEURS SONT PRÊTS
+    targetSocket.on('lobbiesReady', (data) => {
+        console.log(`%c✅ LOBBIES READY - ${data.message}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
+        lobbiesRebooting = false;
+        gameRunning = false;
+        mainMenuVisible = true;
+        
+        // Masquer l'écran d'attente
+        const waitingScreen = document.getElementById('restartWaitingScreen');
+        if (waitingScreen) {
+            waitingScreen.style.display = 'none';
+        }
+        
+        // Retourner au menu principal
+        showMainMenu();
+        console.log('%c🎮 Retour au menu principal', 'color: #00FF00; font-weight: bold');
+    });
 }
 
 // Attacher les événements sur le socket principal immédiatement

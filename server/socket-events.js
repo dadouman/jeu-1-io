@@ -101,6 +101,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
             io.emit('lobbiesRebooting', { rebooting: true });
             console.log('📢 Notification: Lobbies en redémarrage');
 
+            // Tracker les joueurs kickés pour les libérer après
+            const kickedPlayerSockets = [];
+
             Object.keys(lobbies).forEach((mode) => {
                 const lobby = lobbies[mode];
                 if (lobby) {
@@ -109,8 +112,13 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                     Object.keys(lobby.players).forEach((playerId) => {
                         const playerSocket = io.sockets.sockets.get(playerId);
                         if (playerSocket) {
-                            playerSocket.emit('kicked', { message: 'Lobby fermé par l\'administrateur.' });
-                            playerSocket.disconnect();
+                            // ✅ NE PAS DÉCONNECTER, juste envoyer un écran d'attente
+                            playerSocket.emit('lobbyKicked', { 
+                                message: 'Redémarrage des serveurs en cours...',
+                                waitingForRestart: true 
+                            });
+                            kickedPlayerSockets.push(playerSocket);
+                            console.log(`   👋 Joueur ${playerId} kické pour redémarrage`);
                         }
                     });
 
@@ -127,6 +135,15 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
                 
                 // Marquer comme prêt
                 setIsRebooting(false);
+                
+                // ✅ LIBÉRER TOUS LES JOUEURS KICKÉS
+                kickedPlayerSockets.forEach((playerSocket) => {
+                    playerSocket.emit('lobbiesReady', { 
+                        message: 'Les serveurs sont prêts!',
+                        ready: true 
+                    });
+                    console.log(`   ✅ Joueur ${playerSocket.id} libéré`);
+                });
                 
                 // Notifier que les lobbies sont prêts
                 io.emit('lobbiesRebooting', { rebooting: false });

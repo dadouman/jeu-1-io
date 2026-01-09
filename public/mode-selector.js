@@ -3,6 +3,35 @@
 var selectedMode = null; // var pour accès global
 
 /**
+ * Met à jour l'état des boutons JOUER selon lobbiesRebooting
+ */
+function updateModeButtonsState() {
+    const buttons = document.querySelectorAll('.mode-card button');
+    buttons.forEach(button => {
+        if (lobbiesRebooting) {
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+            button.style.backgroundColor = '#666666';
+        } else {
+            button.disabled = false;
+            button.style.opacity = '1';
+            button.style.cursor = 'pointer';
+            button.style.backgroundColor = '';
+        }
+    });
+}
+
+// Event listener global pour empêcher les clics sur les boutons désactivés
+document.addEventListener('click', (event) => {
+    if (lobbiesRebooting && event.target.tagName === 'BUTTON' && event.target.closest('.mode-card')) {
+        console.log('⏳ Clic bloqué: les lobbies se redémarrent...');
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}, true); // Utilisé la phase de capture pour intercepter avant le handler onclick
+
+/**
  * Wrapper pour bloquer les clics si lobbiesRebooting = true
  * @param {string} mode - Le mode à sélectionner
  */

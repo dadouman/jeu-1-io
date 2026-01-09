@@ -318,8 +318,12 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
             // Revenir au menu principal immédiatement
             showMainMenu();
             mainMenuGameStarting = false;
+            // Désactiver les boutons du mode selector
+            updateModeButtonsState();
         } else {
             console.log('✅ Lobbies redémarrés et prêts!');
+            // Réactiver les boutons du mode selector
+            updateModeButtonsState();
         }
     });
 

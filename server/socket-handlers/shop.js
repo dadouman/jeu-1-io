@@ -22,6 +22,64 @@ function stopDutchAuctionForMode(mode, lobbies) {
 }
 
 function handleShopEvents(socket, io, lobbies, soloSessions, playerModes) {
+    // === PLAYER READY TO CONTINUE (fermeture du shop) ===
+    socket.on('playerReadyToContinueShop', () => {
+        const mode = playerModes[socket.id];
+        if (!mode) return;
+
+        // Mode solo - géré différemment
+        if (mode === 'solo') {
+            const session = soloSessions[socket.id];
+            if (session && session.closeShop) {
+                session.closeShop();
+                console.log(`🏪 [SOLO] Shop fermé pour ${socket.id}`);
+                socket.emit('shopClosed', { reason: 'playerReady' });
+            }
+            return;
+        }
+
+        const lobby = lobbies[mode];
+        if (!lobby) return;
+
+        // Initialiser le Set de joueurs prêts si nécessaire
+        if (!lobby.shopPlayersReady) {
+            lobby.shopPlayersReady = new Set();
+        }
+
+        // Marquer ce joueur comme prêt
+        lobby.shopPlayersReady.add(socket.id);
+        const totalPlayers = Object.keys(lobby.players).length;
+        const readyPlayers = lobby.shopPlayersReady.size;
+
+        console.log(`🏪 [SHOP ${mode}] Joueur ${socket.id} prêt (${readyPlayers}/${totalPlayers})`);
+
+        // Émettre la progression à tous les joueurs
+        emitToLobby(mode, 'shopReadyProgress', {
+            readyCount: readyPlayers,
+            totalCount: totalPlayers
+        }, io, lobbies);
+
+        // Si tous les joueurs sont prêts, fermer le shop
+        if (readyPlayers >= totalPlayers) {
+            console.log(`🏪 [SHOP ${mode}] Tous les joueurs prêts! Fermeture du shop.`);
+            
+            // Annuler le timer de timeout automatique
+            if (lobby._shopTimeoutId) {
+                try { clearTimeout(lobby._shopTimeoutId); } catch (e) {}
+                delete lobby._shopTimeoutId;
+            }
+            
+            // Nettoyer le dutch auction si actif
+            stopDutchAuctionForMode(mode, lobbies);
+            
+            // Réinitialiser les joueurs prêts
+            lobby.shopPlayersReady.clear();
+            
+            // Notifier tous les joueurs que le shop est fermé
+            emitToLobby(mode, 'shopClosed', { reason: 'allPlayersReady' }, io, lobbies);
+        }
+    });
+
     // Dutch auction purchase
     socket.on('dutchAuctionPurchase', (data) => {
         // Valider et rate-limit

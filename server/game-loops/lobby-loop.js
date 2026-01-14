@@ -250,15 +250,39 @@ function processLobbyGameLoop(lobbies, io, {
                         auction: toPublicState(lobby.dutchAuction)
                     }, io, lobbies);
                 } else {
+                    // Shop classique
                     emitToLobby(mode, 'shopOpen', {
                         items: getShopItemsForMode(mode, lobby),
                         level: completedLevel,
                         shopType
                     }, io, lobbies);
+                    
+                    // Initialiser le Set de joueurs prêts
+                    lobby.shopPlayersReady = new Set();
+                    
+                    // Timer de fermeture automatique après SHOP_DURATION
+                    // Nettoyer un timer précédent s'il existe
+                    if (lobby._shopTimeoutId) {
+                        try { clearTimeout(lobby._shopTimeoutId); } catch (e) {}
+                    }
+                    
+                    lobby._shopTimeoutId = setTimeout(() => {
+                        console.log(`⏰ [SHOP ${mode}] Timeout! Fermeture automatique après ${SHOP_DURATION}ms`);
+                        
+                        // Réinitialiser les joueurs prêts
+                        if (lobby.shopPlayersReady) {
+                            lobby.shopPlayersReady.clear();
+                        }
+                        
+                        // Notifier tous les joueurs que le shop est fermé
+                        emitToLobby(mode, 'shopClosed', { reason: 'timeout' }, io, lobbies);
+                        
+                        delete lobby._shopTimeoutId;
+                    }, SHOP_DURATION);
                 }
                 const shopLogLine = (shopType === 'dutchAuction')
                     ? "Boutique Enchères: pas de limite de temps (∞). Fin: tous prêts OU prix minimum atteint"
-                    : "Les joueurs ont 15 secondes pour acheter!";
+                    : `Les joueurs ont ${SHOP_DURATION/1000} secondes pour acheter!`;
                 console.log(`\n🏪 ════════════════════════════════════\n   MAGASIN OUVERT [${mode}] - Après Niveau ${completedLevel}\n   ${shopLogLine}\n════════════════════════════════════\n`);
             } else {
                 // Afficher la vraie taille depuis la configuration

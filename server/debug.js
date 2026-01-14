@@ -1,14 +1,25 @@
 // server/debug.js - Gestion centralisée du DEBUG mode
 // Utilise process.env.DEBUG ou NODE_ENV pour contrôler les logs
 
-const DEBUG = process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development';
+// Lazy load DEBUG pour éviter les erreurs d'accès à process trop tôt
+let DEBUG = null;
+
+function getDebugStatus() {
+    if (DEBUG !== null) return DEBUG;
+    try {
+        DEBUG = typeof process !== 'undefined' && (process.env.DEBUG === 'true' || process.env.NODE_ENV === 'development');
+    } catch (e) {
+        DEBUG = false;
+    }
+    return DEBUG;
+}
 
 /**
  * Log une message seulement en mode DEBUG
  * @param {...args} args - Arguments à logger
  */
 const debugLog = (...args) => {
-    if (DEBUG) {
+    if (getDebugStatus()) {
         console.log(...args);
     }
 };
@@ -18,7 +29,7 @@ const debugLog = (...args) => {
  * @param {...args} args - Arguments à logger
  */
 const debugError = (...args) => {
-    if (DEBUG) {
+    if (getDebugStatus()) {
         console.error(...args);
     }
 };

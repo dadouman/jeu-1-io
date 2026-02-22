@@ -2,22 +2,19 @@
 
 console.log('✅ lobbies-browser.js chargé');
 
+// Variables globales
+window.lobbiesBrowserVisible = false;
 let activeLobies = [];
-let lobbiesBrowserVisible = false;
 
 /**
  * Affiche le navigateur de lobbies
  */
 function showLobbiesBrowser() {
     console.log('🎮 Affichage du navigateur de lobbies...');
-    lobbiesBrowserVisible = true;
-    mainMenuVisible = false; // Masquer le menu principal
+    window.lobbiesBrowserVisible = true;
+    window.mainMenuVisible = false; // Masquer le menu principal
     
-    // S'assurer que modeSelector est visible
-    const modeSelector = document.getElementById('modeSelector');
-    if (modeSelector) {
-        modeSelector.style.display = 'flex';
-    }
+    console.log('État après show:', { lobbiesBrowserVisible: window.lobbiesBrowserVisible, mainMenuVisible: window.mainMenuVisible });
     
     // Demander la liste des lobbies au serveur
     if (typeof socket !== 'undefined' && socket) {
@@ -33,12 +30,8 @@ function showLobbiesBrowser() {
  */
 function hideLobbiesBrowser() {
     console.log('🎮 Fermeture du navigateur de lobbies');
-    lobbiesBrowserVisible = false;
-    mainMenuVisible = true; // Réafficher le menu principal
-    const modeSelector = document.getElementById('modeSelector');
-    if (modeSelector) {
-        modeSelector.style.display = 'none';
-    }
+    window.lobbiesBrowserVisible = false;
+    window.mainMenuVisible = true; // Réafficher le menu principal
 }
 
 /**

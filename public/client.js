@@ -19,9 +19,12 @@ canvas.addEventListener('click', (event) => {
     const mouseY = event.clientY - rect.top;
 
     // Priorité 0: Navigateur de lobbies
-    if (lobbiesBrowserVisible && typeof handleLobbiesBrowserClick === 'function') {
+    if (window.lobbiesBrowserVisible && typeof handleLobbiesBrowserClick === 'function') {
         const handled = handleLobbiesBrowserClick(mouseX, mouseY);
-        if (handled) return;
+        if (handled) {
+            console.log('✅ Clic sur le navigateur de lobbies traité');
+            return;
+        }
     }
 
     // Priorité 1: Menu principal

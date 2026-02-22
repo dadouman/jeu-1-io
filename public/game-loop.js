@@ -275,8 +275,8 @@ function continuousRender() {
         }
 
         // === AFFICHER LE NAVIGATEUR DE LOBBIES ===
-        if (lobbiesBrowserVisible && typeof renderLobbiesBrowser === 'function') {
-            renderLobbiesBrowser(ctx, canvas);
+    if (window.lobbiesBrowserVisible && typeof renderLobbiesBrowser === 'function') {
+        console.log('🎨 Rendu du navigateur de lobbies');
             requestAnimationFrame(continuousRender);
             return;
         }

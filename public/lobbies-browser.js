@@ -1,5 +1,7 @@
 // public/lobbies-browser.js - Affichage des lobbies en cours
 
+console.log('✅ lobbies-browser.js chargé');
+
 let activeLobies = [];
 let lobbiesBrowserVisible = false;
 
@@ -200,7 +202,9 @@ function joinLobby(mode) {
 // === SOCKET EVENTS ===
 // Attendre que le socket soit initialisé
 function initLobbiesBrowserSocketEvents() {
+    console.log('🔍 initLobbiesBrowserSocketEvents appelé..., socket type:', typeof socket);
     if (typeof socket === 'undefined' || !socket) {
+        console.log('⏳ Socket non prêt, réessai dans 500ms');
         // Réessayer dans 500ms
         setTimeout(initLobbiesBrowserSocketEvents, 500);
         return;
@@ -235,7 +239,14 @@ function initLobbiesBrowserSocketEvents() {
 
 // Initialiser les événements socket dès que possible
 if (typeof window !== 'undefined') {
-    window.addEventListener('load', initLobbiesBrowserSocketEvents);
+    console.log('📌 Enregistrement des listeners de lobbies-browser');
+    window.addEventListener('load', () => {
+        console.log('📌 Load event, initialisation des lobbies');
+        initLobbiesBrowserSocketEvents();
+    });
     // Aussi essayer immédiatement
-    setTimeout(initLobbiesBrowserSocketEvents, 100);
+    setTimeout(() => {
+        console.log('📌 Timeout check, initialisation des lobbies');
+        initLobbiesBrowserSocketEvents();
+    }, 100);
 }

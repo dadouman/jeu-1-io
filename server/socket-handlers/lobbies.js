@@ -54,10 +54,14 @@ function getModeDisplayName(mode) {
  * Gère les événements liés aux lobbies
  */
 function handleLobbiesEvents(socket, io, lobbies, soloSessions, playerModes, { getIsRebooting }) {
+    debugLog(`🎮 handleLobbiesEvents initialisé pour client ${socket.id}`);
+    
     // Récupérer la liste des lobbies actifs
     socket.on('getActiveLobies', () => {
         try {
+            debugLog(`📡 Reçu getActiveLobies de ${socket.id}`);
             const activeLobies = getActiveLobbiesInfo(lobbies, soloSessions);
+            debugLog(`📊 Envoi de ${activeLobies.length} lobby(ies)`);
             socket.emit('activeLobiesUpdate', { lobbies: activeLobies });
             debugLog(`📊 Envoi des lobbies actifs au client ${socket.id}: ${activeLobies.length} lobby(ies)`);
         } catch (err) {

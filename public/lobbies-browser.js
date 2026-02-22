@@ -6,9 +6,37 @@ let lobbiesBrowserVisible = false;
 let activeLobies = [];
 
 /**
- * Affiche le navigateur de lobbies
+ * Met à jour la visibilité du bouton des lobbies
+ */
+function updateLobbiesButtonVisibility() {
+    const modeSelector = document.getElementById('modeSelector');
+    const lobbiesButtonContainer = document.getElementById('lobbiesButtonContainer');
+    
+    if (!lobbiesButtonContainer) return;
+    
+    // Afficher le bouton seulement si le mode selector est visible
+    if (modeSelector && modeSelector.style.display === 'flex') {
+        lobbiesButtonContainer.style.display = 'block';
+    } else {
+        lobbiesButtonContainer.style.display = 'none';
+        // Fermer le navigateur de lobbies si on quitte l'écran
+        if (lobbiesBrowserVisible) {
+            hideLobbiesBrowser();
+        }
+    }
+}
+
+/**
+ * Affiche le navigateur de lobbies (seulement si on est en sélection de mode)
  */
 function showLobbiesBrowser() {
+    // Vérifier qu'on est en train de sélectionner un mode
+    const modeSelector = document.getElementById('modeSelector');
+    if (!modeSelector || modeSelector.style.display !== 'flex') {
+        console.log('⚠️ Le navigateur de lobbies ne peut s\'ouvrir que lors de la sélection du mode');
+        return;
+    }
+
     console.log('🎮 Affichage du navigateur de lobbies');
     lobbiesBrowserVisible = true;
     
@@ -218,10 +246,12 @@ if (typeof window !== 'undefined') {
     setTimeout(() => {
         console.log('📌 Tentative d\'initialisation des événements socket lobbies');
         initLobbiesBrowserSocketEvents();
+        updateLobbiesButtonVisibility();
     }, 100);
 
     window.addEventListener('load', () => {
         console.log('📌 Load event, ré-initialisation des événements socket lobbies');
         initLobbiesBrowserSocketEvents();
+        updateLobbiesButtonVisibility();
     });
 }

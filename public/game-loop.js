@@ -253,6 +253,11 @@ function detachSecondaryStateListener() {
 // --- BOUCLE DE RENDU CONTINUE (pour l'écran de fin solo et transitions) ---
 let debugLogged = false;
 function continuousRender() {
+    // Mettre à jour la visibilité du bouton des lobbies
+    if (typeof updateLobbiesButtonVisibility === 'function') {
+        updateLobbiesButtonVisibility();
+    }
+
     // Debug: afficher l'état une seule fois
     if (!debugLogged) {
         console.log('🔄 continuousRender - Debug:', {

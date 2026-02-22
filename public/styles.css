@@ -85,12 +85,8 @@ canvas {
     border-radius: 4px;
     cursor: pointer;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-top: 20px;
-      padding-bottom: 30px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -128,12 +124,8 @@ canvas {
     cursor: pointer;
     font-size: 11px;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-top: 20px;
-      padding-bottom: 30px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -166,126 +158,30 @@ canvas {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
+    height: 100%;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    display: none;
+    display: none; /* Caché par défaut, affiché quand on clique sur Commencer */
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-top: 20px;
-    padding-bottom: 30px;
     z-index: 1000;
     font-family: Arial, sans-serif;
-}
-
-#modeSelector[style*="display: flex"],
-#modeSelector.active {
-    display: flex !important;
-}
-
-/* Scrollbar stylisée */
-#modeSelector::-webkit-scrollbar {
-    width: 10px;
-}
-
-#modeSelector::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
-}
-
-#modeSelector::-webkit-scrollbar-thumb {
-    background: #FFD700;
-    border-radius: 5px;
-}
-
-#modeSelector::-webkit-scrollbar-thumb:hover {
-    background: #FFF;
 }
 
 #modeSelector h1 {
     color: #FFD700;
     font-size: 48px;
-    margin-bottom: 20px;
+    margin-bottom: 50px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    flex-shrink: 0;
-}
-
-/* Conteneur des onglets de boutique */
-#shopTabs {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    flex-shrink: 0;
-    width: 100%;
-}
-
-.shop-tab {
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    background-color: #FFD700;
-    color: #000;
-    border: 2px solid #FFF;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.shop-tab:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
-}
-
-.shop-tab.inactive {
-    background-color: #333;
-    color: #FFF;
-    border-color: #555;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-}
-
-.shop-tab.inactive:hover {
-    background-color: #444;
 }
 
 /* Grille des modes */
 .modes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    max-width: 1000px;
-    margin: 0 auto 30px auto;
-    width: 100%;
-}
-
-/* Responsive pour petits écrans */
-@media (max-width: 768px) {
-    .modes-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin: 0 auto 20px auto;
-    }
-    
-    #shopTabs {
-        padding: 10px 0;
-        gap: 10px;
-    }
-}
-
-@media (max-width: 480px) {
-    .modes-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin: 0 auto 20px auto;
-    }
-    
-    .shop-tab {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 20px;
 }
 
 /* Carte de mode */
@@ -293,15 +189,11 @@ canvas {
     background: rgba(255, 215, 0, 0.05);
     border: 3px solid #FFD700;
     border-radius: 10px;
-    padding: 25px;
+    padding: 30px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 280px;
 }
 
 .mode-card:hover {
@@ -312,30 +204,28 @@ canvas {
 
 .mode-card h2 {
     color: #FFD700;
-    font-size: 24px;
-    margin: 0 0 12px 0;
+    font-size: 28px;
+    margin: 0 0 15px 0;
 }
 
 .mode-card p {
     color: #aaa;
-    font-size: 13px;
-    margin: 8px 0;
-    line-height: 1.4;
-    flex-grow: 1;
+    font-size: 14px;
+    margin: 10px 0;
+    line-height: 1.5;
 }
 
 .mode-card button {
     background: #FFD700;
     color: #000;
     border: none;
-    padding: 10px 25px;
-    font-size: 15px;
+    padding: 12px 30px;
+    font-size: 16px;
     font-weight: bold;
     border-radius: 5px;
     cursor: pointer;
     margin-top: 15px;
     transition: all 0.2s ease;
-    align-self: center;
 }
 
 .mode-card button:hover {
@@ -370,6 +260,5 @@ canvas {
     font-size: 12px;
     font-weight: bold;
 }
-
 
 

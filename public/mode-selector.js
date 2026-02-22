@@ -1,36 +1,6 @@
 // mode-selector.js - Gestion de la sélection du mode de jeu
 
 var selectedMode = null; // var pour accès global
-var currentShopMode = 'classic'; // 'classic' ou 'auction'
-
-/**
- * Change le mode de boutique sélectionné
- * @param {string} mode - 'classic' ou 'auction'
- */
-function setShopMode(mode) {
-    currentShopMode = mode;
-    
-    const tabClassic = document.getElementById('tabClassic');
-    const tabAuction = document.getElementById('tabAuction');
-    
-    if (mode === 'classic') {
-        tabClassic.style.backgroundColor = '#FFD700';
-        tabClassic.style.color = '#000';
-        tabClassic.style.borderColor = '#FFF';
-        
-        tabAuction.style.backgroundColor = '#333';
-        tabAuction.style.color = '#FFF';
-        tabAuction.style.borderColor = '#555';
-    } else {
-        tabAuction.style.backgroundColor = '#FFD700';
-        tabAuction.style.color = '#000';
-        tabAuction.style.borderColor = '#FFF';
-        
-        tabClassic.style.backgroundColor = '#333';
-        tabClassic.style.color = '#FFF';
-        tabClassic.style.borderColor = '#555';
-    }
-}
 
 /**
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
@@ -76,12 +46,6 @@ function selectModeWithGuard(mode) {
         console.log('⏳ Clique bloqué: les lobbies se redémarrent...');
         return;
     }
-    
-    // Si le mode enchères est sélectionné et que ce n'est pas le mode custom
-    if (currentShopMode === 'auction' && mode !== 'custom') {
-        mode = mode + 'Auction';
-    }
-    
     selectMode(mode);
 }
 
@@ -121,6 +85,11 @@ function selectMode(mode) {
         const modeSelector = document.getElementById('modeSelector');
         if (modeSelector) {
             modeSelector.style.display = 'none';
+        }
+
+        // Fermer le navigateur de lobbies si ouvert
+        if (typeof hideLobbiesBrowser === 'function') {
+            hideLobbiesBrowser();
         }
 
         // === RÉINITIALISER LES ÉTATS DE FIN DE JEU POUR TOUS LES MODES ===
@@ -179,24 +148,6 @@ function selectMode(mode) {
                 socket.emit('getSoloLeaderboard');
                 console.log('%c📊 Demande des meilleurs splits et leaderboard', 'color: #00FF00; font-weight: bold');
             }
-        }
-        
-        // === RÉINITIALISER LE NAVIGATEUR DE LOBBIES ===
-        if (typeof resetLobbiesBrowserUI === 'function') {
-            resetLobbiesBrowserUI();
-        }
-        
-        // ✅ ACTIVER SPLIT-SCREEN SI DEMANDÉ AU MENU PRINCIPAL
-        if (mainMenuOptions && mainMenuOptions.splitScreenEnabled && typeof toggleSplitScreen === 'function') {
-            // Attendre un peu que le mode soit vraiment initialisé
-            setTimeout(() => {
-                if (currentGameMode && !splitScreenEnabled) {
-                    const activated = toggleSplitScreen();
-                    if (activated) {
-                        console.log('%c✅ Split-screen activé après sélection du mode', 'color: #2ECC71; font-weight: bold');
-                    }
-                }
-            }, 500);
         }
     }
 }

@@ -166,9 +166,9 @@ canvas {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    display: none; /* Caché par défaut, affiché quand on clique sur Commencer */
+    display: none;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
@@ -178,6 +178,11 @@ canvas {
     padding-bottom: 30px;
     z-index: 1000;
     font-family: Arial, sans-serif;
+}
+
+#modeSelector[style*="display: flex"],
+#modeSelector.active {
+    display: flex !important;
 }
 
 /* Scrollbar stylisée */
@@ -201,22 +206,20 @@ canvas {
 #modeSelector h1 {
     color: #FFD700;
     font-size: 48px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
 }
 
+/* Conteneur des onglets de boutique */
 #shopTabs {
     display: flex;
     justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    gap: 20px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 75%, rgba(22, 33, 62, 0.8) 100%);
-    padding: 15px 0;
-    z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    width: 100%;
 }
 
 .shop-tab {

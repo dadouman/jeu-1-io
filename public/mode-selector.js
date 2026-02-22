@@ -13,13 +13,40 @@ function setShopMode(mode) {
     const tabClassic = document.getElementById('tabClassic');
     const tabAuction = document.getElementById('tabAuction');
     
+    console.log('🎨 Mise à jour des onglets');
     if (mode === 'classic') {
-        if (tabClassic) tabClassic.classList.add('active');
-        if (tabAuction) tabAuction.classList.remove('active');
+        if (tabClassic) {
+            tabClassic.classList.add('active');
+            tabClassic.style.backgroundColor = '#FFD700';
+            tabClassic.style.color = '#000';
+            tabClassic.style.borderColor = '#FFF';
+            console.log('✅ tabClassic: active');
+        }
+        if (tabAuction) {
+            tabAuction.classList.remove('active');
+            tabAuction.style.backgroundColor = '#333';
+            tabAuction.style.color = '#FFF';
+            tabAuction.style.borderColor = '#555';
+            console.log('✅ tabAuction: inactive');
+        }
     } else if (mode === 'auction') {
-        if (tabClassic) tabClassic.classList.remove('active');
-        if (tabAuction) tabAuction.classList.add('active');
+        if (tabClassic) {
+            tabClassic.classList.remove('active');
+            tabClassic.style.backgroundColor = '#333';
+            tabClassic.style.color = '#FFF';
+            tabClassic.style.borderColor = '#555';
+            console.log('✅ tabClassic: inactive');
+        }
+        if (tabAuction) {
+            tabAuction.classList.add('active');
+            tabAuction.style.backgroundColor = '#FFD700';
+            tabAuction.style.color = '#000';
+            tabAuction.style.borderColor = '#FFF';
+            console.log('✅ tabAuction: active');
+        }
     }
+    
+    console.log('📊 État actuel:', { currentShopMode });
 }
 
 /**
@@ -78,6 +105,12 @@ function selectMode(mode) {
     if (lobbiesRebooting) {
         console.log(`%c🔴 BLOQUEÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #FF0000; font-weight: bold; font-size: 14px');
         return;
+    }
+    
+    // Ajouter "Auction" au mode si boutique enchères sélectionnée
+    if (currentShopMode === 'auction') {
+        mode = mode + 'Auction';
+        console.log(`💰 Mode modifié pour inclure Auction: ${mode}`);
     }
     
     console.log(`%c✅ AUTORISÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #00FF00; font-weight: bold; font-size: 14px');

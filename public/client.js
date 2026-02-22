@@ -14,6 +14,21 @@ window.addEventListener('resize', () => {
 
 // --- GESTION DES CLICS SOURIS POUR LE MENU ET LE SHOP ---
 canvas.addEventListener('click', (event) => {
+    // Vérifier si le click est sur un élément HTML (boutons, etc)
+    const modeSelector = document.getElementById('modeSelector');
+    if (modeSelector && modeSelector.style.display === 'flex') {
+        // Vérifier si le click est sur le modeSelector
+        const rect = modeSelector.getBoundingClientRect();
+        const clickX = event.clientX;
+        const clickY = event.clientY;
+        
+        if (clickX >= rect.left && clickX <= rect.right &&
+            clickY >= rect.top && clickY <= rect.bottom) {
+            // Le click est sur le modeSelector, laisser les event HTML se dérouler
+            return;
+        }
+    }
+    
     const rect = canvas.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;

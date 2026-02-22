@@ -85,8 +85,12 @@ canvas {
     border-radius: 4px;
     cursor: pointer;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-top: 20px;
+      padding-bottom: 30px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -124,8 +128,12 @@ canvas {
     cursor: pointer;
     font-size: 11px;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-top: 20px;
+      padding-bottom: 30px;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
@@ -162,10 +170,32 @@ canvas {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     display: none; /* Caché par défaut, affiché quand on clique sur Commencer */
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 20px;
+    padding-bottom: 30px;
     z-index: 1000;
     font-family: Arial, sans-serif;
+}
+
+/* Scrollbar stylisée */
+#modeSelector::-webkit-scrollbar {
+    width: 10px;
+}
+
+#modeSelector::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+#modeSelector::-webkit-scrollbar-thumb {
+    background: #FFD700;
+    border-radius: 5px;
+}
+
+#modeSelector::-webkit-scrollbar-thumb:hover {
+    background: #FFF;
 }
 
 #modeSelector h1 {
@@ -181,6 +211,12 @@ canvas {
     gap: 15px;
     margin-bottom: 30px;
     flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 75%, rgba(22, 33, 62, 0.8) 100%);
+    padding: 15px 0;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .shop-tab {
@@ -193,17 +229,23 @@ canvas {
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .shop-tab:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6);
 }
 
 .shop-tab.inactive {
     background-color: #333;
     color: #FFF;
     border-color: #555;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.shop-tab.inactive:hover {
+    background-color: #444;
 }
 
 /* Grille des modes */
@@ -212,7 +254,7 @@ canvas {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     max-width: 1000px;
-    margin: 0 20px;
+    margin: 0 auto 30px auto;
     width: 100%;
 }
 
@@ -221,6 +263,12 @@ canvas {
     .modes-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 15px;
+        margin: 0 auto 20px auto;
+    }
+    
+    #shopTabs {
+        padding: 10px 0;
+        gap: 10px;
     }
 }
 
@@ -228,6 +276,12 @@ canvas {
     .modes-grid {
         grid-template-columns: 1fr;
         gap: 10px;
+        margin: 0 auto 20px auto;
+    }
+    
+    .shop-tab {
+        padding: 8px 16px;
+        font-size: 14px;
     }
 }
 
@@ -313,3 +367,6 @@ canvas {
     font-size: 12px;
     font-weight: bold;
 }
+
+
+

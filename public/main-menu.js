@@ -42,6 +42,12 @@ function hideMainMenu() {
  * Bascule la manette depuis le menu principal
  */
 function toggleGamepadFromMainMenu() {
+    // Ne permettre que si une manette est détectée
+    if (!isGamepadConnected) {
+        showGamepadStatusMessage('Aucune manette détectée');
+        return;
+    }
+    
     mainMenuOptions.gamepadEnabled = !mainMenuOptions.gamepadEnabled;
     if (mainMenuOptions.gamepadEnabled) {
         gamepadEnabled = true;
@@ -100,7 +106,12 @@ function handleMainMenuClick(mouseX, mouseY) {
     const isInside = (rect) => rect && mouseX >= rect.x && mouseX <= rect.x + rect.width && mouseY >= rect.y && mouseY <= rect.y + rect.height;
 
     if (isInside(mainMenuClickAreas.gamepad)) {
-        toggleGamepadFromMainMenu();
+        // Ne permettre l'activation de la manette que si une manette est détectée
+        if (isGamepadConnected) {
+            toggleGamepadFromMainMenu();
+        } else {
+            showGamepadStatusMessage('Aucune manette détectée');
+        }
         return true;
     }
 
@@ -180,26 +191,44 @@ function renderMainMenu(ctx, canvas) {
         start: { x: buttonX, y: startGameButtonY, width: buttonWidth, height: buttonHeight }
     };
 
-    // Bouton Manette
-    const gamepadButtonColor = gamepadEnabled ? "#2ECC71" : "#E74C3C";
+    // Bouton Manette (désactivé si aucune manette détectée)
+    let gamepadButtonColor = gamepadEnabled ? "#2ECC71" : "#E74C3C";
+    if (!isGamepadConnected) {
+        gamepadButtonColor = "#555555"; // Gris = désactivé
+    }
     ctx.fillStyle = gamepadButtonColor;
     ctx.fillRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
-    ctx.strokeStyle = "#FFD700";
-    ctx.lineWidth = 2;
+    
+    // Highlight si sélectionné à la manette
+    if (mainMenuSelectedIndex === 0) {
+        ctx.strokeStyle = "#FFFF00";
+        ctx.lineWidth = 4;
+    } else {
+        ctx.strokeStyle = isGamepadConnected ? "#FFD700" : "#888888";
+        ctx.lineWidth = 2;
+    }
     ctx.strokeRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
 
     const buttonFontSize = Math.max(12, Math.min(16, buttonHeight * 0.6));
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = isGamepadConnected ? "#FFFFFF" : "#AAAAAA";
     ctx.font = `bold ${buttonFontSize}px Arial`;
     ctx.textAlign = "center";
-    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, gamepadButtonY + buttonHeight / 2 + 5);
+    const gamepadText = isGamepadConnected ? ("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗")) : "🎮 Manette: N/A";
+    ctx.fillText(gamepadText, offsetX + viewWidth / 2, gamepadButtonY + buttonHeight / 2 + 5);
 
     // Bouton Split-Screen
     const splitButtonColor = splitScreenEnabled ? "#2ECC71" : "#E74C3C";
     ctx.fillStyle = splitButtonColor;
     ctx.fillRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
-    ctx.strokeStyle = "#FFD700";
-    ctx.lineWidth = 2;
+    
+    // Highlight si sélectionné à la manette
+    if (mainMenuSelectedIndex === 1) {
+        ctx.strokeStyle = "#FFFF00";
+        ctx.lineWidth = 4;
+    } else {
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 2;
+    }
     ctx.strokeRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = "#FFFFFF";
@@ -212,8 +241,15 @@ function renderMainMenu(ctx, canvas) {
     const textColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#CCCCCC" : "#000000";
     ctx.fillStyle = buttonColorStart;
     ctx.fillRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
-    ctx.strokeStyle = (lobbiesRebooting || mainMenuGameStarting) ? "#555555" : "#FFFFFF";
-    ctx.lineWidth = 2;
+    
+    // Highlight si sélectionné à la manette
+    if (mainMenuSelectedIndex === 2) {
+        ctx.strokeStyle = "#FFFF00";
+        ctx.lineWidth = 4;
+    } else {
+        ctx.strokeStyle = (lobbiesRebooting || mainMenuGameStarting) ? "#555555" : "#FFFFFF";
+        ctx.lineWidth = 2;
+    }
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = textColorStart;

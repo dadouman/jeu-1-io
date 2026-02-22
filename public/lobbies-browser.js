@@ -7,15 +7,22 @@ let lobbiesBrowserVisible = false;
  * Affiche le navigateur de lobbies
  */
 function showLobbiesBrowser() {
+    console.log('🎮 Affichage du navigateur de lobbies...');
     lobbiesBrowserVisible = true;
+    mainMenuVisible = false; // Masquer le menu principal
+    
+    // S'assurer que modeSelector est visible
     const modeSelector = document.getElementById('modeSelector');
     if (modeSelector) {
         modeSelector.style.display = 'flex';
     }
     
     // Demander la liste des lobbies au serveur
-    if (socket) {
+    if (typeof socket !== 'undefined' && socket) {
+        console.log('📡 Envoi de getActiveLobies au serveur');
         socket.emit('getActiveLobies');
+    } else {
+        console.error('❌ Socket non défini!');
     }
 }
 
@@ -23,7 +30,9 @@ function showLobbiesBrowser() {
  * Cache le navigateur de lobbies
  */
 function hideLobbiesBrowser() {
+    console.log('🎮 Fermeture du navigateur de lobbies');
     lobbiesBrowserVisible = false;
+    mainMenuVisible = true; // Réafficher le menu principal
     const modeSelector = document.getElementById('modeSelector');
     if (modeSelector) {
         modeSelector.style.display = 'none';
@@ -189,9 +198,19 @@ function joinLobby(mode) {
 }
 
 // === SOCKET EVENTS ===
-if (typeof socket !== 'undefined' && socket) {
+// Attendre que le socket soit initialisé
+function initLobbiesBrowserSocketEvents() {
+    if (typeof socket === 'undefined' || !socket) {
+        // Réessayer dans 500ms
+        setTimeout(initLobbiesBrowserSocketEvents, 500);
+        return;
+    }
+    
+    console.log('✅ Initialisation des événements socket lobbies-browser');
+    
     // Réception de la liste des lobbies
     socket.on('activeLobiesUpdate', (data) => {
+        console.log('📊 Réception des lobbies:', data);
         updateActiveLobies(data.lobbies || []);
     });
 
@@ -212,4 +231,11 @@ if (typeof socket !== 'undefined' && socket) {
             console.error('❌ Erreur:', data.message);
         }
     });
+}
+
+// Initialiser les événements socket dès que possible
+if (typeof window !== 'undefined') {
+    window.addEventListener('load', initLobbiesBrowserSocketEvents);
+    // Aussi essayer immédiatement
+    setTimeout(initLobbiesBrowserSocketEvents, 100);
 }

@@ -121,15 +121,20 @@ function handleMainMenuClick(mouseX, mouseY) {
  * Affiche le menu principal sur le canvas
  */
 function renderMainMenu(ctx, canvas) {
+    // Déterminer la zone à afficher (en split-screen, affiche le menu sur chaque écran)
+    const viewWidth = splitScreenEnabled ? canvas.width / 2 : canvas.width;
+    const viewHeight = canvas.height;
+    const offsetX = splitScreenEnabled ? canvas.width / 2 : 0;
+
     // Overlay semi-transparent
     ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(offsetX, 0, viewWidth, viewHeight);
 
-    // Dimensions du menu
-    const menuWidth = 600;
-    const menuHeight = 500;
-    const menuX = (canvas.width - menuWidth) / 2;
-    const menuY = (canvas.height - menuHeight) / 2;
+    // Dimensions du menu (adaptées à la zone disponible)
+    const menuWidth = Math.min(550, viewWidth - 40);
+    const menuHeight = Math.min(480, viewHeight - 40);
+    const menuX = offsetX + (viewWidth - menuWidth) / 2;
+    const menuY = (viewHeight - menuHeight) / 2;
 
     // Cadre du menu
     ctx.fillStyle = "#222";
@@ -138,25 +143,27 @@ function renderMainMenu(ctx, canvas) {
     ctx.lineWidth = 3;
     ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
 
-    // Titre du menu
+    // Titre du menu (taille adaptée)
     ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 36px Arial";
+    ctx.font = "bold 28px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("🎮 MENU PRINCIPAL", canvas.width / 2, menuY + 50);
+    ctx.fillText("🎮 MENU", offsetX + viewWidth / 2, menuY + 35);
 
-    // Sous-titre
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "18px Arial";
-    ctx.fillText("Configures ton expérience", canvas.width / 2, menuY + 80);
+    // Sous-titre (optionnel en petit écran)
+    if (viewWidth > 400) {
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "14px Arial";
+        ctx.fillText("Configure ton expérience", offsetX + viewWidth / 2, menuY + 60);
+    }
 
     // Boutons du menu
-    const buttonWidth = 350;
-    const buttonHeight = 60;
+    const buttonWidth = Math.min(300, menuWidth - 40);
+    const buttonHeight = 50;
     const buttonX = menuX + (menuWidth - buttonWidth) / 2;
-    const startButtonY = menuY + 120;
-    const gamepadButtonY = startButtonY + 85;
-    const splitButtonY = gamepadButtonY + 85;
-    const startGameButtonY = splitButtonY + 85;
+    const startButtonY = menuY + 80;
+    const gamepadButtonY = startButtonY + 70;
+    const splitButtonY = gamepadButtonY + 70;
+    const startGameButtonY = splitButtonY + 70;
 
     // Zones cliquables
     mainMenuClickAreas = {
@@ -174,9 +181,9 @@ function renderMainMenu(ctx, canvas) {
     ctx.strokeRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 20px Arial";
+    ctx.font = "bold 16px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓ ACTIVÉE" : "✗ DÉSACTIVÉE"), canvas.width / 2, gamepadButtonY + 40);
+    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, gamepadButtonY + 32);
 
     // Bouton Split-Screen
     const splitButtonColor = splitScreenEnabled ? "#2ECC71" : "#E74C3C";
@@ -187,9 +194,9 @@ function renderMainMenu(ctx, canvas) {
     ctx.strokeRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 20px Arial";
+    ctx.font = "bold 16px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("👥 Split-Screen: " + (splitScreenEnabled ? "✓ ACTIVÉ" : "✗ DÉSACTIVÉ"), canvas.width / 2, splitButtonY + 40);
+    ctx.fillText("👥 Split: " + (splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + 32);
 
     // Bouton Commencer
     const buttonColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#777777" : "#FFD700";
@@ -201,34 +208,28 @@ function renderMainMenu(ctx, canvas) {
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = textColorStart;
-    ctx.font = "bold 24px Arial";
+    ctx.font = "bold 18px Arial";
     ctx.textAlign = "center";
     let buttonText = "▶ COMMENCER";
-    if (lobbiesRebooting) buttonText = "⏳ REDÉMARRAGE...";
-    if (mainMenuGameStarting) buttonText = "⏳ CHARGEMENT...";
-    ctx.fillText(buttonText, canvas.width / 2, startGameButtonY + 40);
+    if (lobbiesRebooting) buttonText = "⏳ REDÉM...";
+    if (mainMenuGameStarting) buttonText = "⏳ CHARGE...";
+    ctx.fillText(buttonText, offsetX + viewWidth / 2, startGameButtonY + 32);
 
     // Message de redémarrage si lobbies se redémarrent
     if (lobbiesRebooting) {
         ctx.fillStyle = "rgba(255, 100, 100, 0.8)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(offsetX, 0, viewWidth, viewHeight);
         
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 36px Arial";
+        ctx.font = "bold 24px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("⏳ Redémarrage en cours...", canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillText("⏳ Redémarrage...", offsetX + viewWidth / 2, viewHeight / 2 - 20);
         
         ctx.fillStyle = "#FFFF00";
-        ctx.font = "18px Arial";
-        ctx.fillText("Les lobbies se réinitialisent", canvas.width / 2, canvas.height / 2 + 30);
-        ctx.fillText("Veuillez patienter...", canvas.width / 2, canvas.height / 2 + 60);
+        ctx.font = "14px Arial";
+        ctx.fillText("Les lobbies se réinitialisent", offsetX + viewWidth / 2, viewHeight / 2 + 20);
+        ctx.fillText("Veuillez patienter...", offsetX + viewWidth / 2, viewHeight / 2 + 45);
     }
-
-    // Instructions au clavier
-    ctx.fillStyle = "#AAAAAA";
-    ctx.font = "14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Clic souris pour configurer | Manette: D-Pad/Stick + A pour confirmer", canvas.width / 2, menuY + menuHeight + 20);
 }
 
 /**

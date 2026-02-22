@@ -8,7 +8,7 @@ const schemas = {
         properties: {
             mode: {
                 type: 'string',
-                enum: ['classic', 'infinite', 'solo', 'custom', 'classicPrim']
+                enum: ['classic', 'infinite', 'solo', 'custom', 'classicPrim', 'classicAuction', 'infiniteAuction', 'soloAuction', 'classicPrimAuction']
             },
             customConfig: {
                 type: 'object',

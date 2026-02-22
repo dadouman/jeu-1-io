@@ -385,7 +385,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     });
 
     targetSocket.on('gameModSelected', (data) => {
-        currentGameMode = data.mode;
+        currentGameMode = data.baseMode || data.mode;
         currentGameEndType = data.endType || 'multi';
         soloMaxLevel = data.mode === 'solo' ? 10 : 20;
     });

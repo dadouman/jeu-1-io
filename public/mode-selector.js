@@ -1,6 +1,36 @@
 // mode-selector.js - Gestion de la sélection du mode de jeu
 
 var selectedMode = null; // var pour accès global
+var currentShopMode = 'classic'; // 'classic' ou 'auction'
+
+/**
+ * Change le mode de boutique sélectionné
+ * @param {string} mode - 'classic' ou 'auction'
+ */
+function setShopMode(mode) {
+    currentShopMode = mode;
+    
+    const tabClassic = document.getElementById('tabClassic');
+    const tabAuction = document.getElementById('tabAuction');
+    
+    if (mode === 'classic') {
+        tabClassic.style.backgroundColor = '#FFD700';
+        tabClassic.style.color = '#000';
+        tabClassic.style.borderColor = '#FFF';
+        
+        tabAuction.style.backgroundColor = '#333';
+        tabAuction.style.color = '#FFF';
+        tabAuction.style.borderColor = '#555';
+    } else {
+        tabAuction.style.backgroundColor = '#FFD700';
+        tabAuction.style.color = '#000';
+        tabAuction.style.borderColor = '#FFF';
+        
+        tabClassic.style.backgroundColor = '#333';
+        tabClassic.style.color = '#FFF';
+        tabClassic.style.borderColor = '#555';
+    }
+}
 
 /**
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
@@ -46,6 +76,12 @@ function selectModeWithGuard(mode) {
         console.log('⏳ Clique bloqué: les lobbies se redémarrent...');
         return;
     }
+    
+    // Si le mode enchères est sélectionné et que ce n'est pas le mode custom
+    if (currentShopMode === 'auction' && mode !== 'custom') {
+        mode = mode + 'Auction';
+    }
+    
     selectMode(mode);
 }
 
@@ -62,15 +98,16 @@ function selectMode(mode) {
     
     console.log(`%c✅ AUTORISÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
     
-    if (mode === 'classic' || mode === 'classicPrim' || mode === 'infinite' || mode === 'solo' || mode === 'custom') {
+    const baseMode = mode.replace('Auction', '');
+    if (baseMode === 'classic' || baseMode === 'classicPrim' || baseMode === 'infinite' || baseMode === 'solo' || baseMode === 'custom') {
         // Vérifier que le mode personnalisé existe
-        if (mode === 'custom' && !customModeConfig) {
+        if (baseMode === 'custom' && !customModeConfig) {
             alert('❌ Aucun mode personnalisé configuré. Appuyez sur @ pour configurer.');
             return;
         }
         
         selectedMode = mode;
-        currentGameEndType = mode === 'solo' ? 'solo' : 'multi';
+        currentGameEndType = baseMode === 'solo' ? 'solo' : 'multi';
         const modeNames = {
             'classic': 'Couloirs (10 Niveaux)',
             'classicPrim': 'Organique (10 Niveaux)',
@@ -162,7 +199,7 @@ function getSelectedMode() {
  * @returns {boolean} - True si c'est le dernier niveau
  */
 function isGameFinished(level) {
-    const mode = selectedMode;
+    const mode = selectedMode ? selectedMode.replace('Auction', '') : null;
     
     if (mode === 'custom' && customModeConfig) {
         return level > customModeConfig.maxLevels;
@@ -180,7 +217,7 @@ function isGameFinished(level) {
  * @returns {object} - Les items disponibles au shop
  */
 function getShopItemsForMode() {
-    const mode = selectedMode;
+    const mode = selectedMode ? selectedMode.replace('Auction', '') : null;
     
     if (mode === 'infinite') {
         // Mode infini: seulement la vitesse est à l'achat
@@ -268,7 +305,7 @@ function getShopItemsForMode() {
  * @returns {object} - Les features initialisées
  */
 function getInitialPurchasedFeaturesForMode() {
-    const mode = selectedMode;
+    const mode = selectedMode ? selectedMode.replace('Auction', '') : null;
     
     if (mode === 'infinite') {
         // Mode infini: tous les objets sont déverrouillés sauf speedBoost
@@ -299,3 +336,5 @@ function getInitialPurchasedFeaturesForMode() {
         };
     }
 }
+
+

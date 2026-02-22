@@ -36,6 +36,11 @@ function hideMainMenu() {
     if (modeSelector) {
         modeSelector.style.display = 'flex';
     }
+    
+    // Mettre à jour le bouton split screen quand le mode selector s'affiche
+    if (typeof updateSplitScreenButton === 'function') {
+        updateSplitScreenButton();
+    }
 }
 
 /**

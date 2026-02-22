@@ -50,6 +50,46 @@ function setShopMode(mode) {
 }
 
 /**
+ * Bascule le split-screen depuis le mode selector
+ */
+function toggleSplitScreenFromModeSelector() {
+    console.log(`👥 Toggle Split Screen depuis le mode selector - Etat actuel: ${splitScreenEnabled}`);
+    
+    // Basculer l'état du split screen
+    const enabled = toggleSplitScreen();
+    
+    if (enabled) {
+        if (typeof attachSecondaryStateListener === 'function') {
+            attachSecondaryStateListener();
+        }
+        console.log('✅ Split Screen ACTIVÉ');
+    } else {
+        console.log('❌ Split Screen DÉSACTIVÉ');
+    }
+    
+    // Mettre à jour le bouton visuel
+    updateSplitScreenButton();
+}
+
+/**
+ * Met à jour le visuel du bouton split screen
+ */
+function updateSplitScreenButton() {
+    const btn = document.getElementById('splitScreenToggleBtn');
+    if (!btn) return;
+    
+    if (splitScreenEnabled) {
+        btn.textContent = '👥 Split Screen: ON';
+        btn.style.backgroundColor = '#2ECC71';
+        btn.style.borderColor = '#27AE60';
+    } else {
+        btn.textContent = '👥 Split Screen: OFF';
+        btn.style.backgroundColor = '#E74C3C';
+        btn.style.borderColor = '#C0392B';
+    }
+}
+
+/**
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
  */
 function updateModeButtonsState() {

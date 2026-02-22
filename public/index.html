@@ -39,6 +39,14 @@
             <button id="tabAuction" class="shop-tab" onclick="setShopMode('auction')" style="padding: 10px 20px; font-size: 16px; font-weight: bold; background-color: #333; color: #FFF; border: 2px solid #555; border-radius: 5px; cursor: pointer;">Boutique Enchères</button>
         </div>
         
+        <!-- Options: Split Screen -->
+        <div id="modeSelectorOptions" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button id="splitScreenToggleBtn" onclick="toggleSplitScreenFromModeSelector()" 
+                style="padding: 10px 20px; font-size: 14px; font-weight: bold; background-color: #E74C3C; color: #FFF; border: 2px solid #C0392B; border-radius: 5px; cursor: pointer;">
+                👥 Split Screen: OFF
+            </button>
+        </div>
+        
         <div class="modes-grid">
             <!-- Mode Couloirs (Backtracker) -->
             <div class="mode-card">

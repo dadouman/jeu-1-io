@@ -64,14 +64,9 @@ function toggleGamepadFromMainMenu() {
 function toggleSplitScreenFromMainMenu() {
     mainMenuOptions.splitScreenEnabled = !mainMenuOptions.splitScreenEnabled;
     if (mainMenuOptions.splitScreenEnabled) {
-        const enabled = toggleSplitScreen();
-        if (enabled && typeof attachSecondaryStateListener === 'function') {
-            attachSecondaryStateListener();
-        }
+        showGamepadStatusMessage('Split-screen: sera activé au démarrage');
     } else {
-        if (splitScreenEnabled) {
-            toggleSplitScreen();
-        }
+        showGamepadStatusMessage('Split-screen: désactivé');
     }
 }
 
@@ -217,7 +212,7 @@ function renderMainMenu(ctx, canvas) {
     ctx.fillText(gamepadText, offsetX + viewWidth / 2, gamepadButtonY + buttonHeight / 2 + 5);
 
     // Bouton Split-Screen
-    const splitButtonColor = splitScreenEnabled ? "#2ECC71" : "#E74C3C";
+    const splitButtonColor = mainMenuOptions.splitScreenEnabled ? "#2ECC71" : "#E74C3C";
     ctx.fillStyle = splitButtonColor;
     ctx.fillRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
     
@@ -234,7 +229,7 @@ function renderMainMenu(ctx, canvas) {
     ctx.fillStyle = "#FFFFFF";
     ctx.font = `bold ${buttonFontSize}px Arial`;
     ctx.textAlign = "center";
-    ctx.fillText("👥 Split: " + (splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + buttonHeight / 2 + 5);
+    ctx.fillText("👥 Split: " + (mainMenuOptions.splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + buttonHeight / 2 + 5);
 
     // Bouton Commencer
     const buttonColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#777777" : "#FFD700";

@@ -180,6 +180,19 @@ function selectMode(mode) {
                 console.log('%c📊 Demande des meilleurs splits et leaderboard', 'color: #00FF00; font-weight: bold');
             }
         }
+        
+        // ✅ ACTIVER SPLIT-SCREEN SI DEMANDÉ AU MENU PRINCIPAL
+        if (mainMenuOptions && mainMenuOptions.splitScreenEnabled && typeof toggleSplitScreen === 'function') {
+            // Attendre un peu que le mode soit vraiment initialisé
+            setTimeout(() => {
+                if (currentGameMode && !splitScreenEnabled) {
+                    const activated = toggleSplitScreen();
+                    if (activated) {
+                        console.log('%c✅ Split-screen activé après sélection du mode', 'color: #2ECC71; font-weight: bold');
+                    }
+                }
+            }, 500);
+        }
     }
 }
 

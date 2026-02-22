@@ -32,6 +32,13 @@
     <!-- Inclus directement ici pour simplicité, ou via JavaScript si préféré -->
     <div id="modeSelector">
         <h1>🎮 CHOISIS TON MODE 🎮</h1>
+        
+        <!-- Onglets de sélection de la boutique -->
+        <div id="shopTabs" style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button id="tabClassic" class="shop-tab active" onclick="setShopMode('classic')" style="padding: 10px 20px; font-size: 16px; font-weight: bold; background-color: #FFD700; color: #000; border: 2px solid #FFF; border-radius: 5px; cursor: pointer;">Boutique Classique</button>
+            <button id="tabAuction" class="shop-tab" onclick="setShopMode('auction')" style="padding: 10px 20px; font-size: 16px; font-weight: bold; background-color: #333; color: #FFF; border: 2px solid #555; border-radius: 5px; cursor: pointer;">Boutique Enchères</button>
+        </div>
+        
         <div class="modes-grid">
             <!-- Mode Couloirs (Backtracker) -->
             <div class="mode-card">

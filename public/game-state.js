@@ -58,6 +58,7 @@ let trails = {}; // { playerId: { color, positions } }
 
 // --- VARIABLES SHOP ---
 let isShopOpen = false;
+let currentShopMode = 'classic'; // 'classic' ou 'auction'
 let shopItems = {};
 let shopType = 'classic'; // 'classic' | 'dutchAuction'
 let dutchAuctionState = null; // { type, gridSize, tickMs, lots: [...] }

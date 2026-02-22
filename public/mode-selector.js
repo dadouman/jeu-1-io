@@ -3,6 +3,26 @@
 var selectedMode = null; // var pour accès global
 
 /**
+ * Change le type de boutique (classic ou auction)
+ */
+function setShopMode(mode) {
+    console.log(`🛍️ Changement du mode boutique: ${mode}`);
+    currentShopMode = mode;
+    
+    // Mettre à jour les boutons d'onglets
+    const tabClassic = document.getElementById('tabClassic');
+    const tabAuction = document.getElementById('tabAuction');
+    
+    if (mode === 'classic') {
+        if (tabClassic) tabClassic.classList.add('active');
+        if (tabAuction) tabAuction.classList.remove('active');
+    } else if (mode === 'auction') {
+        if (tabClassic) tabClassic.classList.remove('active');
+        if (tabAuction) tabAuction.classList.add('active');
+    }
+}
+
+/**
  * Met à jour l'état des boutons JOUER selon lobbiesRebooting
  */
 function updateModeButtonsState() {

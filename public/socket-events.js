@@ -1,7 +1,7 @@
 // socket-events.js - Tous les événements Socket.io
 
-// Mode DEBUG - contrôlé par sessionStorage (process.env n'existe pas côté client)
-const DEBUG_CLIENT = sessionStorage.getItem('DEBUG') === 'true' || false;
+// Mode DEBUG - contrôlé par sessionStorage ou directement en développement
+const DEBUG_CLIENT = sessionStorage.getItem('DEBUG') === 'true' || process.env.NODE_ENV === 'development' || false;
 
 /**
  * Log seulement en mode DEBUG (côté client)
@@ -385,7 +385,7 @@ function bindCoreSocketEvents(targetSocket, source = 'primary') {
     });
 
     targetSocket.on('gameModSelected', (data) => {
-        currentGameMode = data.baseMode || data.mode;
+        currentGameMode = data.mode;
         currentGameEndType = data.endType || 'multi';
         soloMaxLevel = data.mode === 'solo' ? 10 : 20;
     });

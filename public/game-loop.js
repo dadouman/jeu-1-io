@@ -267,16 +267,16 @@ function continuousRender() {
     
     // Vérifier que tous les éléments nécessaires sont disponibles
     if (typeof renderGame === "function" && typeof ctx !== "undefined" && ctx && canvas) {
-        // === AFFICHER LE MENU PRINCIPAL AVANT LA SÉLECTION DU MODE ===
-        if (mainMenuVisible && typeof renderMainMenu === 'function') {
-            renderMainMenu(ctx, canvas);
+        // === AFFICHER LE NAVIGATEUR DE LOBBIES ===
+        if (lobbiesBrowserVisible && typeof renderLobbiesBrowser === 'function') {
+            renderLobbiesBrowser(ctx, canvas);
             requestAnimationFrame(continuousRender);
             return;
         }
 
-        // === AFFICHER LE NAVIGATEUR DE LOBBIES ===
-    if (window.lobbiesBrowserVisible && typeof renderLobbiesBrowser === 'function') {
-        console.log('🎨 Rendu du navigateur de lobbies');
+        // === AFFICHER LE MENU PRINCIPAL AVANT LA SÉLECTION DU MODE ===
+        if (mainMenuVisible && typeof renderMainMenu === 'function') {
+            renderMainMenu(ctx, canvas);
             requestAnimationFrame(continuousRender);
             return;
         }

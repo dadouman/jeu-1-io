@@ -94,52 +94,8 @@ const lobbies = {
             votes: {},
             startTime: null,
             VOTE_TIMEOUT: 60000
-        }    },
-    classicAuction: {
-        players: {},
-        currentLevel: 1,
-        levelStartTime: Date.now(),
-        map: null,
-        coin: null,
-        currentRecord: { score: 0, skin: "ⓘ" },
-        restartVote: {
-            isActive: false,
-            votes: {},
-            startTime: null,
-            VOTE_TIMEOUT: 60000
         }
-    },
-    classicPrimAuction: {
-        players: {},
-        currentLevel: 1,
-        levelStartTime: Date.now(),
-        map: null,
-        coin: null,
-        currentRecord: { score: 0, skin: "ⓘ" },
-        restartVote: {
-            isActive: false,
-            votes: {},
-            startTime: null,
-            VOTE_TIMEOUT: 60000
-        },
-        mazeGeneration: {
-            algorithm: 'prim',
-            density: 0.5
-        }
-    },
-    infiniteAuction: {
-        players: {},
-        currentLevel: 1,
-        levelStartTime: Date.now(),
-        map: null,
-        coin: null,
-        currentRecord: { score: 0, skin: "ⓘ" },
-        restartVote: {
-            isActive: false,
-            votes: {},
-            startTime: null,
-            VOTE_TIMEOUT: 60000
-        }    }
+    }
 };
 
 // Solo sessions - chaque joueur a sa propre session solo

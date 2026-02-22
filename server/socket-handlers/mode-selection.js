@@ -78,7 +78,7 @@ function handleSoloModeSelection(socket, data, lobbies, soloSessions) {
     // Stocker la session
     soloSessions[socket.id] = session;
     
-    socket.emit('gameModSelected', { mode: 'solo', baseMode: 'solo', endType: soloConfig?.endType || 'solo' });
+    socket.emit('gameModSelected', { mode: 'solo', endType: soloConfig?.endType || 'solo' });
     // Envoyer l'état initial au client
     session.sendGameState();
     
@@ -133,7 +133,7 @@ function handleCustomModeSelection(socket, io, data, lobbies, playerModes) {
     socket.emit('levelUpdate', lobby.currentLevel);
     socket.emit('highScoreUpdate', lobby.currentRecord);
     const endType = data.customConfig.endType || 'multi';
-    socket.emit('gameModSelected', { mode: 'custom', baseMode: 'custom', endType });
+    socket.emit('gameModSelected', { mode: 'custom', endType });
     socket.emit('coinUpdate', lobby.coin);
     
     emitToLobby('custom', 'playersCountUpdate', {
@@ -166,7 +166,7 @@ function handleMultiplayerModeSelection(socket, io, mode, lobbies, playerModes) 
     socket.emit('mapData', lobby.map);
     socket.emit('levelUpdate', lobby.currentLevel);
     socket.emit('highScoreUpdate', lobby.currentRecord);
-    socket.emit('gameModSelected', { mode: mode, baseMode: mode.replace('Auction', ''), endType });
+    socket.emit('gameModSelected', { mode: mode, endType });
     socket.emit('coinUpdate', lobby.coin);
     
     emitToLobby(mode, 'playersCountUpdate', {

@@ -1,166 +1,151 @@
-// public/lobbies-browser.js - Affichage des lobbies en cours
+// public/lobbies-browser.js - Navigateur de lobbies
 
 console.log('✅ lobbies-browser.js chargé');
 
-// Variables globales
-window.lobbiesBrowserVisible = false;
+let lobbiesBrowserVisible = false;
 let activeLobies = [];
-
-/**
- * Réinitialise le navigateur de lobbies au démarrage du jeu
- * Appelée automatiquement quand on rejoint un lobby
- */
-function resetLobbiesBrowserUI() {
-    console.log('🔄 Réinitialisation de l\'UI du navigateur de lobbies');
-    window.lobbiesBrowserVisible = false;
-    activeLobies = [];
-}
 
 /**
  * Affiche le navigateur de lobbies
  */
 function showLobbiesBrowser() {
-    console.log('🎮 Affichage du navigateur de lobbies...');
-    window.lobbiesBrowserVisible = true;
-    window.mainMenuVisible = false; // Masquer le menu principal
-    
-    console.log('État après show:', { lobbiesBrowserVisible: window.lobbiesBrowserVisible, mainMenuVisible: window.mainMenuVisible });
+    console.log('🎮 Affichage du navigateur de lobbies');
+    lobbiesBrowserVisible = true;
     
     // Demander la liste des lobbies au serveur
     if (typeof socket !== 'undefined' && socket) {
         console.log('📡 Envoi de getActiveLobies au serveur');
         socket.emit('getActiveLobies');
     } else {
-        console.error('❌ Socket non défini!');
+        console.error('❌ Socket non défini');
     }
 }
 
 /**
- * Cache le navigateur de lobbies
+ * Masque le navigateur de lobbies
  */
 function hideLobbiesBrowser() {
-    console.log('🎮 Fermeture du navigateur de lobbies');
-    window.lobbiesBrowserVisible = false;
-    window.mainMenuVisible = true; // Réafficher le menu principal
+    console.log('🎮 Masquage du navigateur de lobbies');
+    lobbiesBrowserVisible = false;
+    activeLobies = [];
 }
 
 /**
- * Met à jour la liste des lobbies reçue du serveur
+ * Met à jour la liste des lobbies
  */
 function updateActiveLobies(lobies) {
+    console.log('📊 Mise à jour des lobbies:', lobies);
     activeLobies = lobies || [];
-    console.log(`📊 Lobbies actifs: ${activeLobies.length}`);
 }
 
 /**
- * Rend les lobbies à l'écran
+ * Affiche l'interface du navigateur de lobbies
  */
 function renderLobbiesBrowser(ctx, canvas) {
     if (!lobbiesBrowserVisible) return;
 
-    // Overlay
-    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    const margin = 40;
+    const width = canvas.width - 2 * margin;
+    const height = canvas.height - 2 * margin;
+
+    // Fond semi-transparent
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Zone d'affichage
-    const margin = 40;
-    const width = canvas.width - margin * 2;
-    const height = canvas.height - margin * 2;
-    
+    // Cadre blanc
+    ctx.fillStyle = '#1a1a2e';
+    ctx.fillRect(margin, margin, width, height);
+    ctx.strokeStyle = '#FFD700';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(margin, margin, width, height);
+
     // Titre
-    ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 32px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText("🎮 LOBBIES EN COURS", margin + 20, margin + 40);
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 32px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('📊 Lobbies en Cours', margin + 20, margin + 50);
 
-    // Bouton fermer
-    ctx.fillStyle = "#E74C3C";
-    ctx.fillRect(canvas.width - 100, margin, 80, 40);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 16px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Fermer", canvas.width - 60, margin + 28);
+    // Bouton fermer (X en haut à droite)
+    const closeSize = 40;
+    const closeX = margin + width - closeSize - 10;
+    const closeY = margin + 10;
+    ctx.fillStyle = '#E74C3C';
+    ctx.fillRect(closeX, closeY, closeSize, closeSize);
+    ctx.strokeStyle = '#C0392B';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(closeX, closeY, closeSize, closeSize);
+    ctx.fillStyle = '#FFF';
+    ctx.font = 'bold 30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('×', closeX + closeSize / 2, closeY + 25);
 
-    // Liste des lobbies
-    const startY = margin + 100;
+    // Sauvegarder la zone du bouton fermer
+    window.closeLobbiesBrowserArea = { x: closeX, y: closeY, width: closeSize, height: closeSize };
+
+    // Afficher les lobbies
+    let startY = margin + 100;
     const cardHeight = 80;
-    const cardMargin = 10;
-    
+    const cardMargin = 15;
+
     if (activeLobies.length === 0) {
-        ctx.fillStyle = "#AAAAAA";
-        ctx.font = "16px Arial";
-        ctx.textAlign = "left";
-        ctx.fillText("Aucun lobby en cours...", margin + 20, startY + 40);
-    } else {
-        activeLobies.forEach((lobby, index) => {
-            const y = startY + index * (cardHeight + cardMargin);
-            
-            // Carte du lobby
-            ctx.fillStyle = "#2a2a3e";
-            ctx.fillRect(margin, y, width, cardHeight);
-            ctx.strokeStyle = "#FFD700";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(margin, y, width, cardHeight);
-
-            // Info du lobby
-            ctx.fillStyle = "#FFD700";
-            ctx.font = "bold 18px Arial";
-            ctx.textAlign = "left";
-            ctx.fillText(lobby.modeDisplay, margin + 15, y + 25);
-
-            // Détails
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "14px Arial";
-            const detailsText = `👥 ${lobby.players} joueur${lobby.players > 1 ? 's' : ''} | 🎯 Niveau ${lobby.level} | ⏱️ ${lobby.uptime}s`;
-            ctx.fillText(detailsText, margin + 15, y + 50);
-
-            // Bouton rejoindre
-            const btnWidth = 120;
-            const btnHeight = 40;
-            const btnX = margin + width - btnWidth - 10;
-            const btnY = y + (cardHeight - btnHeight) / 2;
-            
-            ctx.fillStyle = "#2ECC71";
-            ctx.fillRect(btnX, btnY, btnWidth, btnHeight);
-            ctx.strokeStyle = "#27AE60";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(btnX, btnY, btnWidth, btnHeight);
-            
-            ctx.fillStyle = "#FFFFFF";
-            ctx.font = "bold 14px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText("Rejoindre", btnX + btnWidth / 2, btnY + 28);
-
-            // Zone cliquable
-            if (!lobby._clickArea) {
-                lobby._clickArea = {
-                    x: btnX,
-                    y: btnY,
-                    width: btnWidth,
-                    height: btnHeight,
-                    mode: lobby.mode,
-                    index: index
-                };
-            }
-        });
+        ctx.fillStyle = '#AAAAAA';
+        ctx.font = 'italic 18px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('Aucun lobby en cours...', margin + 20, startY + 40);
+        return;
     }
 
-    // Zone cliquable du bouton fermer
-    if (!window.closeLobbiesBrowserArea) {
-        window.closeLobbiesBrowserArea = {
-            x: canvas.width - 100,
-            y: margin,
-            width: 80,
-            height: 40
-        };
-    }
+    activeLobies.forEach((lobby, index) => {
+        const y = startY + index * (cardHeight + cardMargin);
+
+        // Carte du lobby
+        ctx.fillStyle = '#2c3e50';
+        ctx.fillRect(margin + 10, y, width - 20, cardHeight);
+        ctx.strokeStyle = '#27AE60';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(margin + 10, y, width - 20, cardHeight);
+
+        // Mode
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(lobby.modeDisplay || lobby.mode, margin + 20, y + 30);
+
+        // Détails
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '14px Arial';
+        const detailsText = `👥 ${lobby.players} joueur${lobby.players > 1 ? 's' : ''} | 🎯 Niveau ${lobby.level} | ⏱️ ${lobby.uptime}s`;
+        ctx.fillText(detailsText, margin + 20, y + 55);
+
+        // Bouton rejoindre
+        const btnWidth = 120;
+        const btnHeight = 40;
+        const btnX = margin + width - btnWidth - 20;
+        const btnY = y + (cardHeight - btnHeight) / 2;
+
+        ctx.fillStyle = '#2ECC71';
+        ctx.fillRect(btnX, btnY, btnWidth, btnHeight);
+        ctx.strokeStyle = '#27AE60';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(btnX, btnY, btnWidth, btnHeight);
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Rejoindre', btnX + btnWidth / 2, btnY + 28);
+
+        // Zone cliquable pour le bouton rejoindre
+        if (!lobby._clickArea) {
+            lobby._clickArea = { x: btnX, y: btnY, width: btnWidth, height: btnHeight, mode: lobby.mode };
+        }
+    });
 }
 
 /**
- * Gère les clics sur l'interface des lobbies
+ * Gère les clics sur l'interface du navigateur
  */
 function handleLobbiesBrowserClick(mouseX, mouseY) {
-    if (!window.lobbiesBrowserVisible) return false;
+    if (!lobbiesBrowserVisible) return false;
 
     // Bouton fermer
     if (window.closeLobbiesBrowserArea) {
@@ -173,7 +158,7 @@ function handleLobbiesBrowserClick(mouseX, mouseY) {
     }
 
     // Boutons rejoindre
-    activeLobies.forEach((lobby) => {
+    for (let lobby of activeLobies) {
         if (lobby._clickArea) {
             const btn = lobby._clickArea;
             if (mouseX >= btn.x && mouseX <= btn.x + btn.width &&
@@ -182,7 +167,7 @@ function handleLobbiesBrowserClick(mouseX, mouseY) {
                 return true;
             }
         }
-    });
+    }
 
     return false;
 }
@@ -191,67 +176,52 @@ function handleLobbiesBrowserClick(mouseX, mouseY) {
  * Rejoint un lobby existant
  */
 function joinLobby(mode) {
-    if (lobbiesRebooting) {
-        console.log('⏳ Clics bloqués: les lobbies se redémarrent...');
-        return;
-    }
-
     console.log(`🎮 Tentative de rejoindre le lobby: ${mode}`);
-    hideLobbiesBrowser(); // Masquer immédiatement les lobbies
-    
-    if (socket) {
+    hideLobbiesBrowser();
+
+    if (typeof socket !== 'undefined' && socket) {
         socket.emit('joinExistingLobby', { mode });
     }
 }
 
-// === SOCKET EVENTS ===
-// Attendre que le socket soit initialisé
+/**
+ * Initialise les événements socket pour les lobbies
+ */
 function initLobbiesBrowserSocketEvents() {
-    console.log('🔍 initLobbiesBrowserSocketEvents appelé..., socket type:', typeof socket);
+    console.log('🔍 Initialisation des événements socket lobbies');
+
     if (typeof socket === 'undefined' || !socket) {
-        console.log('⏳ Socket non prêt, réessai dans 500ms');
-        // Réessayer dans 500ms
+        console.log('⏳ Socket non défini, réessai...');
         setTimeout(initLobbiesBrowserSocketEvents, 500);
         return;
     }
-    
-    console.log('✅ Initialisation des événements socket lobbies-browser');
-    
-    // Réception de la liste des lobbies
+
+    // Réception des lobbies du serveur
     socket.on('activeLobiesUpdate', (data) => {
-        console.log('📊 Réception des lobbies:', data);
+        console.log('📊 Reçu lobbies du serveur:', data);
         updateActiveLobies(data.lobbies || []);
     });
 
-    // Confirmation de rejoindre un lobby
+    // Confirmation de rejoindre
     socket.on('joinedLobby', (data) => {
         if (data.success) {
             console.log(`✅ Lobby rejoint: ${data.mode}`);
-            resetLobbiesBrowserUI(); // Réinitialiser immédiatement le UI
-            // Le mode du jeu sera défini par le serveur
-            selectedMode = data.mode;
-            currentGameMode = data.mode.replace('Auction', '');
+            hideLobbiesBrowser();
         }
     });
 
-    // Erreur lors de la rejoindre d'un lobby
-    socket.on('error', (data) => {
-        if (data.message && data.message.includes('lobby')) {
-            console.error('❌ Erreur:', data.message);
-        }
-    });
+    console.log('✅ Événements socket lobbies initialisés');
 }
 
 // Initialiser les événements socket dès que possible
 if (typeof window !== 'undefined') {
-    console.log('📌 Enregistrement des listeners de lobbies-browser');
-    window.addEventListener('load', () => {
-        console.log('📌 Load event, initialisation des lobbies');
-        initLobbiesBrowserSocketEvents();
-    });
-    // Aussi essayer immédiatement
     setTimeout(() => {
-        console.log('📌 Timeout check, initialisation des lobbies');
+        console.log('📌 Tentative d\'initialisation des événements socket lobbies');
         initLobbiesBrowserSocketEvents();
     }, 100);
+
+    window.addEventListener('load', () => {
+        console.log('📌 Load event, ré-initialisation des événements socket lobbies');
+        initLobbiesBrowserSocketEvents();
+    });
 }

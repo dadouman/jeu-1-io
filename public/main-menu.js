@@ -42,12 +42,6 @@ function hideMainMenu() {
  * Bascule la manette depuis le menu principal
  */
 function toggleGamepadFromMainMenu() {
-    // Ne permettre que si une manette est détectée
-    if (!isGamepadConnected) {
-        showGamepadStatusMessage('Aucune manette détectée');
-        return;
-    }
-    
     mainMenuOptions.gamepadEnabled = !mainMenuOptions.gamepadEnabled;
     if (mainMenuOptions.gamepadEnabled) {
         gamepadEnabled = true;
@@ -64,9 +58,14 @@ function toggleGamepadFromMainMenu() {
 function toggleSplitScreenFromMainMenu() {
     mainMenuOptions.splitScreenEnabled = !mainMenuOptions.splitScreenEnabled;
     if (mainMenuOptions.splitScreenEnabled) {
-        showGamepadStatusMessage('Split-screen: sera activé au démarrage');
+        const enabled = toggleSplitScreen();
+        if (enabled && typeof attachSecondaryStateListener === 'function') {
+            attachSecondaryStateListener();
+        }
     } else {
-        showGamepadStatusMessage('Split-screen: désactivé');
+        if (splitScreenEnabled) {
+            toggleSplitScreen();
+        }
     }
 }
 
@@ -101,12 +100,7 @@ function handleMainMenuClick(mouseX, mouseY) {
     const isInside = (rect) => rect && mouseX >= rect.x && mouseX <= rect.x + rect.width && mouseY >= rect.y && mouseY <= rect.y + rect.height;
 
     if (isInside(mainMenuClickAreas.gamepad)) {
-        // Ne permettre l'activation de la manette que si une manette est détectée
-        if (isGamepadConnected) {
-            toggleGamepadFromMainMenu();
-        } else {
-            showGamepadStatusMessage('Aucune manette détectée');
-        }
+        toggleGamepadFromMainMenu();
         return true;
     }
 
@@ -127,20 +121,15 @@ function handleMainMenuClick(mouseX, mouseY) {
  * Affiche le menu principal sur le canvas
  */
 function renderMainMenu(ctx, canvas) {
-    // Déterminer la zone à afficher (en split-screen, affiche le menu sur chaque écran)
-    const viewWidth = splitScreenEnabled ? canvas.width / 2 : canvas.width;
-    const viewHeight = canvas.height;
-    const offsetX = splitScreenEnabled ? canvas.width / 2 : 0;
-
     // Overlay semi-transparent
     ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
-    ctx.fillRect(offsetX, 0, viewWidth, viewHeight);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Dimensions du menu (adaptées à la zone disponible)
-    const menuWidth = Math.min(550, viewWidth - 40);
-    const menuHeight = Math.min(480, viewHeight - 40);
-    const menuX = offsetX + (viewWidth - menuWidth) / 2;
-    const menuY = (viewHeight - menuHeight) / 2;
+    // Dimensions du menu
+    const menuWidth = 600;
+    const menuHeight = 500;
+    const menuX = (canvas.width - menuWidth) / 2;
+    const menuY = (canvas.height - menuHeight) / 2;
 
     // Cadre du menu
     ctx.fillStyle = "#222";
@@ -149,35 +138,25 @@ function renderMainMenu(ctx, canvas) {
     ctx.lineWidth = 3;
     ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
 
-    // Titre du menu (taille adaptée aux petits écrans)
-    const titleSize = Math.max(18, Math.min(28, menuWidth / 20));
+    // Titre du menu
     ctx.fillStyle = "#FFD700";
-    ctx.font = `bold ${titleSize}px Arial`;
+    ctx.font = "bold 36px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("🎮 MENU", offsetX + viewWidth / 2, menuY + Math.max(25, titleSize));
+    ctx.fillText("🎮 MENU PRINCIPAL", canvas.width / 2, menuY + 50);
 
-    // Sous-titre (optionnel en petit écran)
-    if (viewWidth > 400) {
-        const subtitleSize = Math.max(12, Math.min(14, menuWidth / 40));
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = `${subtitleSize}px Arial`;
-        ctx.fillText("Configure ton expérience", offsetX + viewWidth / 2, menuY + Math.max(45, titleSize + 20));
-    }
+    // Sous-titre
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "18px Arial";
+    ctx.fillText("Configures ton expérience", canvas.width / 2, menuY + 80);
 
-    // Boutons du menu - adapté aux petits écrans
-    const buttonWidth = Math.min(300, menuWidth - 40);
-    const buttonHeight = Math.max(40, Math.min(50, menuHeight / 8));
+    // Boutons du menu
+    const buttonWidth = 350;
+    const buttonHeight = 60;
     const buttonX = menuX + (menuWidth - buttonWidth) / 2;
-    
-    // Calculer les espacements adaptatifs
-    const availableHeight = menuHeight - 120; // Menu moins titre et marge
-    const totalButtonHeight = buttonHeight * 3; // 3 boutons
-    const spacing = Math.max(8, (availableHeight - totalButtonHeight) / 4); // Espace adaptatif
-    
-    const startButtonY = menuY + 50 + spacing;
-    const gamepadButtonY = startButtonY + buttonHeight + spacing;
-    const splitButtonY = gamepadButtonY + buttonHeight + spacing;
-    const startGameButtonY = splitButtonY + buttonHeight + spacing;
+    const startButtonY = menuY + 120;
+    const gamepadButtonY = startButtonY + 85;
+    const splitButtonY = gamepadButtonY + 85;
+    const startGameButtonY = splitButtonY + 85;
 
     // Zones cliquables
     mainMenuClickAreas = {
@@ -186,90 +165,70 @@ function renderMainMenu(ctx, canvas) {
         start: { x: buttonX, y: startGameButtonY, width: buttonWidth, height: buttonHeight }
     };
 
-    // Bouton Manette (désactivé si aucune manette détectée)
-    let gamepadButtonColor = gamepadEnabled ? "#2ECC71" : "#E74C3C";
-    if (!isGamepadConnected) {
-        gamepadButtonColor = "#555555"; // Gris = désactivé
-    }
+    // Bouton Manette
+    const gamepadButtonColor = gamepadEnabled ? "#2ECC71" : "#E74C3C";
     ctx.fillStyle = gamepadButtonColor;
     ctx.fillRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
-    
-    // Highlight si sélectionné à la manette
-    if (mainMenuSelectedIndex === 0) {
-        ctx.strokeStyle = "#FFFF00";
-        ctx.lineWidth = 4;
-    } else {
-        ctx.strokeStyle = isGamepadConnected ? "#FFD700" : "#888888";
-        ctx.lineWidth = 2;
-    }
+    ctx.strokeStyle = "#FFD700";
+    ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
 
-    const buttonFontSize = Math.max(12, Math.min(16, buttonHeight * 0.6));
-    ctx.fillStyle = isGamepadConnected ? "#FFFFFF" : "#AAAAAA";
-    ctx.font = `bold ${buttonFontSize}px Arial`;
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
-    const gamepadText = isGamepadConnected ? ("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗")) : "🎮 Manette: N/A";
-    ctx.fillText(gamepadText, offsetX + viewWidth / 2, gamepadButtonY + buttonHeight / 2 + 5);
+    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓ ACTIVÉE" : "✗ DÉSACTIVÉE"), canvas.width / 2, gamepadButtonY + 40);
 
     // Bouton Split-Screen
-    const splitButtonColor = mainMenuOptions.splitScreenEnabled ? "#2ECC71" : "#E74C3C";
+    const splitButtonColor = splitScreenEnabled ? "#2ECC71" : "#E74C3C";
     ctx.fillStyle = splitButtonColor;
     ctx.fillRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
-    
-    // Highlight si sélectionné à la manette
-    if (mainMenuSelectedIndex === 1) {
-        ctx.strokeStyle = "#FFFF00";
-        ctx.lineWidth = 4;
-    } else {
-        ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 2;
-    }
+    ctx.strokeStyle = "#FFD700";
+    ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = `bold ${buttonFontSize}px Arial`;
+    ctx.font = "bold 20px Arial";
     ctx.textAlign = "center";
-    ctx.fillText("👥 Split: " + (mainMenuOptions.splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + buttonHeight / 2 + 5);
+    ctx.fillText("👥 Split-Screen: " + (splitScreenEnabled ? "✓ ACTIVÉ" : "✗ DÉSACTIVÉ"), canvas.width / 2, splitButtonY + 40);
 
     // Bouton Commencer
     const buttonColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#777777" : "#FFD700";
     const textColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#CCCCCC" : "#000000";
     ctx.fillStyle = buttonColorStart;
     ctx.fillRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
-    
-    // Highlight si sélectionné à la manette
-    if (mainMenuSelectedIndex === 2) {
-        ctx.strokeStyle = "#FFFF00";
-        ctx.lineWidth = 4;
-    } else {
-        ctx.strokeStyle = (lobbiesRebooting || mainMenuGameStarting) ? "#555555" : "#FFFFFF";
-        ctx.lineWidth = 2;
-    }
+    ctx.strokeStyle = (lobbiesRebooting || mainMenuGameStarting) ? "#555555" : "#FFFFFF";
+    ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = textColorStart;
-    ctx.font = `bold ${Math.max(11, buttonFontSize)}px Arial`;
+    ctx.font = "bold 24px Arial";
     ctx.textAlign = "center";
     let buttonText = "▶ COMMENCER";
-    if (lobbiesRebooting) buttonText = "⏳ REDÉM...";
-    if (mainMenuGameStarting) buttonText = "⏳ CHARGE...";
-    ctx.fillText(buttonText, offsetX + viewWidth / 2, startGameButtonY + buttonHeight / 2 + 5);
+    if (lobbiesRebooting) buttonText = "⏳ REDÉMARRAGE...";
+    if (mainMenuGameStarting) buttonText = "⏳ CHARGEMENT...";
+    ctx.fillText(buttonText, canvas.width / 2, startGameButtonY + 40);
 
     // Message de redémarrage si lobbies se redémarrent
     if (lobbiesRebooting) {
         ctx.fillStyle = "rgba(255, 100, 100, 0.8)";
-        ctx.fillRect(offsetX, 0, viewWidth, viewHeight);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "bold 24px Arial";
+        ctx.font = "bold 36px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("⏳ Redémarrage...", offsetX + viewWidth / 2, viewHeight / 2 - 20);
+        ctx.fillText("⏳ Redémarrage en cours...", canvas.width / 2, canvas.height / 2 - 20);
         
         ctx.fillStyle = "#FFFF00";
-        ctx.font = "14px Arial";
-        ctx.fillText("Les lobbies se réinitialisent", offsetX + viewWidth / 2, viewHeight / 2 + 20);
-        ctx.fillText("Veuillez patienter...", offsetX + viewWidth / 2, viewHeight / 2 + 45);
+        ctx.font = "18px Arial";
+        ctx.fillText("Les lobbies se réinitialisent", canvas.width / 2, canvas.height / 2 + 30);
+        ctx.fillText("Veuillez patienter...", canvas.width / 2, canvas.height / 2 + 60);
     }
+
+    // Instructions au clavier
+    ctx.fillStyle = "#AAAAAA";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Clic souris pour configurer | Manette: D-Pad/Stick + A pour confirmer", canvas.width / 2, menuY + menuHeight + 20);
 }
 
 /**

@@ -566,25 +566,6 @@ function getGameModeConfigCopy(mode) {
     return JSON.parse(JSON.stringify(config));
 }
 
-// --- AJOUT DES MODES ENCHÈRES ---
-const auctionModes = {};
-for (const [key, config] of Object.entries(GAME_MODES_CONFIG)) {
-    if (key !== 'custom') {
-        const auctionConfig = JSON.parse(JSON.stringify(config));
-        auctionConfig.name += ' (Enchères)';
-        auctionConfig.shop.type = 'dutchAuction';
-        auctionConfig.shop.auction = { 
-            gridSize: 3, 
-            tickMs: 2000, 
-            decrement: 1, 
-            startPriceMultiplier: 2, 
-            minPriceMultiplier: 0.5 
-        };
-        auctionModes[key + 'Auction'] = auctionConfig;
-    }
-}
-Object.assign(GAME_MODES_CONFIG, auctionModes);
-
 module.exports = {
     GAME_MODES_CONFIG,
     getGameModeConfig,

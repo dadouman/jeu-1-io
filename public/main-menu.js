@@ -143,27 +143,35 @@ function renderMainMenu(ctx, canvas) {
     ctx.lineWidth = 3;
     ctx.strokeRect(menuX, menuY, menuWidth, menuHeight);
 
-    // Titre du menu (taille adaptée)
+    // Titre du menu (taille adaptée aux petits écrans)
+    const titleSize = Math.max(18, Math.min(28, menuWidth / 20));
     ctx.fillStyle = "#FFD700";
-    ctx.font = "bold 28px Arial";
+    ctx.font = `bold ${titleSize}px Arial`;
     ctx.textAlign = "center";
-    ctx.fillText("🎮 MENU", offsetX + viewWidth / 2, menuY + 35);
+    ctx.fillText("🎮 MENU", offsetX + viewWidth / 2, menuY + Math.max(25, titleSize));
 
     // Sous-titre (optionnel en petit écran)
     if (viewWidth > 400) {
+        const subtitleSize = Math.max(12, Math.min(14, menuWidth / 40));
         ctx.fillStyle = "#FFFFFF";
-        ctx.font = "14px Arial";
-        ctx.fillText("Configure ton expérience", offsetX + viewWidth / 2, menuY + 60);
+        ctx.font = `${subtitleSize}px Arial`;
+        ctx.fillText("Configure ton expérience", offsetX + viewWidth / 2, menuY + Math.max(45, titleSize + 20));
     }
 
-    // Boutons du menu
+    // Boutons du menu - adapté aux petits écrans
     const buttonWidth = Math.min(300, menuWidth - 40);
-    const buttonHeight = 50;
+    const buttonHeight = Math.max(40, Math.min(50, menuHeight / 8));
     const buttonX = menuX + (menuWidth - buttonWidth) / 2;
-    const startButtonY = menuY + 80;
-    const gamepadButtonY = startButtonY + 70;
-    const splitButtonY = gamepadButtonY + 70;
-    const startGameButtonY = splitButtonY + 70;
+    
+    // Calculer les espacements adaptatifs
+    const availableHeight = menuHeight - 120; // Menu moins titre et marge
+    const totalButtonHeight = buttonHeight * 3; // 3 boutons
+    const spacing = Math.max(8, (availableHeight - totalButtonHeight) / 4); // Espace adaptatif
+    
+    const startButtonY = menuY + 50 + spacing;
+    const gamepadButtonY = startButtonY + buttonHeight + spacing;
+    const splitButtonY = gamepadButtonY + buttonHeight + spacing;
+    const startGameButtonY = splitButtonY + buttonHeight + spacing;
 
     // Zones cliquables
     mainMenuClickAreas = {
@@ -180,10 +188,11 @@ function renderMainMenu(ctx, canvas) {
     ctx.lineWidth = 2;
     ctx.strokeRect(buttonX, gamepadButtonY, buttonWidth, buttonHeight);
 
+    const buttonFontSize = Math.max(12, Math.min(16, buttonHeight * 0.6));
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 16px Arial";
+    ctx.font = `bold ${buttonFontSize}px Arial`;
     ctx.textAlign = "center";
-    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, gamepadButtonY + 32);
+    ctx.fillText("🎮 Manette: " + (gamepadEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, gamepadButtonY + buttonHeight / 2 + 5);
 
     // Bouton Split-Screen
     const splitButtonColor = splitScreenEnabled ? "#2ECC71" : "#E74C3C";
@@ -194,9 +203,9 @@ function renderMainMenu(ctx, canvas) {
     ctx.strokeRect(buttonX, splitButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 16px Arial";
+    ctx.font = `bold ${buttonFontSize}px Arial`;
     ctx.textAlign = "center";
-    ctx.fillText("👥 Split: " + (splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + 32);
+    ctx.fillText("👥 Split: " + (splitScreenEnabled ? "✓" : "✗"), offsetX + viewWidth / 2, splitButtonY + buttonHeight / 2 + 5);
 
     // Bouton Commencer
     const buttonColorStart = (lobbiesRebooting || mainMenuGameStarting) ? "#777777" : "#FFD700";
@@ -208,12 +217,12 @@ function renderMainMenu(ctx, canvas) {
     ctx.strokeRect(buttonX, startGameButtonY, buttonWidth, buttonHeight);
 
     ctx.fillStyle = textColorStart;
-    ctx.font = "bold 18px Arial";
+    ctx.font = `bold ${Math.max(11, buttonFontSize)}px Arial`;
     ctx.textAlign = "center";
     let buttonText = "▶ COMMENCER";
     if (lobbiesRebooting) buttonText = "⏳ REDÉM...";
     if (mainMenuGameStarting) buttonText = "⏳ CHARGE...";
-    ctx.fillText(buttonText, offsetX + viewWidth / 2, startGameButtonY + 32);
+    ctx.fillText(buttonText, offsetX + viewWidth / 2, startGameButtonY + buttonHeight / 2 + 5);
 
     // Message de redémarrage si lobbies se redémarrent
     if (lobbiesRebooting) {

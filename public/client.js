@@ -18,6 +18,12 @@ canvas.addEventListener('click', (event) => {
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
 
+    // Priorité 0: Navigateur de lobbies
+    if (lobbiesBrowserVisible && typeof handleLobbiesBrowserClick === 'function') {
+        const handled = handleLobbiesBrowserClick(mouseX, mouseY);
+        if (handled) return;
+    }
+
     // Priorité 1: Menu principal
     if (mainMenuVisible && typeof handleMainMenuClick === 'function') {
         const handled = handleMainMenuClick(mouseX, mouseY);

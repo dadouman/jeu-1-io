@@ -274,6 +274,13 @@ function continuousRender() {
             return;
         }
 
+        // === AFFICHER LE NAVIGATEUR DE LOBBIES ===
+        if (lobbiesBrowserVisible && typeof renderLobbiesBrowser === 'function') {
+            renderLobbiesBrowser(ctx, canvas);
+            requestAnimationFrame(continuousRender);
+            return;
+        }
+
         const shopTimeRemaining = (isShopOpen && shopTimerStart && shopType !== 'dutchAuction')
             ? Math.max(0, Math.ceil((SHOP_DURATION - (Date.now() - shopTimerStart)) / 1000))
             : null;

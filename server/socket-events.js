@@ -13,6 +13,7 @@ const { handleShopEvents } = require('./socket-handlers/shop');
 const { handleVotingEvents } = require('./socket-handlers/voting');
 const { handleSoloEvents } = require('./socket-handlers/solo');
 const { handleDisconnect } = require('./socket-handlers/disconnect');
+const { handleLobbiesEvents } = require('./socket-handlers/lobbies');
 
 const { 
     startRestartVote, 
@@ -87,6 +88,9 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
         handleSoloEvents(socket, io, soloSessions, playerModes, { 
             SoloRunModel, SoloBestSplitsModel, mongoURI 
         });
+
+        // Lobbies Handler (getActiveLobies, joinExistingLobby)
+        handleLobbiesEvents(socket, io, lobbies, soloSessions, playerModes, { getIsRebooting });
 
         // Disconnect Handler
         handleDisconnect(socket, io, lobbies, soloSessions, playerModes);

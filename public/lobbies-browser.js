@@ -7,6 +7,16 @@ window.lobbiesBrowserVisible = false;
 let activeLobies = [];
 
 /**
+ * Réinitialise le navigateur de lobbies au démarrage du jeu
+ * Appelée automatiquement quand on rejoint un lobby
+ */
+function resetLobbiesBrowserUI() {
+    console.log('🔄 Réinitialisation de l\'UI du navigateur de lobbies');
+    window.lobbiesBrowserVisible = false;
+    activeLobies = [];
+}
+
+/**
  * Affiche le navigateur de lobbies
  */
 function showLobbiesBrowser() {
@@ -150,7 +160,7 @@ function renderLobbiesBrowser(ctx, canvas) {
  * Gère les clics sur l'interface des lobbies
  */
 function handleLobbiesBrowserClick(mouseX, mouseY) {
-    if (!lobbiesBrowserVisible) return false;
+    if (!window.lobbiesBrowserVisible) return false;
 
     // Bouton fermer
     if (window.closeLobbiesBrowserArea) {
@@ -186,9 +196,11 @@ function joinLobby(mode) {
         return;
     }
 
+    console.log(`🎮 Tentative de rejoindre le lobby: ${mode}`);
+    hideLobbiesBrowser(); // Masquer immédiatement les lobbies
+    
     if (socket) {
         socket.emit('joinExistingLobby', { mode });
-        console.log(`🎮 Tentative de rejoindre le lobby: ${mode}`);
     }
 }
 
@@ -215,7 +227,7 @@ function initLobbiesBrowserSocketEvents() {
     socket.on('joinedLobby', (data) => {
         if (data.success) {
             console.log(`✅ Lobby rejoint: ${data.mode}`);
-            hideLobbiesBrowser();
+            resetLobbiesBrowserUI(); // Réinitialiser immédiatement le UI
             // Le mode du jeu sera défini par le serveur
             selectedMode = data.mode;
             currentGameMode = data.mode.replace('Auction', '');

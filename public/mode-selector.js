@@ -181,6 +181,11 @@ function selectMode(mode) {
             }
         }
         
+        // === RÉINITIALISER LE NAVIGATEUR DE LOBBIES ===
+        if (typeof resetLobbiesBrowserUI === 'function') {
+            resetLobbiesBrowserUI();
+        }
+        
         // ✅ ACTIVER SPLIT-SCREEN SI DEMANDÉ AU MENU PRINCIPAL
         if (mainMenuOptions && mainMenuOptions.splitScreenEnabled && typeof toggleSplitScreen === 'function') {
             // Attendre un peu que le mode soit vraiment initialisé

@@ -147,15 +147,9 @@ function selectMode(mode) {
         return;
     }
     
-    // Ajouter "Auction" au mode si boutique enchères sélectionnée
-    if (currentShopMode === 'auction') {
-        mode = mode + 'Auction';
-        console.log(`💰 Mode modifié pour inclure Auction: ${mode}`);
-    }
-    
     console.log(`%c✅ AUTORISÉ: Mode ${mode} - lobbiesRebooting = ${lobbiesRebooting}`, 'color: #00FF00; font-weight: bold; font-size: 14px');
     
-    const baseMode = mode.replace('Auction', '');
+    const baseMode = mode;
     if (baseMode === 'classic' || baseMode === 'classicPrim' || baseMode === 'infinite' || baseMode === 'solo' || baseMode === 'custom') {
         // Vérifier que le mode personnalisé existe
         if (baseMode === 'custom' && !customModeConfig) {
@@ -236,17 +230,31 @@ function selectMode(mode) {
         if (socket) {
             if (mode === 'custom' && customModeConfig) {
                 // Envoyer la configuration du mode personnalisé
-                socket.emit('selectGameMode', { mode: 'custom', customConfig: customModeConfig });
+                socket.emit('selectGameMode', { 
+                    mode: 'custom', 
+                    customConfig: customModeConfig,
+                    shopType: currentShopMode === 'auction' ? 'dutchAuction' : 'classic'
+                });
             } else {
-                socket.emit('selectGameMode', { mode });
+                socket.emit('selectGameMode', { 
+                    mode,
+                    shopType: currentShopMode === 'auction' ? 'dutchAuction' : 'classic'
+                });
             }
             
             // Se split screen está ativado, também emita para o socket secundário
             if (splitScreenEnabled && socketSecondary) {
                 if (mode === 'custom' && customModeConfig) {
-                    socketSecondary.emit('selectGameMode', { mode: 'custom', customConfig: customModeConfig });
+                    socketSecondary.emit('selectGameMode', { 
+                        mode: 'custom', 
+                        customConfig: customModeConfig,
+                        shopType: currentShopMode === 'auction' ? 'dutchAuction' : 'classic'
+                    });
                 } else {
-                    socketSecondary.emit('selectGameMode', { mode });
+                    socketSecondary.emit('selectGameMode', { 
+                        mode,
+                        shopType: currentShopMode === 'auction' ? 'dutchAuction' : 'classic'
+                    });
                 }
             }
             

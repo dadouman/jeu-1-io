@@ -10,6 +10,10 @@ const schemas = {
                 type: 'string',
                 enum: ['classic', 'infinite', 'solo', 'custom', 'classicPrim']
             },
+            shopType: {
+                type: 'string',
+                enum: ['classic', 'dutchAuction']
+            },
             customConfig: {
                 type: 'object',
                 properties: {

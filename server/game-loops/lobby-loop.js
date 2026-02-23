@@ -177,9 +177,13 @@ function processLobbyGameLoop(lobbies, io, {
             console.log(`🏪 [CHECK SHOP] Mode: ${mode}, Niveau complété: ${completedLevel}, isShopLevel: ${isShopLvl}`);
             if (isShopLvl) {
                 console.log(`🏪 [SHOP TRIGGER] Mode: ${mode}, MAGASIN VA S'OUVRIR après le niveau ${completedLevel}`);
-                const shopType = (mode === 'custom')
-                    ? (lobby.customConfig?.shop?.type || 'classic')
-                    : (modeConfig?.shop?.type || 'classic');
+                // Utiliser le shopType du lobby s'il est défini (depuis selectGameMode), sinon utiliser la config du mode
+                let shopType = lobby.shopType;
+                if (!shopType) {
+                    shopType = (mode === 'custom')
+                        ? (lobby.customConfig?.shop?.type || 'classic')
+                        : (modeConfig?.shop?.type || 'classic');
+                }
 
                 if (shopType === 'dutchAuction') {
                     // Pour éviter une boutique vide (ex: config custom incomplète), fallback sur les items classiques.

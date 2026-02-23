@@ -26,15 +26,16 @@ function handleModeSelection(socket, io, lobbies, soloSessions, playerModes, get
         }
 
         let mode = data.mode; // 'classic', 'infinite', 'solo', ou 'custom'
+        let shopType = data.shopType || 'classic'; // 'classic' ou 'dutchAuction'
         
         playerModes[socket.id] = mode;
         
         if (mode === 'solo') {
             handleSoloModeSelection(socket, data, lobbies, soloSessions);
         } else if (mode === 'custom') {
-            handleCustomModeSelection(socket, io, data, lobbies, playerModes);
+            handleCustomModeSelection(socket, io, data, lobbies, playerModes, shopType);
         } else {
-            handleMultiplayerModeSelection(socket, io, mode, lobbies, playerModes);
+            handleMultiplayerModeSelection(socket, io, mode, lobbies, playerModes, shopType);
         }
     });
 
@@ -86,7 +87,7 @@ function handleSoloModeSelection(socket, data, lobbies, soloSessions) {
     console.log(`   🏪 Shop aux niveaux: ${session.shopLevels.join(', ')}`);
 }
 
-function handleCustomModeSelection(socket, io, data, lobbies, playerModes) {
+function handleCustomModeSelection(socket, io, data, lobbies, playerModes, shopType) {
     if (!data.customConfig) {
         socket.emit('error', { message: 'Configuration personnalisée manquante' });
         return;
@@ -111,6 +112,7 @@ function handleCustomModeSelection(socket, io, data, lobbies, playerModes) {
             map: generatedMap,
             coin: null,
             customConfig: data.customConfig,
+            shopType: shopType || 'classic', // Ajouter le shopType
             restartVote: {
                 isActive: false,
                 votes: {},
@@ -124,6 +126,7 @@ function handleCustomModeSelection(socket, io, data, lobbies, playerModes) {
     
     const lobby = lobbies['custom'];
     lobby.customConfig = data.customConfig;
+    lobby.shopType = shopType || 'classic'; // Mettre à jour le shopType
     
     const playerIndex = Object.keys(lobby.players).length;
     const startPos = getRandomEmptyPosition(lobby.map);
@@ -143,13 +146,19 @@ function handleCustomModeSelection(socket, io, data, lobbies, playerModes) {
     console.log(`   ${lobby.players[socket.id].skin} rejoint custom (${Object.keys(lobby.players).length} joueur(s))`);
 }
 
-function handleMultiplayerModeSelection(socket, io, mode, lobbies, playerModes) {
+function handleMultiplayerModeSelection(socket, io, mode, lobbies, playerModes, shopType) {
     if (!lobbies[mode]) {
         socket.emit('error', { message: 'Mode invalide' });
         return;
     }
     
     const lobby = lobbies[mode];
+    
+    // Mettre à jour le shopType si fourni
+    if (shopType) {
+        lobby.shopType = shopType;
+    }
+    
     const modeDisplayNames = {
         'classic': 'COULOIRS (10 Niveaux)',
         'classicPrim': 'ORGANIQUE (10 Niveaux)',

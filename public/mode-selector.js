@@ -46,7 +46,41 @@ function setShopMode(mode) {
         }
     }
     
+    // ✅ METTRE À JOUR LES INFOS DE SHOP DANS CHAQUE CARTE DE MODE
+    updateShopInfoInCards();
+    
     console.log('📊 État actuel:', { currentShopMode });
+}
+
+/**
+ * Met à jour les infos de magasin dans les cartes de mode
+ */
+function updateShopInfoInCards() {
+    const isAuction = currentShopMode === 'auction';
+    
+    const shopInfos = {
+        'classic': isAuction 
+            ? '🏪 Boutique Enchères: Dutch Auction des items'
+            : '🏪 Boutique Classique: Tous les items',
+        'classicPrim': isAuction 
+            ? '🏪 Boutique Enchères: Dutch Auction des items'
+            : '🏪 Boutique Classique: Tous les items',
+        'infinite': isAuction 
+            ? '🏪 Boutique Enchères: Vitesse en Dutch Auction'
+            : '🏪 Boutique Classique: Vitesse disponible',
+        'solo': isAuction 
+            ? '🏪 Boutique Enchères: Dutch Auction des items'
+            : '🏪 Boutique Classique: Tous les items',
+    };
+    
+    // Mettre à jour les éléments du DOM
+    for (const [modeKey, infoText] of Object.entries(shopInfos)) {
+        const element = document.getElementById(`shopInfo-${modeKey}`);
+        if (element) {
+            element.textContent = infoText;
+            console.log(`✅ Mise à jour shopInfo-${modeKey}: ${infoText}`);
+        }
+    }
 }
 
 /**

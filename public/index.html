@@ -53,8 +53,11 @@
                 <h2>🔀 Couloirs</h2>
                 <p><strong>Longs Corridors</strong></p>
                 <p style="color: #FFD700; font-size: 12px;">
-                    🔼 5 niveaux (15→23)<br>
-                    🔽 5 niveaux (23→15)
+                    � 10 Niveaux<br>
+                    🔼 Croissance: 15→23 | 🔽 Décroissance: 23→15
+                </p>
+                <p style="color: #888; font-size: 11px;" id="shopInfo-classic">
+                    🏪 Boutique Classique: Tous les items
                 </p>
                 <p>Labyrinthes avec longs couloirs sinueux!</p>
                 <button onclick="if(lobbiesRebooting) return false; selectModeWithGuard('classic')">JOUER</button>
@@ -65,8 +68,11 @@
                 <h2>🌳 Organique</h2>
                 <p><strong>Ramifications Naturelles</strong></p>
                 <p style="color: #FFD700; font-size: 12px;">
-                    🔼 5 niveaux (15→23)<br>
-                    🔽 5 niveaux (23→15)
+                    📊 10 Niveaux<br>
+                    🔼 Croissance: 15→23 | 🔽 Décroissance: 23→15
+                </p>
+                <p style="color: #888; font-size: 11px;" id="shopInfo-classicPrim">
+                    🏪 Boutique Classique: Tous les items
                 </p>
                 <p>Labyrinthes avec passages alternatifs!</p>
                 <button onclick="if(lobbiesRebooting) return false; selectModeWithGuard('classicPrim')">JOUER</button>
@@ -78,7 +84,10 @@
                 <p><strong>Sans Limites</strong></p>
                 <p style="color: #FFD700; font-size: 12px;">
                     🔓 Tous les objets déverrouillés<br>
-                    💨 Seule la vitesse à l'achat
+                    💨 Items à l'achat: Vitesse seulement
+                </p>
+                <p style="color: #888; font-size: 11px;" id="shopInfo-infinite">
+                    🏪 Boutique Classique: Vitesse disponible
                 </p>
                 <p>Explore les labyrinthes éternels!</p>
                 <button onclick="if(lobbiesRebooting) return false; selectModeWithGuard('infinite')">JOUER</button>
@@ -89,11 +98,13 @@
                 <h2>🎯 Mode Solo</h2>
                 <p><strong>Contre-la-Montre</strong></p>
                 <p style="color: #FFD700; font-size: 12px;">
-                    ⏱️ 10 niveaux avec timer<br>
-                    ⚡ Feature aléatoire débloquée<br>
-                    📊 Leaderboard des temps
+                    📊 10 Niveaux<br>
+                    ⚡ Feature bonus aléatoire débloquée
                 </p>
-                <p>10 niveaux en expansion puis contraction. Une feature bonus aléatoire est débloquée dès le départ!</p>
+                <p style="color: #888; font-size: 11px;" id="shopInfo-solo">
+                    🏪 Boutique Classique: Tous les items
+                </p>
+                <p>Traverse 10 niveaux en expansion puis contraction. Leaderboard des temps!</p>
                 <button onclick="if(lobbiesRebooting) return false; selectModeWithGuard('solo')">JOUER</button>
             </div>
 

@@ -3,7 +3,8 @@
 
 const { debugLog } = require('./debug');
 const { generateMaze, generateMazeAdvanced, getRandomEmptyPosition } = require('../utils/map');
-const { initializePlayer } = require('../utils/player');
+const { initializePlayer, initializePlayerForMode } = require('../utils/player');
+const { emitToLobby } = require('./utils');
 
 // Importer les modules socket handlers (feature-based)
 const { handleModeSelection } = require('./socket-handlers/mode-selection');
@@ -90,6 +91,93 @@ function initializeSocketEvents(io, lobbies, soloSessions, playerModes, {
 
         // Disconnect Handler
         handleDisconnect(socket, io, lobbies, soloSessions, playerModes);
+
+        // --- LOBBIES BROWSER EVENTS ---
+        // Événement: Obtenir la liste des lobbies en cours
+        socket.on('getActiveLobies', () => {
+            debugLog(`📊 Demande reçue: getActiveLobies de ${socket.id}`);
+            
+            const activeLobies = [];
+            const modesData = [
+                { key: 'classic', displayName: '🎮 Mode Classic' },
+                { key: 'classicPrim', displayName: '🌳 Mode Prim' },
+                { key: 'infinite', displayName: '∞ Mode Infini' }
+            ];
+
+            modesData.forEach(({ key, displayName }) => {
+                const lobby = lobbies[key];
+                if (lobby && lobby.players) {
+                    const playerCount = Object.keys(lobby.players).length;
+                    
+                    // Seulement afficher si au moins 1 joueur
+                    if (playerCount > 0) {
+                        const uptime = Math.floor((Date.now() - (lobby.levelStartTime || Date.now())) / 1000);
+                        activeLobies.push({
+                            mode: key,
+                            modeDisplay: displayName,
+                            players: playerCount,
+                            level: lobby.currentLevel || 1,
+                            uptime: uptime > 0 ? uptime : 0
+                        });
+                        debugLog(`   ✅ ${displayName}: ${playerCount} joueur(s), niveau ${lobby.currentLevel}`);
+                    }
+                }
+            });
+
+            // Envoyer la réponse au client
+            socket.emit('activeLobiesUpdate', { lobbies: activeLobies });
+            debugLog(`   📤 Envoi de ${activeLobies.length} lobby(ies) au client`);
+        });
+
+        // Événement: Rejoindre un lobby existant
+        socket.on('joinExistingLobby', (data) => {
+            debugLog(`📊 Demande reçue: joinExistingLobby pour le mode ${data.mode} par ${socket.id}`);
+            
+            const mode = data.mode; // 'classic', 'classicPrim', ou 'infinite'
+            const lobby = lobbies[mode];
+
+            if (!lobby || !lobby.players) {
+                debugLog(`   ❌ Lobby ${mode} non trouvé ou invalide`);
+                socket.emit('error', { message: `Le lobby ${mode} n'existe pas` });
+                return;
+            }
+
+            try {
+                // Ajouter le joueur au lobby comme dans handleMultiplayerModeSelection
+                playerModes[socket.id] = mode;
+                
+                const modeDisplayNames = {
+                    'classic': 'COULOIRS (10 Niveaux)',
+                    'classicPrim': 'ORGANIQUE (10 Niveaux)',
+                    'infinite': 'INFINI'
+                };
+                debugLog(`   🎮 Ajout du joueur à ${modeDisplayNames[mode] || mode}`);
+                
+                // Créer et ajouter le joueur au lobby
+                const playerIndex = Object.keys(lobby.players).length;
+                const startPos = getRandomEmptyPosition(lobby.map);
+                lobby.players[socket.id] = initializePlayerForMode(startPos, playerIndex, mode);
+                
+                // Envoyer les données du jeu au joueur
+                socket.emit('mapData', lobby.map);
+                socket.emit('levelUpdate', lobby.currentLevel);
+                socket.emit('highScoreUpdate', lobby.currentRecord);
+                socket.emit('gameModSelected', { mode: mode, endType: 'multi' });
+                socket.emit('coinUpdate', lobby.coin);
+                
+                // Notifier les autres joueurs du lobby
+                emitToLobby(mode, 'playersCountUpdate', {
+                    count: Object.keys(lobby.players).length
+                }, io, lobbies);
+
+                // Confirmation au client
+                socket.emit('joinedLobby', { success: true, mode: mode });
+                debugLog(`   ✅ Joueur ${socket.id} a rejoint ${mode} (${Object.keys(lobby.players).length} joueur(s))`);
+            } catch (err) {
+                debugLog(`   ❌ Erreur lors de la jointure du lobby: ${err.message}`);
+                socket.emit('error', { message: 'Erreur lors de la connexion au lobby' });
+            }
+        });;
 
         // --- ADMIN COMMANDS ---
         socket.on('forceStopLobbies', () => {

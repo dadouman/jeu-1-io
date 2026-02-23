@@ -180,6 +180,9 @@ function selectMode(mode) {
             modeSelector.style.display = 'none';
         }
 
+        // Assurer que le menu principal est masqué
+        mainMenuVisible = false;
+
         // Fermer le navigateur de lobbies si ouvert
         if (typeof hideLobbiesBrowser === 'function') {
             hideLobbiesBrowser();
@@ -193,6 +196,9 @@ function selectMode(mode) {
         soloTotalTime = 0;
         soloSplitTimes = [];
 
+        // === INITIALISER LE MODE COURANT POUR TOUS LES MODES ===
+        currentGameMode = baseMode;
+        
         // === INITIALISATION SOLO (sans countdown client) ===
         if (mode === 'solo') {
             // Définir le mode AVANT le countdown
@@ -226,7 +232,7 @@ function selectMode(mode) {
             console.log('%c🎬 Mode Solo lancé! Countdown géré par le serveur', 'color: #FF6B6B; font-weight: bold; font-size: 14px');
         }
         
-        // Émettre l'événement au serveur
+        // Émettre l'événement ao servidor
         if (socket) {
             if (mode === 'custom' && customModeConfig) {
                 // Envoyer la configuration du mode personnalisé
@@ -235,7 +241,16 @@ function selectMode(mode) {
                 socket.emit('selectGameMode', { mode });
             }
             
-            // En mode solo, demander les meilleurs splits pour afficher les deltas
+            // Se split screen está ativado, também emita para o socket secundário
+            if (splitScreenEnabled && socketSecondary) {
+                if (mode === 'custom' && customModeConfig) {
+                    socketSecondary.emit('selectGameMode', { mode: 'custom', customConfig: customModeConfig });
+                } else {
+                    socketSecondary.emit('selectGameMode', { mode });
+                }
+            }
+            
+            // En modo solo, pedir los mejores splits para mostrar deltas
             if (mode === 'solo') {
                 socket.emit('getSoloBestSplits');
                 socket.emit('getSoloLeaderboard');

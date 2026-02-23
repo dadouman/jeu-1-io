@@ -146,10 +146,6 @@ let secondarySocketEventsBound = false;
 
 function enableSplitScreen() {
     if (splitScreenEnabled || splitScreenPending) return true;
-    if (!currentGameMode) {
-        console.warn('⚠️ Split-screen indisponible: aucun mode en cours.');
-        return false;
-    }
 
     splitScreenPending = true;
     // Créer un second socket pour le joueur 2
@@ -168,8 +164,8 @@ function enableSplitScreen() {
         secondarySocketEventsBound = true;
     }
 
-    // Brancher la réception d'état pour le rendu split
-    if (typeof attachSecondaryStateListener === 'function') {
+    // Brancher la réception d'état pour le rendu split (si un mode est en cours)
+    if (currentGameMode && typeof attachSecondaryStateListener === 'function') {
         attachSecondaryStateListener();
     }
 

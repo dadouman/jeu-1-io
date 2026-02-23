@@ -1,7 +1,7 @@
 // socket-events.js - Tous les événements Socket.io
 
 // Mode DEBUG - contrôlé par sessionStorage ou directement en développement
-const DEBUG_CLIENT = sessionStorage.getItem('DEBUG') === 'true' || process.env.NODE_ENV === 'development' || false;
+const DEBUG_CLIENT = sessionStorage.getItem('DEBUG') === 'true' || (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') || false;
 
 /**
  * Log seulement en mode DEBUG (côté client)

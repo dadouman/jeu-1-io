@@ -179,14 +179,28 @@ function renderProgressBar(ctx, canvas, level, transitionProgress, maxLevels = 1
     const numDots = Math.max(2, maxLevels);
     const dotSpacing = numDots > 1 ? timelineWidth / (numDots - 1) : 0;
     
-    // Récupérer les niveaux de shop
+    // Récupérer les niveaux de shop selon le mode ET le type de boutique
     const shopLevels = [];
+    const hasShopInMode = true; // Par défaut les boutiques sont activées
     try {
+        // Déterminer le shopType actuel
+        const currentShopType = (typeof currentShopMode !== 'undefined') ? currentShopMode : 'classic';
+        
+        // Déterminer les niveaux de shop selon le mode
         if (typeof currentGameMode !== 'undefined' && currentGameMode === 'solo') {
+            // Mode solo: toujours boutiques aux niveaux 5 et 10
             shopLevels.push(5, 10);
         } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'classic') {
+            // Mode classic: boutiques aux niveaux 5 et 10
             shopLevels.push(5, 10);
+        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'classicPrim') {
+            // Mode classicPrim (Organique): boutiques aux niveaux 5 et 10
+            shopLevels.push(5, 10);
+        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'infinite') {
+            // Mode infini: PAS DE SHOP (boutiques désactivées)
+            // shopLevels reste vide
         } else if (typeof customModeConfig !== 'undefined' && customModeConfig && customModeConfig.shop && customModeConfig.shop.levels) {
+            // Mode custom: utiliser les niveaux configurés
             shopLevels.push(...customModeConfig.shop.levels);
         }
     } catch (e) {
@@ -244,11 +258,15 @@ function renderProgressBar(ctx, canvas, level, transitionProgress, maxLevels = 1
         
         // Symbole pour les shops
         if (isShopLevel) {
+            // Déterminer l'icône selon le type de boutique
+            const currentShopType = (typeof currentShopMode !== 'undefined') ? currentShopMode : 'classic';
+            const shopIcon = currentShopType === 'auction' ? '🏆' : '🛍️'; // Coupe pour enchères, panier pour classique
+            
             ctx.fillStyle = "#FFD700";
             ctx.font = "14px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "bottom";
-            ctx.fillText("🛍️", dotX, timelineY - 15);
+            ctx.fillText(shopIcon, dotX, timelineY - 15);
         }
     }
     

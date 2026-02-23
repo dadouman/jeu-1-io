@@ -2,6 +2,57 @@
 // Rendu des écrans de transition et vote
 
 /**
+ * Récupère dynamiquement les niveaux de boutique pour un mode donné
+ * Fonctionne avec n'importe quel mode (existant ou nouveau)
+ * @param {string} mode - Le mode de jeu ('classic', 'infinite', 'solo', 'custom', etc.)
+ * @returns {number[]} - Les niveaux où les boutiques apparaissent
+ */
+function getShopLevelsForMode(mode = null) {
+    // Déterminer le mode
+    const targetMode = mode || (typeof currentGameMode !== 'undefined' ? currentGameMode : null);
+    
+    if (!targetMode) {
+        return []; // Aucun mode défini
+    }
+    
+    try {
+        // === CAS 1: MODE CUSTOM ===
+        if (targetMode === 'custom' && typeof customModeConfig !== 'undefined' && customModeConfig) {
+            if (customModeConfig.shop && Array.isArray(customModeConfig.shop.levels)) {
+                return customModeConfig.shop.levels;
+            }
+        }
+        
+        // === CAS 2: MODES STANDARD AVEC CONFIGURATION DYNAMIQUE ===
+        // ✅ PRIORITÉ: Récupérer depuis la config centralisée GAME_MODE_CONFIG (game-state.js)
+        if (typeof window.GAME_MODE_CONFIG !== 'undefined' && window.GAME_MODE_CONFIG[targetMode]) {
+            return window.GAME_MODE_CONFIG[targetMode].shopLevels || [];
+        }
+        
+        // === CAS 3: MODES STANDARD AVEC CONFIGURATION SERVEUR ===
+        // Essayer de récupérer depuis le serveur via une fonction utilitaire (si elle existe)
+        if (typeof window.gameModeShopConfig !== 'undefined' && window.gameModeShopConfig[targetMode]) {
+            return window.gameModeShopConfig[targetMode];
+        }
+        
+        // === CAS 4: FALLBACK SUR LES VALEURS PAR DÉFAUT PAR MODE ===
+        // Cette logique s'auto-adapte pour chaque mode standard
+        const defaultShopLevels = {
+            'classic': [5, 10],      // Classic: 10 niveaux -> boutiques à 5 et 10
+            'classicPrim': [5, 10],  // Organique: 10 niveaux -> boutiques à 5 et 10
+            'solo': [5, 10],         // Solo: 10 niveaux -> boutiques à 5 et 10
+            'infinite': [],          // Infinite: AUCUNE BOUTIQUE
+            'custom': []             // Custom: géré en cas 1
+        };
+        
+        return defaultShopLevels[targetMode] || [];
+    } catch (e) {
+        console.error('❌ Erreur dans getShopLevelsForMode:', e);
+        return [];
+    }
+}
+
+/**
  * Récupère le nombre max de niveaux selon le mode actuel
  * @returns {number} - Le nombre max de niveaux
  */
@@ -179,33 +230,8 @@ function renderProgressBar(ctx, canvas, level, transitionProgress, maxLevels = 1
     const numDots = Math.max(2, maxLevels);
     const dotSpacing = numDots > 1 ? timelineWidth / (numDots - 1) : 0;
     
-    // Récupérer les niveaux de shop selon le mode ET le type de boutique
-    const shopLevels = [];
-    const hasShopInMode = true; // Par défaut les boutiques sont activées
-    try {
-        // Déterminer le shopType actuel
-        const currentShopType = (typeof currentShopMode !== 'undefined') ? currentShopMode : 'classic';
-        
-        // Déterminer les niveaux de shop selon le mode
-        if (typeof currentGameMode !== 'undefined' && currentGameMode === 'solo') {
-            // Mode solo: toujours boutiques aux niveaux 5 et 10
-            shopLevels.push(5, 10);
-        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'classic') {
-            // Mode classic: boutiques aux niveaux 5 et 10
-            shopLevels.push(5, 10);
-        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'classicPrim') {
-            // Mode classicPrim (Organique): boutiques aux niveaux 5 et 10
-            shopLevels.push(5, 10);
-        } else if (typeof currentGameMode !== 'undefined' && currentGameMode === 'infinite') {
-            // Mode infini: PAS DE SHOP (boutiques désactivées)
-            // shopLevels reste vide
-        } else if (typeof customModeConfig !== 'undefined' && customModeConfig && customModeConfig.shop && customModeConfig.shop.levels) {
-            // Mode custom: utiliser les niveaux configurés
-            shopLevels.push(...customModeConfig.shop.levels);
-        }
-    } catch (e) {
-        // Ignorer les erreurs si les variables ne sont pas définies
-    }
+    // ✅ RÉCUPÉRER LES NIVEAUX DE SHOP DE MANIÈRE DYNAMIQUE (fonctionne avec n'importe quel mode)
+    const shopLevels = getShopLevelsForMode();
     
     // Ligne horizontale de la chronologie
     ctx.strokeStyle = "#555";

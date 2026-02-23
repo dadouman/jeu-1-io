@@ -1,5 +1,45 @@
 // game-state.js - Variables d'état du jeu centralisées
 
+// ========================================
+// ✅ CONFIGURATION CENTRALISÉE DES MODES
+// ========================================
+// Cette configuration permet une gestion dynamique des modes
+// Si tu ajoutes un nouveau mode, ajoute-le ici!
+window.GAME_MODE_CONFIG = {
+    classic: {
+        name: 'Couloirs',
+        maxLevels: 10,
+        shopLevels: [5, 10],
+        hasShop: true
+    },
+    classicPrim: {
+        name: 'Organique',
+        maxLevels: 10,
+        shopLevels: [5, 10],
+        hasShop: true
+    },
+    solo: {
+        name: 'Solo',
+        maxLevels: 10,
+        shopLevels: [5, 10],
+        hasShop: true
+    },
+    infinite: {
+        name: 'Infini',
+        maxLevels: 100,
+        shopLevels: [], // Pas de boutique en mode infini
+        hasShop: false
+    }
+    // ➕ AJOUTER DE NOUVEAUX MODES ICI
+    // Example:
+    // myNewMode: {
+    //     name: 'Mon Nouveau Mode',
+    //     maxLevels: 15,
+    //     shopLevels: [5, 10, 15],
+    //     hasShop: true
+    // }
+};
+
 // --- CONFIGURATION SOCKET ---
 // Socket principal (joueur 1)
 const socket = io({

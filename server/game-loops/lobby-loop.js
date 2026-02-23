@@ -74,10 +74,18 @@ function processLobbyGameLoop(lobbies, io, {
                     // 🎯 LE JEU EST TERMINÉ!
                     console.log(`\n🏁 ════════════════════════════════════\n   JEU TERMINÉ [${mode}] - Niveau ${maxLevels} complété\n════════════════════════════════════\n`);
                     
-                    // 1. Envoyer l'événement de fin aux joueurs
+                    // 1. METTRE À JOUR LE RECORD AVANT DE SUPPRIMER LES JOUEURS ⭐
+                    if (p.score > lobby.currentRecord.score) {
+                        lobby.currentRecord.score = p.score;
+                        lobby.currentRecord.skin = p.skin;
+                        recordChanged = true;
+                        console.log(`🏆 [RECORD] ${p.skin} établit un nouveau record: ${p.score} points au niveau ${maxLevels}`);
+                    }
+                    
+                    // 2. Envoyer l'événement de fin aux joueurs
                     emitToLobby(mode, 'gameFinished', { finalLevel: maxLevels, mode: mode, endType }, io, lobbies);
                     
-                    // 2. Exclure TOUS les joueurs du lobby
+                    // 3. Exclure TOUS les joueurs du lobby
                     const playerIds = Object.keys(lobby.players);
                     for (const playerId of playerIds) {
                         delete lobby.players[playerId];
@@ -97,9 +105,10 @@ function processLobbyGameLoop(lobbies, io, {
                         }
                     }
                     
-                    // 3. Réinitialiser le lobby pour la prochaine partie
-                    lobby.currentLevel = 1;
-                    lobby.currentRecord = { score: 0, skin: 'unknown' };
+                    // 4. Réinitialiser le lobby pour la prochaine partie
+                    // ATTENTION: Réinitialiser APRÈS la vérification recordChanged au lieu d'ici!
+                    // lobby.currentLevel = 1;
+                    // lobby.currentRecord = { score: 0, skin: 'unknown' };
                     
                     // Utiliser l'algorithme configuré pour le mode custom ou classicPrim
                     const resetMazeSize = calculateMazeSize(1, mode, lobby);
@@ -301,10 +310,20 @@ function processLobbyGameLoop(lobbies, io, {
 
         // SI LE RECORD A CHANGÉ
         if (recordChanged) {
+            console.log(`🏆 [RECORD SAUVEGARDÉ] Mode ${mode}: ${lobby.currentRecord.skin} avec ${lobby.currentRecord.score} points`);
             emitToLobby(mode, 'highScoreUpdate', lobby.currentRecord, io, lobbies);
             if (mongoURI) {
                 HighScoreModel.updateOne({}, { score: lobby.currentRecord.score, skin: lobby.currentRecord.skin }).exec();
             }
+            
+            // APRÈS AVOIR SAUVEGARDÉ, réinitialiser le record pour le prochain lobby
+            lobby.currentRecord = { score: 0, skin: 'unknown' };
+        }
+        
+        // SI LE LOBBY EST VIDE (jeu terminé), réinitialiser le niveau
+        if (Object.keys(lobby.players).length === 0 && levelChanged) {
+            lobby.currentLevel = 1;
+            console.log(`🔄 [LOBBY VIDE] Mode ${mode}: réinitialisation en attente de nouveaux joueurs`);
         }
 
         emitToLobby(mode, 'state', { players: lobby.players, coin: lobby.coin }, io, lobbies);
